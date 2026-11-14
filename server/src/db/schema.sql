@@ -820,3 +820,10 @@ DO $$ BEGIN
   ALTER TABLE assets ADD CONSTRAINT assets_sources_check CHECK (cardinality(sources) <= 40);
 EXCEPTION WHEN duplicate_object THEN NULL; END $$;
 CREATE INDEX IF NOT EXISTS assets_tenant_kind_idx ON assets (tenant_id, kind);
+
+-- Correlation across platforms: one attack seen by several security tools (campaigns.ts, rule multi_platform).
+ALTER TABLE attack_campaigns DROP CONSTRAINT IF EXISTS attack_campaigns_rule_check;
+ALTER TABLE attack_campaigns ADD CONSTRAINT attack_campaigns_rule_check CHECK (rule IN (
+  'rapid_chain', 'wide_sweep', 'swarm', 'velocity', 'ai_manipulation',
+  'ransomware', 'mailbox_takeover', 'phishing_execution', 'supply_chain', 'slow_intrusion',
+  'credential_attack', 'account_compromise', 'multi_platform')) NOT VALID;

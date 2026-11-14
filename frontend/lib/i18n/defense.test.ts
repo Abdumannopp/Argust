@@ -2,7 +2,7 @@ import { describe, expect, it } from "vitest";
 import { defense } from "./ns/defense";
 
 const THREATS = ["ransomware", "bec", "phishing", "ddos", "ai_deception", "espionage", "supply_chain"];
-const RULES = ["rapid_chain", "wide_sweep", "swarm", "velocity", "ai_manipulation", "ransomware", "mailbox_takeover", "phishing_execution", "supply_chain", "slow_intrusion", "credential_attack", "account_compromise"];
+const RULES = ["rapid_chain", "wide_sweep", "swarm", "velocity", "ai_manipulation", "ransomware", "mailbox_takeover", "phishing_execution", "supply_chain", "slow_intrusion", "credential_attack", "account_compromise", "multi_platform"];
 
 describe("Defense page text", () => {
   it.each(["en"] as const)("%s: every attack type has a name, what Legion does, and what to connect", (l) => {

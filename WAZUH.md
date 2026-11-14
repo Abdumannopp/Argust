@@ -240,6 +240,7 @@ if you choose, blocks the attacker's address through your Wazuh manager in
 | Sudden burst (`velocity`) | ≥ 30 alerts from one address in 5 minutes | yes |
 | Password attack (`credential_attack`) | ≥ 10 failed sign-ins or ≥ 5 different accounts tried from one address in 10 minutes | yes |
 | Account broken into (`account_compromise`) | the same address signed in within 30 minutes after ≥ 3 failures | yes (the attacker's address) |
+| One attack seen by several platforms (`multi_platform`) | two or more different platforms report the same attacking address, or high/critical alerts on the same host or account, within 60 minutes | **no** (it joins evidence; a person decides) |
 | Many addresses, one server (`swarm`) | ≥ 10 addresses against one server in 10 minutes | **no** (too many addresses; this is DDoS — see EDGE-SECURITY.md) |
 | Attempt to manipulate AI (`ai_manipulation`) | instructions to an AI inside a log ("ignore previous instructions", hidden characters, model tokens…) | **no** (it is text, not an address) |
 | Ransomware (`ransomware`) | signs of ransomware, or ≥ 50 file changes on one host in a short time | no (isolate the host) |
