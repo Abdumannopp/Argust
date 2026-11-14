@@ -37,6 +37,7 @@ const FIXTURES: Record<string, Fixture> = {
   "GET /alerts/:id": { make: async () => ({ params: { id: ALERT }, snapshot: row("SELECT status FROM alerts WHERE tenant_id = $1 AND id = $2", [tA, ALERT]) }) },
   "PATCH /alerts/:id/status": { make: async () => ({ params: { id: ALERT }, body: { status: "resolved" }, snapshot: row("SELECT status, resolved_at FROM alerts WHERE tenant_id = $1 AND id = $2", [tA, ALERT]) }) },
   "POST /alerts/:id/explain": { make: async () => ({ params: { id: ALERT }, snapshot: row("SELECT ai_explanation FROM alerts WHERE tenant_id = $1 AND id = $2", [tA, ALERT]) }) },
+  "POST /alerts/:id/intel": { make: async () => ({ params: { id: ALERT }, snapshot: row("SELECT count(*)::int AS n FROM audit_log WHERE tenant_id = $1 AND action = 'intel.lookup'", [tA]) }) },
   "POST /users/:id/resend-invite": { make: async () => ({ params: { id: adminA2.id }, snapshot: row("SELECT status, role FROM users WHERE id = $1", [adminA2.id]) }) },
   "PATCH /users/:id/role": { make: async () => ({ params: { id: adminA2.id }, body: { role: "viewer" }, snapshot: row("SELECT role FROM workspace_memberships WHERE user_id = $1 AND tenant_id = $2", [adminA2.id, tA]) }) },
   "DELETE /users/:id": { make: async () => ({ params: { id: adminA2.id }, snapshot: row("SELECT status FROM workspace_memberships WHERE user_id = $1 AND tenant_id = $2", [adminA2.id, tA]) }) },
