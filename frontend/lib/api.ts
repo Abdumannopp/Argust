@@ -940,6 +940,22 @@ export function createConnection(body: { kind: string; name: string; config: Rec
 export function setConnectionStatus(id: string, action: "pause" | "resume"): Promise<ConnectionInfo> {
   return request(`/integrations/${encodeURIComponent(id)}/${action}`, { method: "POST" });
 }
+export interface ConnectionHealth {
+  id: string; kind: string; name: string; direction: "in" | "out" | "intel"; health: "ok" | "waiting" | "failing" | "overdue" | "stopped" | "paused";
+  alerts_24h: number | null; queued: number | null; undelivered: number | null;
+}
+export interface IntegrationHealth {
+  summary: { total: number; ok: number; attention: number; paused: number };
+  connections: ConnectionHealth[];
+  sources: { source: string; alerts_24h: number; last_alert_at: string | null }[];
+}
+export function getIntegrationHealth(): Promise<IntegrationHealth> {
+  return request("/integrations/health");
+}
+/** Ask Legion to poll a working pull connection at once instead of waiting for its interval. */
+export function checkConnectionNow(id: string): Promise<ConnectionInfo> {
+  return request(`/integrations/${encodeURIComponent(id)}/check`, { method: "POST" });
+}
 export function removeConnection(id: string): Promise<{ status: string }> {
   return request(`/integrations/${encodeURIComponent(id)}`, { method: "DELETE" });
 }

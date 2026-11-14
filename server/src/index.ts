@@ -2646,6 +2646,23 @@ app.post("/integrations", requireRole("admin"), async (req: AuthedRequest, res) 
   }
 });
 
+// One view of every vendor: is each connection working, how fresh, how much it brought in or still has to send.
+app.get("/integrations/health", requireRole("admin"), async (req: AuthedRequest, res) => {
+  res.json(await connections.health(req.user!.tenant_id));
+});
+
+app.post("/integrations/:id/check", requireRole("admin"), async (req: AuthedRequest, res) => {
+  if (!UUID_RE.test(String(req.params.id))) return res.status(404).json({ detail: "Integration not found." });
+  try {
+    const c = await connections.checkNow(req.user!.tenant_id, String(req.params.id));
+    await log(req, "integration.check_requested", "integration", c.id, c.kind);
+    return res.json(c);
+  } catch (error) {
+    if (error instanceof connections.ConnectionError) return res.status(404).json({ detail: error.message });
+    throw error;
+  }
+});
+
 for (const [action, status] of [["pause", "paused"], ["resume", "active"]] as const) {
   app.post(`/integrations/:id/${action}`, requireRole("admin"), async (req: AuthedRequest, res) => {
     if (!UUID_RE.test(String(req.params.id))) return res.status(404).json({ detail: "Integration not found." });

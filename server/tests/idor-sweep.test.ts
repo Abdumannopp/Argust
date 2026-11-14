@@ -73,7 +73,7 @@ const FIXTURES: Record<string, Fixture> = {
       return { params: { id: r.check.id }, snapshot: row("SELECT resolution FROM payment_checks WHERE tenant_id = $1 AND id = $2", [tA, r.check.id]) };
     },
   },
-  ...Object.fromEntries(["POST /integrations/:id/pause", "POST /integrations/:id/resume", "DELETE /integrations/:id"].map((k) => [k, {
+  ...Object.fromEntries(["POST /integrations/:id/pause", "POST /integrations/:id/resume", "POST /integrations/:id/check", "DELETE /integrations/:id"].map((k) => [k, {
     make: async () => {
       const id = randomUUID();
       await query("INSERT INTO integration_connections (id, tenant_id, kind, name, status) VALUES ($1, $2, 'fakecloud', 'A cloud', 'active')", [id, tA]);
