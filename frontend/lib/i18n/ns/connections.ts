@@ -4,7 +4,7 @@ import { defineMessages } from "../core";
 export const connections = defineMessages({
   en: {
     title: "Connections",
-    intro: "Bring in alerts from your endpoint protection (CrowdStrike, SentinelOne, Defender), SIEM (Sentinel, Elastic, Splunk), cloud (AWS, Azure, Google Cloud), identity (Okta, Google Workspace) and Cloudflare, and send alerts to Slack, Teams, PagerDuty, Opsgenie, Jira or ServiceNow. Secrets are encrypted and never shown again.",
+    intro: "Bring in alerts from your endpoint protection (CrowdStrike, SentinelOne, Defender), SIEM (Sentinel, Elastic, Splunk), cloud (AWS, Azure, Google Cloud), identity (Okta, Google Workspace) and Cloudflare, check addresses against threat intelligence (VirusTotal, MISP, OpenCTI), and send alerts to Slack, Teams, PagerDuty, Opsgenie, Jira or ServiceNow. Secrets are encrypted and never shown again.",
     adminOnly: "Only administrators can manage connections.",
     empty: "No connections yet.",
     add: "Add a connection",
@@ -31,6 +31,9 @@ export const connections = defineMessages({
       cloudflare: { name: "Cloudflare", help: "Reads addresses the firewall blocked or challenged — one alert per address per hour. Create an API token with Zone · Analytics · Read for the zone." },
       gworkspace: { name: "Google Workspace", help: "Reads suspicious and failed sign-ins and accounts Google disabled. Create a service account, allow domain-wide delegation for admin.reports.audit.readonly only, and enter an administrator's address." },
       servicenow: { name: "ServiceNow", help: "Opens one incident per alert. Use an integration user with the itil role (create incidents) and nothing more." },
+      virustotal: { name: "VirusTotal (threat intelligence)", help: "Tells you how many security vendors flag an address, domain, URL or file hash. Asked only when you press \"Check reputation\" on an alert or an AI agent uses its threat-intelligence skill. Paste your VirusTotal API key; a free key allows four lookups a minute." },
+      misp: { name: "MISP (threat intelligence)", help: "Checks indicators against the events in your own MISP. Use the API key of a read-only user. Your MISP must be reachable from the internet over HTTPS with a valid certificate; a server that is only inside your network cannot be connected." },
+      opencti: { name: "OpenCTI (threat intelligence)", help: "Checks indicators against the observables in your own OpenCTI, with its score. Use the API token of a read-only user. Your OpenCTI must be reachable from the internet over HTTPS with a valid certificate." },
       opsgenie: { name: "Opsgenie", help: "Alerts the on-call team for serious alerts. Add an API integration in Opsgenie and paste its key." },
     },
     fields: {
@@ -70,6 +73,7 @@ export const connections = defineMessages({
       username: "User name",
       password: "Password",
       region: "Region",
+      host: "Server name (for example intel.example.com — no https://)",
     },
     severities: { low: "Low", medium: "Medium", high: "High", critical: "Critical" },
     status: { active: "Working", paused: "Paused", error: "Stopped after repeated errors", disabled: "Removed" },
@@ -89,6 +93,6 @@ export const connections = defineMessages({
       ticket: (key: string) => `Ticket ${key}`,
     },
     githubUrl: (url: string) => `Webhook address for GitHub (content type application/json): ${url}`,
-    cannotAct: "These connections only read alerts, notify people or open tickets. They never change anything in your systems.",
+    cannotAct: "These connections only read alerts, look up reputation, notify people or open tickets. They never change anything in your systems.",
   },
 });

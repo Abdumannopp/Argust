@@ -917,6 +917,16 @@ export interface AlertDelivery { connection: string; kind: string; status: "pend
 export function getAlertDeliveries(id: string): Promise<{ deliveries: AlertDelivery[] }> {
   return request(`/alerts/${encodeURIComponent(id)}/deliveries`);
 }
+export interface IntelReport {
+  status: "ok" | "not_configured" | "unavailable" | "no_indicator";
+  sources: { name: string; kind: string; ok: boolean }[];
+  results: { indicator: string; type: string; verdict: "malicious" | "suspicious" | "benign" | "unknown"; source: string; confidence: number | null; lastSeen: string | null; notes: string | null }[];
+  skipped: { value: string; reason: "private_address" | "invalid" | "unsupported" }[];
+}
+/** Asks the workspace's threat-intelligence sources about the alert's source address. Sends the address to them. */
+export function checkAlertReputation(id: string): Promise<IntelReport> {
+  return request(`/alerts/${encodeURIComponent(id)}/intel`, { method: "POST" });
+}
 /** Where GitHub sends alerts for one connection: this API's GitHub webhook, as an absolute URL. */
 export function githubWebhookUrl(connectionId: string): string {
   return `${absoluteApi("/security-events/webhook/github")}?connection=${encodeURIComponent(connectionId)}`;

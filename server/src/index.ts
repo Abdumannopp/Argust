@@ -21,6 +21,7 @@ import { DATE_FORMATS, TIME_FORMATS, effectiveSettings, isTimeZone, regionOf, re
 import * as integrations from "./integrations/registry.js";
 import * as connections from "./integrations/connections.js";
 import { ingestFindings } from "./integrations/ingest.js";
+import { lookupIndicators } from "./threat-intel.js";
 import { wazuhAdapter } from "./integrations/wazuh.js";
 import { genericWebhookAdapter } from "./integrations/generic.js";
 import { cefAdapter } from "./integrations/cef.js";
@@ -1458,6 +1459,20 @@ app.get("/alerts/:id/deliveries", auth, async (req: AuthedRequest, res) => {
   const alert = await store.getAlert(req.user!.tenant_id, String(req.params.id));
   if (!alert) return res.status(404).json({ detail: "Alert not found" });
   res.json({ deliveries: await deliveriesForAlert(req.user!.tenant_id, alert.id) });
+});
+
+// Threat intelligence for one alert's source address, asked of the workspace's own sources (VirusTotal, MISP,
+// OpenCTI) only when a person presses the button: the address leaves Legion, so it is never sent by itself.
+app.post("/alerts/:id/intel", requireRole("analyst"), async (req: AuthedRequest, res) => {
+  const alert = await store.getAlert(req.user!.tenant_id, String(req.params.id));
+  if (!alert) return res.status(404).json({ detail: "Alert not found" });
+  if (!alert.source_ip) return res.json({ status: "no_indicator", sources: [], results: [], skipped: [] });
+  const report = await lookupIndicators(req.user!.tenant_id, [{ type: "ip", value: alert.source_ip }]);
+  await store.audit({
+    tenant_id: req.user!.tenant_id, user_id: req.user!.id, user_email: req.user!.email, action: "intel.lookup", resource_type: "alert", resource_id: alert.id,
+    detail: `${report.status}; sources: ${report.sources.map((s) => s.kind).join(", ") || "none"}`, ip_address: req.ip ?? null,
+  });
+  res.json(report);
 });
 
 app.patch("/alerts/:id/status", requireRole("analyst"), async (req: AuthedRequest, res) => {

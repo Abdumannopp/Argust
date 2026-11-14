@@ -8,11 +8,11 @@ import { useLanguage } from "@/lib/i18n/LanguageContext";
 import { timeAgo } from "@/lib/i18n/format";
 
 type Kind = "m365" | "azure" | "gcp" | "guardduty" | "okta" | "github" | "slack" | "teams" | "pagerduty" | "jira"
-  | "crowdstrike" | "sentinelone" | "msentinel" | "securityhub" | "elastic" | "splunk" | "cloudflare" | "gworkspace" | "servicenow" | "opsgenie";
+  | "crowdstrike" | "sentinelone" | "msentinel" | "securityhub" | "elastic" | "splunk" | "cloudflare" | "gworkspace" | "servicenow" | "opsgenie" | "virustotal" | "misp" | "opencti";
 type FieldType = "text" | "password" | "regions" | "severity" | "choice" | "number";
 interface Field { key: string; where: "config" | "secrets"; type: FieldType; options?: string[] }
-// Grouped as the card shows them: endpoint and SIEM, cloud, identity and edge, then where alerts are sent.
-const KINDS: Kind[] = ["crowdstrike", "sentinelone", "m365", "msentinel", "elastic", "splunk", "azure", "guardduty", "securityhub", "gcp", "okta", "gworkspace", "cloudflare", "github", "slack", "teams", "pagerduty", "opsgenie", "jira", "servicenow"];
+// Grouped as the card shows them: endpoint and SIEM, cloud, identity and edge, threat intelligence, then where alerts are sent.
+const KINDS: Kind[] = ["crowdstrike", "sentinelone", "m365", "msentinel", "elastic", "splunk", "azure", "guardduty", "securityhub", "gcp", "okta", "gworkspace", "cloudflare", "github", "virustotal", "misp", "opencti", "slack", "teams", "pagerduty", "opsgenie", "jira", "servicenow"];
 const OUTBOUND: Kind[] = ["slack", "teams", "pagerduty", "opsgenie", "jira", "servicenow"];
 // Technical identifiers: they must match the server's schema for each connector.
 const FIELDS: Record<Kind, Field[]> = {
@@ -35,6 +35,9 @@ const FIELDS: Record<Kind, Field[]> = {
   cloudflare: [{ key: "zone_id", where: "config", type: "text" }, { key: "min_events", where: "config", type: "number" }, { key: "api_token", where: "secrets", type: "password" }],
   gworkspace: [{ key: "admin_email", where: "config", type: "text" }, { key: "service_account_json", where: "secrets", type: "password" }],
   servicenow: [{ key: "instance", where: "config", type: "text" }, { key: "username", where: "secrets", type: "text" }, { key: "password", where: "secrets", type: "password" }, { key: "min_severity", where: "config", type: "severity" }],
+  virustotal: [{ key: "api_key", where: "secrets", type: "password" }],
+  misp: [{ key: "host", where: "config", type: "text" }, { key: "api_key", where: "secrets", type: "password" }],
+  opencti: [{ key: "host", where: "config", type: "text" }, { key: "api_token", where: "secrets", type: "password" }],
   opsgenie: [{ key: "region", where: "config", type: "choice", options: ["us", "eu"] }, { key: "api_key", where: "secrets", type: "password" }, { key: "min_severity", where: "config", type: "severity" }],
 };
 const card = "lg-surface p-4";

@@ -12,6 +12,7 @@
  * What it does not change: human sign-in. People keep the existing cookie
  * session; the module only asks `resolveSessionUser` who is signed in.
  */
+import { lookupIndicators } from "./threat-intel.js";
 import { Router, type Application, type Request } from "express";
 import { z } from "zod";
 import {
@@ -83,8 +84,9 @@ export function toSecurityEvent(a: Alert): SecurityEvent {
 /**
  * The skills' view of this installation's data. Every method receives the
  * tenant from the authenticated agent and queries only that tenant.
- * Threat intelligence is not configured: Legion has no provider, so that
- * skill answers "unknown" and says so.
+ * Threat intelligence comes from the workspace's own connections (VirusTotal,
+ * MISP, OpenCTI — threat-intel.ts); with none, that skill answers "unknown"
+ * and says no provider is configured.
  */
 export function skillData(): SkillDataSource {
   return {
@@ -102,6 +104,13 @@ export function skillData(): SkillDataSource {
           name: a.name, tenantId: a.tenant_id, ip: a.ip_address, os: a.os, risk: a.risk, online: a.online,
           exposure: exposureOf(a.ip_address), lastSeen: new Date(a.last_seen).toISOString(),
         }));
+    },
+    async lookupIndicators(tenantId, indicators) {
+      if (!UUID.test(tenantId)) return [];
+      const report = await lookupIndicators(tenantId, indicators);
+      if (report.status === "not_configured") throw Object.assign(new Error("no threat-intelligence connection"), { reason: "not_configured" });
+      if (report.status === "unavailable") throw new Error("every threat-intelligence source failed");
+      return report.results.map((r) => ({ indicator: r.indicator, type: r.type, verdict: r.verdict, source: r.source, confidence: r.confidence, lastSeen: r.lastSeen, notes: r.notes }));
     },
     async listPayments(tenantId, q) {
       if (!UUID.test(tenantId)) return [];

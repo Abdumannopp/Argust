@@ -208,6 +208,58 @@ What each reads, and how repeats are handled:
 
 Firewall for self-hosted installs: allow outbound 443 to the hosts in the table (and 8089 to `<stack>.splunkcloud.com` for Splunk).
 
+## Threat intelligence: VirusTotal, MISP, OpenCTI
+
+Sources Legion **asks** about an indicator ("what is known about this address?"). They bring in no alerts and
+change nothing. Add them on Dashboard → **Connect** like any other connection (administrators only).
+
+| Kind | What you create at the source | Settings | Secret | Hosts Legion calls |
+|---|---|---|---|---|
+| `virustotal` | A VirusTotal account's API key | — | `api_key` | `www.virustotal.com` |
+| `misp` | API key of a **read-only** MISP user | `host` (DNS name of your MISP) | `api_key` | your `host`, port 443 |
+| `opencti` | API token of a **read-only** OpenCTI user | `host` (DNS name of your OpenCTI) | `api_token` | your `host`, port 443 |
+
+Where it is used:
+
+- **On an alert** — the incident page has **Threat intelligence → Check reputation** (analysts and administrators).
+  It asks about the alert's source address and shows each source's verdict.
+- **Hunter's `threat_intelligence` skill** — an AI agent with `intel:read` gets the same answers for addresses,
+  domains, URLs, file hashes and e-mail addresses.
+
+How a verdict is reached (each source is shown separately; Legion does not blend them into one score):
+
+| Source | Malicious | Suspicious | No detections / no verdict |
+|---|---|---|---|
+| VirusTotal | 3 or more security vendors flag it | 1–2 vendors flag it | 10 or more looked and none flagged it → "no detections" |
+| MISP | an attribute with this exact value is marked for detection (`to_ids`) | the value is recorded, not marked for detection | not in MISP → no answer |
+| OpenCTI | score 70–100 | score 40–69 | lower or no score → "no verdict" (being recorded is not being malicious) |
+
+Rules that cannot be changed:
+
+- **Only on demand.** Legion never sends an indicator to a third party by itself; a person presses the button or
+  an agent calls the skill. Every lookup from the dashboard is written to the audit log.
+- **Private addresses never leave.** A private, loopback, link-local or reserved address (and a URL on one) is
+  not sent to any source.
+- **No source, no opinion.** An indicator nobody has information on is "unknown" — never guessed, and never "safe".
+- **Your own server, guarded.** MISP and OpenCTI are servers you run, so this is the one place Legion calls a host
+  you typed. It must be a DNS name (not an address), on HTTPS port 443 with a valid certificate; the name must
+  resolve only to public internet addresses, and Legion connects to exactly the address it checked. Redirects are
+  not followed.
+- A source's text is untrusted data: bounded, shown as text, never followed as an instruction.
+- Each connection's key is sealed and sent only to its own source. Errors are scrubbed of it.
+
+Honest limits:
+
+- **Tested against simulated answers only**, written from each vendor's API documentation — not yet against a real
+  VirusTotal account, MISP or OpenCTI server (audit A-1 applies here too).
+- A MISP or OpenCTI that is reachable **only inside your network** cannot be connected to hosted Legion.
+- VirusTotal's free key allows 4 lookups a minute: one call spends at most 4, and the rest are answered on a later
+  call. Answers are remembered for 12 hours per workspace and source (per server instance), so a verdict can be
+  up to 12 hours old.
+- VirusTotal is not asked about e-mail addresses or CVEs (it has no such lookup). CVEs are not sent to any source.
+- A reputation is a hint, not proof: addresses change hands and can be forged in a log.
+- Legion does **not** import indicator feeds or match every incoming event against them; it enriches on request.
+
 ## What Legion can DO in these systems today
 
 Everything above **reads, notifies or opens tickets**. The only real response actions remain (a) blocking a public address (enforced by the Wazuh manager's active response) and (b) e-mailing administrators, both opt-in per workspace ([PROTECTION.md](PROTECTION.md)). Disabling an Entra, Okta or Google account, isolating a host (Defender for Endpoint, CrowdStrike, SentinelOne), changing a Cloudflare rule and similar actions are **simulation only**: they need a connector with write permission in the customer's tenant, a security review of that executor, and a person's approval every time. They are not built.

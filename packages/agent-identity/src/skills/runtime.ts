@@ -272,7 +272,9 @@ class Run {
       raw = await call();
     } catch (err) {
       this.o.log(`skill data source ${what} failed`, err);
-      throw new SkillError("data_unavailable", `${what} could not be read.`, { reason: "source_failed" });
+      // A source that exists in the product but is not set up for this workspace says so itself.
+      const notConfigured = (err as { reason?: unknown } | null)?.reason === "not_configured";
+      throw new SkillError("data_unavailable", notConfigured ? `${what} is not configured for this workspace.` : `${what} could not be read.`, { reason: notConfigured ? "not_configured" : "source_failed" });
     }
     if (!Array.isArray(raw)) throw new SkillError("data_invalid", `${what} returned something that is not a list.`);
     const out: T[] = [];

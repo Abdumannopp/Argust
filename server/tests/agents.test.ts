@@ -242,7 +242,7 @@ describe("security skills over Legion's own data", () => {
     expect(r.body.output.assets[0].asset).toBe("edge-01");
   });
 
-  it("threat intelligence says plainly that no provider is configured", async () => {
+  it("threat intelligence says plainly that no provider is configured (no VirusTotal, MISP or OpenCTI connection)", async () => {
     const a = await agent(adminA, ["intel:read", "alerts:read"]);
     await request(app).post("/skills/assignments").set(...asUser(adminA)).send({ identityId: a.id, skill: "threat_intelligence" });
     const r = await request(app).post("/agent/v1/skills/threat_intelligence/invoke").set(...bearer(a.token)).send({ input: { indicators: [{ value: "45.155.205.12" }] } });

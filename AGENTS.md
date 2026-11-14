@@ -22,6 +22,10 @@ In the dashboard you see them on the **Legion team** page.
 | `triage_priority` (Oracle) | Orders open alerts into now / today / this week, each score with its reasons |
 | `containment_candidates` (Vanguard) | Attacker addresses worth blocking, with evidence. Private addresses go into a "cannot block" list. Warns when an attack comes from many addresses and blocking will not help |
 
+`threat_intelligence` (Hunter) answers from the threat-intelligence sources your workspace has connected
+(VirusTotal, MISP, OpenCTI — see [INTEGRATIONS.md](INTEGRATIONS.md)). With none connected it says so and
+answers "unknown"; it never guesses. Private addresses are never sent to a source.
+
 ## Skills for business customers (B2B)
 
 | Skill | What it does |

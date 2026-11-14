@@ -18,7 +18,7 @@ import type { Alert } from "../types.js";
 import { ingestFindings } from "./ingest.js";
 import { scrubError } from "./scrub.js";
 import { withTenant } from "../db/rls.js";
-import { connectedPushAdapter, outboundAdapter, pullAdapter, pullKinds } from "./registry.js";
+import { connectedPushAdapter, intelAdapter, outboundAdapter, pullAdapter, pullKinds } from "./registry.js";
 
 export interface ConnectionView {
   id: string;
@@ -53,8 +53,8 @@ export async function create(
   input: { kind: string; name: string; config: unknown; secrets: Record<string, string>; pollSeconds?: number },
   createdBy: string,
 ): Promise<ConnectionView> {
-  const adapter = pullAdapter(input.kind) ?? outboundAdapter(input.kind) ?? connectedPushAdapter(input.kind);
-  // Outbound and push connections are never polled.
+  const adapter = pullAdapter(input.kind) ?? outboundAdapter(input.kind) ?? connectedPushAdapter(input.kind) ?? intelAdapter(input.kind);
+  // Outbound, push and threat-intelligence connections are never polled.
   const outbound = !pullAdapter(input.kind);
   if (!adapter || adapter.manifest.status !== "available") throw new ConnectionError("unknown_kind", "That integration is not available.");
   const parsed = adapter.configSchema.safeParse(input.config ?? {});
