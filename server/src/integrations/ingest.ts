@@ -36,11 +36,11 @@ export function findingAlertId(tenantId: string, source: string, externalId: str
  * A SIEM or a generic webhook does not say, so its assets stay "unknown" until another source knows.
  */
 const KIND_BY_SOURCE: Record<string, AssetKind> = {
-  wazuh: "server", crowdstrike: "endpoint", sentinelone: "endpoint", m365: "endpoint",
+  wazuh: "server", crowdstrike: "endpoint", sentinelone: "endpoint", m365: "endpoint", cortex_xdr: "endpoint",
   guardduty: "cloud", securityhub: "cloud", azure: "cloud", gcp: "cloud",
 };
 /** Identity sources: their alerts are about an account, which becomes a "user" asset. */
-const IDENTITY_SOURCES = new Set(["okta", "gworkspace"]);
+const IDENTITY_SOURCES = new Set(["okta", "gworkspace", "entra_id"]);
 const ACCOUNT = /^[^\s@<>"]{1,64}@[a-z0-9.-]{3,253}$/i;
 
 export function assetFor(source: string, f: Finding): { name: string; ip: string | null; os: string | null; kind: AssetKind } | null {

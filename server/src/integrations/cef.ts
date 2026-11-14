@@ -59,8 +59,13 @@ function fromCef(line: string, at: number): Finding | null {
   if (!h) return null;
   const [, deviceVendor, deviceProduct, , signature, name, sevRaw, ext = ""] = h;
   const x = parseExtension(ext);
-  const title = cleanText(name, 300) || cleanText(signature, 300);
-  if (!title) return null;
+  // Fortinet FortiGate (FortiOS CEF): the header name is the log type ("utm:ips signature"); what was actually
+  // found is in the FTNTFGT… keys, so it goes into the title where a person and the correlation can see it.
+  const fortinet = /^fortinet$/i.test(deviceVendor ?? "");
+  const found = fortinet ? cleanText(x.FTNTFGTattack || x.FTNTFGTvirus || x.FTNTFGTapp || x.FTNTFGTcatdesc, 160) : "";
+  const baseTitle = cleanText(name, 300) || cleanText(signature, 300);
+  if (!baseTitle) return null;
+  const title = found && !baseTitle.includes(found) ? cleanText(`FortiGate ${baseTitle}: ${found}`, 300) : baseTitle;
   const host = cleanText(x.dhost || x.dvchost || x.shost || x.dst, 255);
   const parts = [x.msg, x.act ? `action=${x.act}` : "", x.outcome ? `outcome=${x.outcome}` : "", x.suser ? `user=${x.suser}` : "", x.duser ? `target user=${x.duser}` : "", x.request ? `request=${x.request}` : ""].filter(Boolean);
   const summary = cleanText(`${deviceVendor} ${deviceProduct}: ${parts.join("; ") || title}`, 4000);

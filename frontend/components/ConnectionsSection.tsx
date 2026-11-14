@@ -8,11 +8,11 @@ import { useLanguage } from "@/lib/i18n/LanguageContext";
 import { timeAgo } from "@/lib/i18n/format";
 
 type Kind = "m365" | "azure" | "gcp" | "guardduty" | "okta" | "github" | "slack" | "teams" | "pagerduty" | "jira"
-  | "crowdstrike" | "sentinelone" | "msentinel" | "securityhub" | "elastic" | "splunk" | "cloudflare" | "gworkspace" | "servicenow" | "opsgenie" | "virustotal" | "misp" | "opencti" | "crowdstrike_response" | "okta_response";
+  | "crowdstrike" | "sentinelone" | "msentinel" | "securityhub" | "elastic" | "splunk" | "cloudflare" | "gworkspace" | "servicenow" | "opsgenie" | "virustotal" | "misp" | "opencti" | "crowdstrike_response" | "okta_response" | "entra_response" | "abuseipdb" | "entra_id" | "cortex_xdr" | "tenable" | "qualys";
 type FieldType = "text" | "password" | "regions" | "severity" | "choice" | "number";
 interface Field { key: string; where: "config" | "secrets"; type: FieldType; options?: string[] }
 // Grouped as the card shows them: endpoint and SIEM, cloud, identity and edge, threat intelligence, then where alerts are sent.
-const KINDS: Kind[] = ["crowdstrike", "sentinelone", "m365", "msentinel", "elastic", "splunk", "azure", "guardduty", "securityhub", "gcp", "okta", "gworkspace", "cloudflare", "github", "virustotal", "misp", "opencti", "crowdstrike_response", "okta_response", "slack", "teams", "pagerduty", "opsgenie", "jira", "servicenow"];
+const KINDS: Kind[] = ["crowdstrike", "sentinelone", "cortex_xdr", "m365", "msentinel", "elastic", "splunk", "azure", "guardduty", "securityhub", "gcp", "okta", "entra_id", "gworkspace", "cloudflare", "github", "tenable", "qualys", "virustotal", "abuseipdb", "misp", "opencti", "crowdstrike_response", "okta_response", "entra_response", "slack", "teams", "pagerduty", "opsgenie", "jira", "servicenow"];
 const OUTBOUND: Kind[] = ["slack", "teams", "pagerduty", "opsgenie", "jira", "servicenow"];
 // Technical identifiers: they must match the server's schema for each connector.
 const FIELDS: Record<Kind, Field[]> = {
@@ -40,10 +40,16 @@ const FIELDS: Record<Kind, Field[]> = {
   opencti: [{ key: "host", where: "config", type: "text" }, { key: "api_token", where: "secrets", type: "password" }],
   crowdstrike_response: [{ key: "cloud", where: "config", type: "choice", options: ["us-1", "us-2", "eu-1", "us-gov-1"] }, { key: "client_id", where: "config", type: "text" }, { key: "client_secret", where: "secrets", type: "password" }, { key: "never", where: "config", type: "regions" }],
   okta_response: [{ key: "domain", where: "config", type: "text" }, { key: "api_token", where: "secrets", type: "password" }, { key: "never", where: "config", type: "regions" }],
+  entra_response: [{ key: "directory_id", where: "config", type: "text" }, { key: "client_id", where: "config", type: "text" }, { key: "client_secret", where: "secrets", type: "password" }, { key: "never", where: "config", type: "regions" }],
+  abuseipdb: [{ key: "api_key", where: "secrets", type: "password" }],
+  entra_id: [{ key: "directory_id", where: "config", type: "text" }, { key: "client_id", where: "config", type: "text" }, { key: "client_secret", where: "secrets", type: "password" }],
+  cortex_xdr: [{ key: "api_host", where: "config", type: "text" }, { key: "api_key_id", where: "config", type: "text" }, { key: "key_type", where: "config", type: "choice", options: ["advanced", "standard"] }, { key: "api_key", where: "secrets", type: "password" }],
+  tenable: [{ key: "access_key", where: "secrets", type: "password" }, { key: "secret_key", where: "secrets", type: "password" }, { key: "min_severity", where: "config", type: "choice", options: ["high", "critical", "medium"] }],
+  qualys: [{ key: "platform", where: "config", type: "choice", options: ["us1", "us2", "us3", "us4", "eu1", "eu2", "in1", "ca1", "ae1", "uk1", "au1"] }, { key: "username", where: "secrets", type: "text" }, { key: "password", where: "secrets", type: "password" }],
   opsgenie: [{ key: "region", where: "config", type: "choice", options: ["us", "eu"] }, { key: "api_key", where: "secrets", type: "password" }, { key: "min_severity", where: "config", type: "severity" }],
 };
 // Connections Legion polls on a schedule: only these can be checked on request.
-const POLLED: string[] = KINDS.filter((k) => !OUTBOUND.includes(k) && !["github", "virustotal", "misp", "opencti", "crowdstrike_response", "okta_response"].includes(k));
+const POLLED: string[] = KINDS.filter((k) => !OUTBOUND.includes(k) && !["github", "virustotal", "misp", "opencti", "abuseipdb", "crowdstrike_response", "okta_response", "entra_response"].includes(k));
 const HEALTH_CHIP: Record<ConnectionHealth["health"], string> = {
   ok: "lg-status lg-status-healthy", waiting: "lg-status lg-status-brand", failing: "lg-status lg-status-high", overdue: "lg-status lg-status-medium", stopped: "lg-status lg-status-critical", paused: "lg-status lg-status-low",
 };

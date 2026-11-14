@@ -34,7 +34,7 @@ Only two actions can be allowed to run on their own (`LIVE_ACTION_IDS`; a databa
 - `notify.admins` — e-mail the workspace administrators.
 
 Four more have an executor but can **never** be allowed to run on their own (`RESPONSE_LIVE_ACTION_IDS`): isolate
-or release a host through CrowdStrike, suspend or restore an account in Okta. They need a separate response
+or release a host through CrowdStrike, suspend or restore an account in Okta or Microsoft Entra ID. They need a separate response
 connection and people's approval every time — two administrators with a two-factor code for isolate and suspend
 ([INTEGRATIONS.md](INTEGRATIONS.md), "Response"). Trying to put one in the automatic list is refused (422, and by
 the database).

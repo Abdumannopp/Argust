@@ -21,6 +21,7 @@ export default function ResponseCard({ alertId, target }: { alertId: string; tar
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<unknown>(null);
   const [note, setNote] = useState<string | null>(null);
+  const [system, setSystem] = useState<"okta" | "entra">("okta");
   const account = target && ACCOUNT.test(target) ? target : null;
   const host = target && !account && HOST.test(target) ? target : null;
 
@@ -30,7 +31,7 @@ export default function ResponseCard({ alertId, target }: { alertId: string; tar
     try {
       const r = kind === "host"
         ? await proposeResponse("host.isolate", { host }, m.reason(alertId))
-        : await proposeResponse("account.disable", { account, system: "okta" }, m.reason(alertId));
+        : await proposeResponse("account.disable", { account, system }, m.reason(alertId));
       const s = r.action.status;
       setNote(s === "awaiting_approval" ? m.waiting : s === "executed" ? m.executed : s === "failed" ? m.failed(r.action.error ?? "") : s === "denied" ? m.denied : m.other(s));
     } catch (err) { setError(err); } finally { setBusy(false); }
@@ -49,6 +50,15 @@ export default function ResponseCard({ alertId, target }: { alertId: string; tar
         <p className="text-ink-faint text-xs">{m.nothing}</p>
       ) : (
         <>
+          {account && (
+            <label className="block text-xs text-ink-muted mb-2">
+              {m.system}
+              <select value={system} onChange={(e) => setSystem(e.target.value as "okta" | "entra")} className="ml-2 rounded-lg border border-line bg-canvas px-2 py-1 text-xs text-ink" data-testid="response-system">
+                <option value="okta">{m.systems.okta}</option>
+                <option value="entra">{m.systems.entra}</option>
+              </select>
+            </label>
+          )}
           <button onClick={() => ask(host ? "host" : "account")} disabled={busy} className="lg-button-secondary" data-testid="response-ask">
             {busy ? <Loader2 size={13} className="animate-spin" /> : <ShieldAlert size={13} />}
             {host ? m.isolate(host) : m.suspend(account!)}

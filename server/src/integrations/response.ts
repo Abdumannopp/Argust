@@ -17,6 +17,7 @@
 import { z } from "zod";
 import { adapterFetch } from "./fetch.js";
 import { CROWDSTRIKE_CLOUDS } from "./crowdstrike.js";
+import { graphToken } from "./entra.js";
 import type { ConnectionContext, IntegrationManifest } from "./types.js";
 
 export const RESPONSE_ACTIONS = ["host.isolate", "host.release", "account.disable", "account.enable"] as const;
@@ -129,4 +130,34 @@ export const oktaResponseAdapter: ResponseAdapter = {
   },
 };
 
-export const RESPONSE_ADAPTERS: readonly ResponseAdapter[] = [crowdstrikeResponseAdapter, oktaResponseAdapter];
+// --- Microsoft Entra ID: block sign-in for an account -------------------------------
+
+export const entraResponseAdapter: ResponseAdapter = {
+  manifest: {
+    kind: "entra_response", displayName: "Microsoft Entra ID — response", vendor: "Microsoft", status: "available", plane: "tool", inbound: null, outbound: ["respond"],
+    egressHosts: ["graph.microsoft.com", "login.microsoftonline.com"],
+    summary: "Blocks sign-in for a user account (accountEnabled = false; nothing is deleted) and allows it again. Only for an action people approved; never automatic.",
+    auth: "A separate Entra app registration with the application permission User.EnableDisableAccount.All only; the client secret is sealed per connection.",
+  },
+  configSchema: z.strictObject({ directory_id: z.string().uuid("Directory (tenant) id, a GUID"), client_id: z.string().uuid("Application (client) id, a GUID"), never: neverList }),
+  secretFields: ["client_secret"],
+  actions: ["account.disable", "account.enable"],
+  system: "entra",
+  async respond(conn, action, target, signal) {
+    if (action !== "account.disable" && action !== "account.enable") throw new ResponseRefused("Entra ID cannot do that");
+    if (!ACCOUNT.test(target)) throw new ResponseRefused("Not an account name (the user principal name is needed)");
+    if (isProtected(conn, target)) throw new ResponseRefused("This account is on the connection's never-touch list");
+    const m = entraResponseAdapter.manifest;
+    const token = await graphToken(m, String(conn.config.directory_id), String(conn.config.client_id), conn.secrets.client_secret ?? "", signal);
+    const res = await adapterFetch(m, `https://graph.microsoft.com/v1.0/users/${encodeURIComponent(target)}`, {
+      method: "PATCH", signal, timeoutMs: 20_000, maxBytes: 64 * 1024, headers: { authorization: `Bearer ${token}`, "content-type": "application/json", accept: "application/json" },
+      body: JSON.stringify({ accountEnabled: action === "account.enable" }),
+    });
+    if (res.status === 404) throw new ResponseRefused(`Entra ID knows no account ${target}`);
+    if (res.status === 401 || res.status === 403) throw new Error(`Entra ID refused the action (${res.status}); the app needs User.EnableDisableAccount.All with admin consent, and cannot change an administrator's account`);
+    if (res.status !== 204 && res.status !== 200) throw new Error(`Entra ID answered ${res.status}`);
+    return { did: action === "account.disable" ? "block_sign_in" : "allow_sign_in", target };
+  },
+};
+
+export const RESPONSE_ADAPTERS: readonly ResponseAdapter[] = [crowdstrikeResponseAdapter, oktaResponseAdapter, entraResponseAdapter];

@@ -65,7 +65,7 @@ describe("catalogue and connections", () => {
       expect(registry.pullKinds()).not.toContain(k);
       expect(registry.outboundKinds()).not.toContain(k);
     }
-    expect(registry.intelKinds().sort()).toEqual(["misp", "opencti", "virustotal"]);
+    expect(registry.intelKinds().sort()).toEqual(["abuseipdb", "misp", "opencti", "virustotal"]);
   });
   it("a customer host must be a public DNS name: no address, no internal name, no URL", async () => {
     for (const bad of ["10.0.0.5", "127.0.0.1", "localhost", "misp.local", "misp.internal", "https://misp.example.com", "misp.example.com/x", "misp", "169.254.169.254", "[::1]"]) {

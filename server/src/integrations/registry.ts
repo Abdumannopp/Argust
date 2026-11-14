@@ -34,11 +34,16 @@ import { opsgenieAdapter } from "./opsgenie.js";
 import { virustotalAdapter } from "./virustotal.js";
 import { mispAdapter } from "./misp.js";
 import { openctiAdapter } from "./opencti.js";
+import { abuseipdbAdapter } from "./abuseipdb.js";
+import { entraAdapter } from "./entra.js";
+import { cortexAdapter } from "./cortex.js";
+import { tenableAdapter } from "./tenable.js";
+import { qualysAdapter } from "./qualys.js";
 import { RESPONSE_ADAPTERS, type ResponseAdapter } from "./response.js";
 
 const adapters = new Map<string, Adapter>();
 const BUILT_IN = new Set(["wazuh", "generic_webhook", "cef", "slack", "jira", "m365", "guardduty", "azure", "gcp", "okta", "pagerduty", "teams", "github",
-  "crowdstrike", "sentinelone", "msentinel", "securityhub", "elastic", "splunk", "cloudflare", "gworkspace", "servicenow", "opsgenie", "virustotal", "misp", "opencti", "crowdstrike_response", "okta_response"]);
+  "crowdstrike", "sentinelone", "msentinel", "securityhub", "elastic", "splunk", "cloudflare", "gworkspace", "servicenow", "opsgenie", "virustotal", "misp", "opencti", "crowdstrike_response", "okta_response", "entra_response", "abuseipdb", "entra_id", "cortex_xdr", "tenable", "qualys"]);
 
 export function register(adapter: Adapter): void {
   if (!/^[a-z][a-z0-9_]{1,40}$/.test(adapter.manifest.kind)) throw new Error(`invalid integration kind: ${adapter.manifest.kind}`);
@@ -110,6 +115,11 @@ register(opsgenieAdapter);
 register(virustotalAdapter);
 register(mispAdapter);
 register(openctiAdapter);
+register(abuseipdbAdapter);
+register(entraAdapter);
+register(cortexAdapter);
+register(tenableAdapter);
+register(qualysAdapter);
 for (const a of RESPONSE_ADAPTERS) register(a);
 
 /**

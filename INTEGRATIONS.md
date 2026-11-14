@@ -208,6 +208,51 @@ What each reads, and how repeats are handled:
 
 Firewall for self-hosted installs: allow outbound 443 to the hosts in the table (and 8089 to `<stack>.splunkcloud.com` for Splunk).
 
+## Third wave: Entra ID, Cortex XDR, Tenable, Qualys, AbuseIPDB, FortiGate
+
+| Kind | What it brings | What you create at the source | Settings | Secret | Hosts Legion calls |
+|---|---|---|---|---|---|
+| `entra_id` | identity risk detections (leaked password, impossible travel, anonymous or malicious address, password spray, token theft) | app registration, application permission **IdentityRiskEvent.Read.All**, admin consent; needs Entra ID P1/P2 | `directory_id`, `client_id` | `client_secret` | `login.microsoftonline.com`, `graph.microsoft.com` |
+| `cortex_xdr` | Cortex XDR incidents | API key with the **Viewer** role (Advanced recommended) | `api_host` (`api-<name>.xdr.<region>.paloaltonetworks.com`), `api_key_id`, `key_type` | `api_key` | your `api_host` |
+| `tenable` | open vulnerabilities per asset (CVE, severity, fix) | API keys of a **Basic** user who may view the assets | `min_severity` (default `high`) | `access_key`, `secret_key` | `cloud.tenable.com` |
+| `qualys` | confirmed open vulnerabilities of severity 4–5 per host | a **Reader** user with API access | `platform` (us1…au1) | `username`, `password` | the platform's `qualysapi.…` host |
+| `abuseipdb` | reputation of an address (0–100 abuse score), asked on demand | an AbuseIPDB API key | — | `api_key` | `api.abuseipdb.com` |
+| `entra_response` | blocks sign-in for an account, and allows it again — after approval (see "Response") | a **separate** app registration with **User.EnableDisableAccount.All** only | `directory_id`, `client_id`, `never` | `client_secret` | the two Microsoft hosts |
+
+How each behaves:
+
+- **Entra ID.** One alert per risk detection, about the account (which becomes a user asset). Detections Microsoft
+  marked dismissed, remediated or "hidden" are skipped. `entra_id` can only read; blocking an account needs the
+  separate `entra_response` connection and two approvals.
+- **Cortex XDR.** One alert per incident, about its first host. Resolved incidents are skipped. With an Advanced
+  key the key itself is never sent: each request carries SHA-256(key + nonce + timestamp).
+- **Tenable.** Tenable prepares bulk data as an export that takes minutes. Legion asks for it in one poll and reads
+  it in a later one, so the first results arrive a few minutes after connecting. One alert per (asset, plugin).
+- **Qualys.** Host detections joined with the knowledge base (name, CVEs, fix). Only **Confirmed** detections;
+  "Potential" ones are skipped. Qualys answers in XML: Legion reads only the tags it needs and expands nothing.
+- **Vulnerabilities** from both scanners are written as `CVE-… affects <component> on <host>`, the form Legion's
+  `vulnerability_analysis` and `exposure_review` skills already read. A weakness is not an attack: scanner findings
+  never start or join an attack campaign.
+- **AbuseIPDB.** Addresses only. 75+ malicious, 25–74 suspicious; an address with no reports is "nothing known",
+  not "safe". Legion never reports an address to AbuseIPDB.
+- **FortiGate.** There is no FortiGate connection to add: a FortiGate is a device on your network, and Legion does
+  not open a syslog port or call into your network. Send its logs in **CEF** to a collector you run (rsyslog,
+  Vector, Fluent Bit…) that posts them to Legion's CEF route with a sensor credential (see "Syslog / CEF"). Legion
+  recognises FortiOS CEF and puts what the firewall found (the IPS signature, virus or application) in the title.
+
+Honest limits:
+
+- **Tested against simulated answers only**, written from each vendor's API documentation — no real Entra, Cortex,
+  Tenable, Qualys, AbuseIPDB or FortiGate was used. Field names can differ in a real tenant; expect to adjust.
+- Tenable and Qualys: at most 2 000 findings per poll, high and critical by default. A first connection to a large
+  estate creates many alerts at once.
+- Qualys: Qualys Cloud Platform only (the eleven listed platforms); a private cloud platform is not supported.
+  Tenable: Tenable Vulnerability Management (cloud) only, not Tenable Security Center or Nessus on your network.
+- Cortex XDR: incidents only (not every raw alert), and no response action (isolating through Cortex is not built).
+- Entra ID: risk detections only — not the full sign-in or audit log.
+- FortiGate: only what the collector forwards. Legion cannot change a FortiGate rule; firewall blocking stays the
+  blocklist enforced by your Wazuh manager.
+
 ## Threat intelligence: VirusTotal, MISP, OpenCTI
 
 Sources Legion **asks** about an indicator ("what is known about this address?"). They bring in no alerts and
@@ -308,13 +353,14 @@ campaign rules in WAZUH.md look at techniques and timing). Legion's own alerts d
 
 ## Response: acting in your systems (people approve first)
 
-Two **response connections** let Legion change something in your environment. They are separate from the
+Three **response connections** let Legion change something in your environment. They are separate from the
 read-only connections, with their own credential:
 
 | Kind | What it can do | What you create | Hosts |
 |---|---|---|---|
 | `crowdstrike_response` | isolate a host from the network (Falcon containment) and release it | a separate Falcon API client with **Hosts: Read** and **Hosts: Write** only | the Falcon cloud you choose |
 | `okta_response` | suspend a user account and restore it (nothing is deleted) | a separate API token of an administrator whose role may only suspend users | your Okta domain |
+| `entra_response` | block sign-in for a user account and allow it again (nothing is deleted) | a separate app registration with **User.EnableDisableAccount.All** only | Microsoft Graph |
 
 How one action happens:
 
@@ -339,8 +385,9 @@ Honest limits:
 
 - **Tested against simulated vendor answers only.** Do not rely on it in an incident before trying it on a test
   host and a test account in your own CrowdStrike and Okta.
-- Only CrowdStrike (hosts) and Okta (accounts). SentinelOne, Defender for Endpoint, Entra ID and Google Workspace
-  accounts are not connected for response: an action for them ends "no response connection".
+- Only CrowdStrike (hosts), Okta and Entra ID (accounts). SentinelOne, Defender for Endpoint, Cortex XDR and Google
+  Workspace accounts are not connected for response: an action for them ends "no response connection". Entra ID
+  refuses to block an administrator's account with this permission; that is Microsoft's rule.
 - Firewall: blocking an address is the existing blocklist, enforced by your Wazuh manager (WAZUH.md). Legion does not
   push rules to Cloudflare or to a network firewall.
 - The dashboard button asks to isolate or suspend; releasing and restoring are done through the API
@@ -351,4 +398,4 @@ Honest limits:
 
 ## What Legion can DO in these systems today
 
-Everything above **reads, notifies or opens tickets**, except the two response connections described in "Response: acting in your systems". What Legion can really do: (a) block a public address (enforced by the Wazuh manager's active response) and (b) e-mail administrators — both can be allowed to run on their own, opt-in per workspace ([PROTECTION.md](PROTECTION.md)); (c) isolate or release a host through CrowdStrike and (d) suspend or restore an Okta account — only after people approve each one. Disabling an Entra or Google account, isolating a host through Defender for Endpoint or SentinelOne, changing a Cloudflare rule and similar actions are **simulation only**: they are not built.
+Everything above **reads, notifies or opens tickets**, except the two response connections described in "Response: acting in your systems". What Legion can really do: (a) block a public address (enforced by the Wazuh manager's active response) and (b) e-mail administrators — both can be allowed to run on their own, opt-in per workspace ([PROTECTION.md](PROTECTION.md)); (c) isolate or release a host through CrowdStrike and (d) suspend or restore an Okta or Entra ID account — only after people approve each one. Disabling a Google account, isolating a host through Defender for Endpoint or SentinelOne, changing a Cloudflare rule and similar actions are **simulation only**: they are not built.

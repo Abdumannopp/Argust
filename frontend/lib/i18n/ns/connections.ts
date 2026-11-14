@@ -4,7 +4,7 @@ import { defineMessages } from "../core";
 export const connections = defineMessages({
   en: {
     title: "Connections",
-    intro: "Bring in alerts from your endpoint protection (CrowdStrike, SentinelOne, Defender), SIEM (Sentinel, Elastic, Splunk), cloud (AWS, Azure, Google Cloud), identity (Okta, Google Workspace) and Cloudflare, check addresses against threat intelligence (VirusTotal, MISP, OpenCTI), and send alerts to Slack, Teams, PagerDuty, Opsgenie, Jira or ServiceNow. Secrets are encrypted and never shown again.",
+    intro: "Bring in alerts from your endpoint protection (CrowdStrike, SentinelOne, Defender), Cortex XDR, SIEM (Sentinel, Elastic, Splunk), cloud (AWS, Azure, Google Cloud), identity (Okta, Entra ID, Google Workspace), vulnerability scanners (Tenable, Qualys) and Cloudflare, check addresses against threat intelligence (VirusTotal, AbuseIPDB, MISP, OpenCTI), and send alerts to Slack, Teams, PagerDuty, Opsgenie, Jira or ServiceNow. Secrets are encrypted and never shown again.",
     adminOnly: "Only administrators can manage connections.",
     empty: "No connections yet.",
     add: "Add a connection",
@@ -36,6 +36,12 @@ export const connections = defineMessages({
       opencti: { name: "OpenCTI (threat intelligence)", help: "Checks indicators against the observables in your own OpenCTI, with its score. Use the API token of a read-only user. Your OpenCTI must be reachable from the internet over HTTPS with a valid certificate." },
       crowdstrike_response: { name: "CrowdStrike — response", help: "Lets Legion isolate a host from the network, and release it, after two administrators approve. Create a SEPARATE Falcon API client with only Hosts: Read and Hosts: Write. List hosts that must never be isolated (domain controllers, this server)." },
       okta_response: { name: "Okta — response", help: "Lets Legion suspend a user account, and restore it, after two administrators approve. Nothing is deleted. Use a SEPARATE API token of an administrator whose role may only suspend users. List accounts that must never be suspended (break-glass administrators)." },
+      entra_response: { name: "Microsoft Entra ID — response", help: "Lets Legion block sign-in for a user account, and allow it again, after two administrators approve. Nothing is deleted. Create a SEPARATE app registration with only the application permission User.EnableDisableAccount.All. List accounts that must never be blocked (break-glass administrators)." },
+      abuseipdb: { name: "AbuseIPDB (threat intelligence)", help: "Tells you how often an address was reported for attacks in the last 90 days, as a 0–100 score. Asked only when you press \"Check reputation\" or an AI agent uses its threat-intelligence skill. Paste your AbuseIPDB API key." },
+      entra_id: { name: "Microsoft Entra ID (identity risk)", help: "Reads identity risk detections: leaked passwords, impossible travel, sign-ins from anonymous or malicious addresses, password spray. Create an app registration with the application permission IdentityRiskEvent.Read.All and grant admin consent. Needs Entra ID P1 or P2." },
+      cortex_xdr: { name: "Palo Alto Cortex XDR", help: "Reads incidents. In Cortex XDR create an API key with the Viewer role (Advanced recommended) and enter your API host, the key ID and the key." },
+      tenable: { name: "Tenable Vulnerability Management", help: "Reads open vulnerabilities per asset with their CVEs and fixes. Generate API keys for a user with the Basic role who may view the assets. The first results arrive a few minutes after saving: Tenable prepares an export first." },
+      qualys: { name: "Qualys VMDR", help: "Reads confirmed open vulnerabilities of severity 4 and 5 per host. Use a user with the Reader role and API access, and choose your Qualys platform (it is in the address you sign in at)." },
       opsgenie: { name: "Opsgenie", help: "Alerts the on-call team for serious alerts. Add an API integration in Opsgenie and paste its key." },
     },
     fields: {
@@ -75,6 +81,12 @@ export const connections = defineMessages({
       username: "User name",
       password: "Password",
       region: "Region",
+      api_host: "API host (for example api-acme.xdr.us.paloaltonetworks.com)",
+      api_key_id: "API key ID (a number)",
+      key_type: "Key type",
+      access_key: "Access key",
+      secret_key: "Secret key",
+      platform: "Qualys platform",
       never: "Never touch these (comma separated, optional)",
       host: "Server name (for example intel.example.com — no https://)",
     },
@@ -110,6 +122,6 @@ export const connections = defineMessages({
       ticket: (key: string) => `Ticket ${key}`,
     },
     githubUrl: (url: string) => `Webhook address for GitHub (content type application/json): ${url}`,
-    cannotAct: "These connections only read alerts, look up reputation, notify people or open tickets. The two marked \"response\" are the exception: through them Legion can isolate a host or suspend an account, and only after two administrators approve that exact action.",
+    cannotAct: "These connections only read alerts, look up reputation, notify people or open tickets. The ones marked \"response\" are the exception: through them Legion can isolate a host or suspend an account, and only after two administrators approve that exact action.",
   },
 });

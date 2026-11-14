@@ -266,6 +266,9 @@ async function signInDetections(tenantId: string, ip: string, want: { failures: 
  * account each platform must have a high or critical alert: a busy server is in every tool's ordinary noise.
  * Skipped while such a campaign is already active for the subject, so a flood stays cheap.
  */
+/** Vulnerability scanners: they report weaknesses, not attacks. */
+export const SCANNER_SOURCES: ReadonlySet<string> = new Set(["tenable", "qualys"]);
+
 async function acrossPlatforms(tenantId: string, by: "source_ip" | "target", subject: string): Promise<Detection[]> {
   if (await hasActive(tenantId, "multi_platform", subject)) return [];
   const th = THRESHOLDS.multi_platform;
@@ -273,11 +276,13 @@ async function acrossPlatforms(tenantId: string, by: "source_ip" | "target", sub
     `SELECT ${EVENT_TIME} AS t, source, severity, source_ip, target, mitre_technique
        FROM alerts
       WHERE tenant_id = $1 AND ${by === "source_ip" ? "source_ip" : "target"} = $2 AND source NOT LIKE 'legion-%'
+        -- A weakness a scanner found is not an attack in progress: it never counts as a platform seeing one.
+        AND source <> ALL($4::text[]) AND title !~* 'CVE-[0-9]{4}-[0-9]{4,7} affects '
         AND created_at >= now() - interval '1 day'
         AND ${EVENT_TIME} >= now() - make_interval(mins => $3)
       ORDER BY created_at DESC
       LIMIT 500`,
-    [tenantId, subject, th.windowMinutes],
+    [tenantId, subject, th.windowMinutes, [...SCANNER_SOURCES]],
   );
   const counted = by === "source_ip" ? rows : rows.filter((r) => r.severity === "high" || r.severity === "critical");
   const platforms = distinct(counted.map((r) => r.source));
@@ -616,7 +621,7 @@ export async function correlate(tenantId: string, alerts: Alert[], opts: { realt
   }
   for (const target of distinct(fresh.map((a) => a.target))) detections.push(...await byTarget(tenantId, target));
   // Seen from several sides: only alerts that came from a platform (not Legion's own) can start this.
-  const external = fresh.filter((a) => !a.source.startsWith("legion-"));
+  const external = fresh.filter((a) => !a.source.startsWith("legion-") && !SCANNER_SOURCES.has(a.source));
   for (const ip of distinct(external.map((a) => a.source_ip)).filter((ip) => isIP(ip) !== 0)) detections.push(...await acrossPlatforms(tenantId, "source_ip", ip));
   for (const target of distinct(external.map((a) => a.target))) detections.push(...await acrossPlatforms(tenantId, "target", target));
   for (const a of fresh) { const m = manipulation(a); if (m) detections.push(m); }
