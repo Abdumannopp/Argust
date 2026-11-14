@@ -34,6 +34,8 @@ export const connections = defineMessages({
       virustotal: { name: "VirusTotal (threat intelligence)", help: "Tells you how many security vendors flag an address, domain, URL or file hash. Asked only when you press \"Check reputation\" on an alert or an AI agent uses its threat-intelligence skill. Paste your VirusTotal API key; a free key allows four lookups a minute." },
       misp: { name: "MISP (threat intelligence)", help: "Checks indicators against the events in your own MISP. Use the API key of a read-only user. Your MISP must be reachable from the internet over HTTPS with a valid certificate; a server that is only inside your network cannot be connected." },
       opencti: { name: "OpenCTI (threat intelligence)", help: "Checks indicators against the observables in your own OpenCTI, with its score. Use the API token of a read-only user. Your OpenCTI must be reachable from the internet over HTTPS with a valid certificate." },
+      crowdstrike_response: { name: "CrowdStrike — response", help: "Lets Legion isolate a host from the network, and release it, after two administrators approve. Create a SEPARATE Falcon API client with only Hosts: Read and Hosts: Write. List hosts that must never be isolated (domain controllers, this server)." },
+      okta_response: { name: "Okta — response", help: "Lets Legion suspend a user account, and restore it, after two administrators approve. Nothing is deleted. Use a SEPARATE API token of an administrator whose role may only suspend users. List accounts that must never be suspended (break-glass administrators)." },
       opsgenie: { name: "Opsgenie", help: "Alerts the on-call team for serious alerts. Add an API integration in Opsgenie and paste its key." },
     },
     fields: {
@@ -73,13 +75,14 @@ export const connections = defineMessages({
       username: "User name",
       password: "Password",
       region: "Region",
+      never: "Never touch these (comma separated, optional)",
       host: "Server name (for example intel.example.com — no https://)",
     },
     engine: {
       working: (n: number) => `${n} working`,
       attention: (n: number) => `${n} ${n === 1 ? "needs" : "need"} attention`,
       paused: (n: number) => `${n} paused`,
-      direction: { in: "Brings alerts in", out: "Receives alerts", intel: "Threat intelligence" },
+      direction: { in: "Brings alerts in", out: "Receives alerts", intel: "Threat intelligence", respond: "Acts when people approve" },
       health: { ok: "Working", waiting: "Waiting for its first success", failing: "Failing", overdue: "Not checked for too long", stopped: "Stopped after repeated errors", paused: "Paused" },
       alerts: (n: number) => `${n} ${n === 1 ? "alert" : "alerts"} in 24 h`,
       queued: (n: number) => `${n} waiting to be sent`,
@@ -107,6 +110,6 @@ export const connections = defineMessages({
       ticket: (key: string) => `Ticket ${key}`,
     },
     githubUrl: (url: string) => `Webhook address for GitHub (content type application/json): ${url}`,
-    cannotAct: "These connections only read alerts, look up reputation, notify people or open tickets. They never change anything in your systems.",
+    cannotAct: "These connections only read alerts, look up reputation, notify people or open tickets. The two marked \"response\" are the exception: through them Legion can isolate a host or suspend an account, and only after two administrators approve that exact action.",
   },
 });

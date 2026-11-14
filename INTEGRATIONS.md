@@ -260,6 +260,95 @@ Honest limits:
 - A reputation is a hint, not proof: addresses change hands and can be forged in a log.
 - Legion does **not** import indicator feeds or match every incoming event against them; it enriches on request.
 
+## One view of every connection (integration engine)
+
+Dashboard → **Connect** → Connections shows, for every connection, whether it works and how fresh it is:
+
+| It says | It means |
+|---|---|
+| Working | the last attempt succeeded |
+| Waiting for its first success | saved, nothing has succeeded yet |
+| Failing | the last attempts failed (the error is shown, with the credential removed) |
+| Not checked for too long | Legion polls it, and the poll is more than three intervals (at least 15 minutes) late |
+| Stopped after repeated errors | 10 failures in a row; an administrator must resume it |
+| Paused | an administrator paused it |
+
+Each row also shows its direction (brings alerts in / receives alerts / threat intelligence / acts when people
+approve), the alerts that vendor brought in over 24 hours, and for chat and ticket connections how many messages
+are still waiting or could not be delivered. **Check now** asks Legion to poll a working connection within a minute.
+API: `GET /integrations/health`, `POST /integrations/:id/check` (administrators).
+
+Honest limits: the 24-hour alert count is per vendor, not per connection (two Okta connections share one number).
+"Check now" exists only for connections Legion polls; a webhook source is checked by its own next delivery.
+
+## Asset intelligence: one inventory
+
+Dashboard → **Assets** lists servers, endpoints, user accounts and cloud resources from every connected platform.
+
+- **Kind** comes from the platform that reported it: Wazuh → server; CrowdStrike, SentinelOne, Defender → endpoint;
+  GuardDuty, Security Hub, Azure, Google Cloud → cloud resource; a SIEM or a webhook does not say → not classified.
+  The first platform that knows decides; a later different opinion does not change it.
+- **User accounts** come from identity alerts (Okta, Google Workspace): the account the alert is about.
+- **One asset, many platforms.** The same name reported by several platforms is one row that lists them all.
+- A user account is an asset but not a machine: it does not count against the plan's endpoint limit.
+
+Honest limits: assets are matched **by name, exactly**. `web-1` and `web-1.corp.example.com` are two assets, and an
+account is not linked to the laptop its owner uses. Legion learns of an asset only when an alert mentions it — it
+does not import the full device or user list from a platform, so a quiet machine is not in the inventory.
+
+## Correlation across platforms
+
+When two or more **different** platforms report the same attacking address — or high/critical alerts on the same
+host or account — within 60 minutes, Legion records one campaign (`multi_platform`) and one alert from Hunter that
+names the platforms. It is evidence joined, not a verdict: it never triggers automatic blocking.
+
+Honest limits: this is a fixed rule, not a model; it joins alerts that share an **exact** address or name. An attack
+whose stages use different addresses and different names in each tool is not joined by this rule (the other
+campaign rules in WAZUH.md look at techniques and timing). Legion's own alerts do not count as a platform.
+
+## Response: acting in your systems (people approve first)
+
+Two **response connections** let Legion change something in your environment. They are separate from the
+read-only connections, with their own credential:
+
+| Kind | What it can do | What you create | Hosts |
+|---|---|---|---|
+| `crowdstrike_response` | isolate a host from the network (Falcon containment) and release it | a separate Falcon API client with **Hosts: Read** and **Hosts: Write** only | the Falcon cloud you choose |
+| `okta_response` | suspend a user account and restore it (nothing is deleted) | a separate API token of an administrator whose role may only suspend users | your Okta domain |
+
+How one action happens:
+
+1. An administrator turned protection on (Defense page; see PROTECTION.md). Without it nothing live exists.
+2. Someone asks: an administrator on the alert's page (**Respond in your systems**), or the Vanguard agent.
+3. Isolating a host or suspending an account is **critical**: two administrators — not the one who asked — approve
+   that exact action on the Defense page, each with a current two-factor code. The request expires in an hour.
+4. Legion looks again (protection still on, the connection present, the target not on the never-touch list),
+   finds **exactly one** matching device or account, acts, writes the audit log and tells the administrators.
+
+Rules that cannot be changed:
+
+- These actions can **never** be pre-authorised: no protection mode, policy or setting lets Legion isolate a host or
+  suspend an account on its own. The database refuses to store them in a workspace's automatic list.
+- No connection, more than one possible connection, no such device, two devices with the name, or a protected
+  target: nothing is done, and the request ends "not done" with the reason.
+- An action whose outcome is unknown (the worker stopped while doing it) is not retried; the administrators are told.
+- Every action has its opposite (`host.release`, `account.enable`). An administrator's own request to undo runs at
+  once; a machine's still waits for approval.
+
+Honest limits:
+
+- **Tested against simulated vendor answers only.** Do not rely on it in an incident before trying it on a test
+  host and a test account in your own CrowdStrike and Okta.
+- Only CrowdStrike (hosts) and Okta (accounts). SentinelOne, Defender for Endpoint, Entra ID and Google Workspace
+  accounts are not connected for response: an action for them ends "no response connection".
+- Firewall: blocking an address is the existing blocklist, enforced by your Wazuh manager (WAZUH.md). Legion does not
+  push rules to Cloudflare or to a network firewall.
+- The dashboard button asks to isolate or suspend; releasing and restoring are done through the API
+  (`POST /actions` with `host.release` / `account.enable`) or in the vendor's own console.
+- Three administrators are needed when a person asks (the asker cannot approve): a team of one or two cannot use
+  this by hand. A request from the Vanguard agent needs two.
+- Suspending an Okta account does not sign the person out of other systems where they already have a session.
+
 ## What Legion can DO in these systems today
 
-Everything above **reads, notifies or opens tickets**. The only real response actions remain (a) blocking a public address (enforced by the Wazuh manager's active response) and (b) e-mailing administrators, both opt-in per workspace ([PROTECTION.md](PROTECTION.md)). Disabling an Entra, Okta or Google account, isolating a host (Defender for Endpoint, CrowdStrike, SentinelOne), changing a Cloudflare rule and similar actions are **simulation only**: they need a connector with write permission in the customer's tenant, a security review of that executor, and a person's approval every time. They are not built.
+Everything above **reads, notifies or opens tickets**, except the two response connections described in "Response: acting in your systems". What Legion can really do: (a) block a public address (enforced by the Wazuh manager's active response) and (b) e-mail administrators — both can be allowed to run on their own, opt-in per workspace ([PROTECTION.md](PROTECTION.md)); (c) isolate or release a host through CrowdStrike and (d) suspend or restore an Okta account — only after people approve each one. Disabling an Entra or Google account, isolating a host through Defender for Endpoint or SentinelOne, changing a Cloudflare rule and similar actions are **simulation only**: they are not built.

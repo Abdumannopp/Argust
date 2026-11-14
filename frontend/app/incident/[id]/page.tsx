@@ -1,6 +1,7 @@
 "use client";
 
 import ThreatIntelCard from "@/components/ThreatIntelCard";
+import ResponseCard from "@/components/ResponseCard";
 import AlertDeliveries from "@/components/AlertDeliveries";
 import AiBadge from "@/components/AiBadge";
 import { useState, useEffect } from "react";
@@ -321,6 +322,7 @@ export default function IncidentDetailsPage() {
           </div>
 
           <ThreatIntelCard alertId={alert.id} hasSourceIp={Boolean(alert.source_ip)} />
+          <ResponseCard alertId={alert.id} target={alert.target ?? null} />
 
           {/* Suggested Actions */}
           <div className="mt-4 lg-surface p-4">
