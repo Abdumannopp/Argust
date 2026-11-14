@@ -67,6 +67,7 @@ import { startRuntime, stopRuntime } from "./runtime/worker.js";
 import { collectMetrics } from "./metrics.js";
 import { pruneExpiredMemory } from "./memory/store.js";
 import type { AccessState, Alert, Role, Severity, Subscription, User } from "./types.js";
+import { ASSET_KINDS } from "./types.js";
 
 export const app = express();
 export const httpServer = createServer(app);
@@ -1532,9 +1533,10 @@ app.get("/assets", auth, async (req: AuthedRequest, res) => {
     online: z.enum(["true", "false"]).optional(),
     q: z.string().max(200).optional(),
     limit: z.coerce.number().int().min(1).max(5_000).optional(),
+    kind: z.enum(ASSET_KINDS).optional(),
   }), req.query, res); if (!q) return;
   res.json(await store.listAssets(req.user!.tenant_id, {
-    risk: q.risk, online: q.online === undefined ? undefined : q.online === "true", q: q.q, limit: q.limit,
+    risk: q.risk, online: q.online === undefined ? undefined : q.online === "true", q: q.q, limit: q.limit, kind: q.kind,
   }));
 });
 

@@ -16,6 +16,7 @@ import { inTenant, queryOne, transaction } from "../db/pool.js";
 import { enqueueIntegrationMessages } from "../integration-notify.js";
 import * as store from "../store.js";
 import { correlate } from "../campaigns.js";
+import type { AssetKind } from "../types.js";
 import { respondToCampaigns } from "../blocklist.js";
 import type { Alert } from "../types.js";
 import type { Finding } from "./types.js";
@@ -29,6 +30,26 @@ export function findingAlertId(tenantId: string, source: string, externalId: str
  * A sensor's text, made safe to store: no NUL characters (the database refuses
  * them, which would turn one odd event into a request that can never succeed).
  */
+/**
+ * Asset intelligence: what kind of thing a source's assets are, when the adapter does not say itself.
+ * Wazuh agents run on servers; EDR products report endpoints; cloud security services report cloud resources.
+ * A SIEM or a generic webhook does not say, so its assets stay "unknown" until another source knows.
+ */
+const KIND_BY_SOURCE: Record<string, AssetKind> = {
+  wazuh: "server", crowdstrike: "endpoint", sentinelone: "endpoint", m365: "endpoint",
+  guardduty: "cloud", securityhub: "cloud", azure: "cloud", gcp: "cloud",
+};
+/** Identity sources: their alerts are about an account, which becomes a "user" asset. */
+const IDENTITY_SOURCES = new Set(["okta", "gworkspace"]);
+const ACCOUNT = /^[^\s@<>"]{1,64}@[a-z0-9.-]{3,253}$/i;
+
+export function assetFor(source: string, f: Finding): { name: string; ip: string | null; os: string | null; kind: AssetKind } | null {
+  if (f.asset?.name) return { name: f.asset.name, ip: f.asset.ip, os: f.asset.os, kind: f.asset.kind ?? KIND_BY_SOURCE[source] ?? "unknown" };
+  // The account an identity alert is about. Only something that is an account name; never free text.
+  if (IDENTITY_SOURCES.has(source) && f.target && ACCOUNT.test(f.target)) return { name: f.target.toLowerCase().slice(0, 255), ip: null, os: null, kind: "user" };
+  return null;
+}
+
 export function cleanFinding(f: Finding): Finding {
   return {
     ...f,
@@ -38,7 +59,7 @@ export function cleanFinding(f: Finding): Finding {
     sourceIp: f.sourceIp === null ? null : stripNul(f.sourceIp),
     target: f.target === null ? null : stripNul(f.target),
     mitre: f.mitre.map(stripNul),
-    asset: f.asset ? { name: stripNul(f.asset.name), ip: f.asset.ip === null ? null : stripNul(f.asset.ip), os: f.asset.os === null ? null : stripNul(f.asset.os) } : f.asset,
+    asset: f.asset ? { name: stripNul(f.asset.name), ip: f.asset.ip === null ? null : stripNul(f.asset.ip), os: f.asset.os === null ? null : stripNul(f.asset.os), kind: f.asset.kind } : f.asset,
   };
 }
 
@@ -88,7 +109,7 @@ export async function ingestFindings(
       mitre_technique: f.mitre.length ? clip(f.mitre.join(", "), 200) || null : null,
       source: clip(source, 100),
       occurred_at: f.occurredAt,
-    }, { asset: f.asset ?? null, realtime: opts.realtime });
+    }, { asset: assetFor(source, f), realtime: opts.realtime });
     (alert ? report.ingested : report.duplicates).push(id);
     if (alert) stored.push(alert);
     else if (f.severity !== "low" && await escalateIfHigher(tenantId, id, f).catch(() => false)) (report.escalated ??= []).push(id);

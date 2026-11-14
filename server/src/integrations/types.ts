@@ -33,7 +33,7 @@ export interface Finding {
   /** 0–100: how sure the source is. */
   confidence: number;
   /** The asset to upsert in the inventory, if the source identifies one. */
-  asset?: { name: string; ip: string | null; os: string | null } | null;
+  asset?: { name: string; ip: string | null; os: string | null; kind?: "server" | "endpoint" | "user" | "cloud" | "unknown" } | null;
 }
 
 export type Plane = "data" | "tool";

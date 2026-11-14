@@ -16,6 +16,7 @@ import type {
   Alert, AlertStatus, Asset, AuditLog, Role, Severity,
   Subscription, Tenant, User, UserStatus,
 } from "./types.js";
+import { ASSET_KINDS, type AssetKind } from "./types.js";
 
 export { migrate, isUniqueViolation, transaction, closePool } from "./db/pool.js";
 
@@ -91,6 +92,8 @@ const toAlert = (r: any): Alert => ({
 const toAsset = (r: any): Asset => ({
   id: r.id, tenant_id: r.tenant_id, name: r.name, os: r.os, ip_address: r.ip_address,
   risk: r.risk as Severity, online: r.online, last_seen: isoRequired(r.last_seen),
+  kind: (ASSET_KINDS as readonly string[]).includes(r.kind) ? r.kind : "unknown", sources: Array.isArray(r.sources) ? r.sources : [],
+  first_seen: isoRequired(r.first_seen ?? r.last_seen),
 });
 
 const toAudit = (r: any): AuditLog => ({
@@ -759,7 +762,7 @@ export async function alertStats(tenantId: string): Promise<AlertStats> {
 
 // --- Assets ------------------------------------------------------------------
 
-export interface AssetFilters { risk?: string; online?: boolean; q?: string; limit?: number }
+export interface AssetFilters { risk?: string; online?: boolean; q?: string; limit?: number; kind?: AssetKind }
 
 /** Always an integer 1–5000 (it is interpolated): default 1000. */
 const assetLimit = (n: number | undefined): number =>
@@ -771,6 +774,7 @@ export async function listAssets(tenantId: string, filters: AssetFilters = {}): 
   if (filters.risk) { params.push(filters.risk); where.push(`risk = $${params.length}`); }
   if (filters.online !== undefined) { params.push(filters.online); where.push(`online = $${params.length}`); }
   if (filters.q) { params.push(`%${filters.q.toLowerCase()}%`); where.push(`lower(name) LIKE $${params.length}`); }
+  if (filters.kind) { params.push(filters.kind); where.push(`kind = $${params.length}`); }
 
   const rows = await queryAll(
     `SELECT * FROM assets WHERE ${where.join(" AND ")} ORDER BY last_seen DESC LIMIT ${assetLimit(filters.limit)}`,
@@ -798,7 +802,9 @@ export async function upsertAsset(
   ip: string | null,
   os: string | null,
   /** Run inside the caller's transaction (alert ingestion does). */
-  client?: PoolClient
+  client?: PoolClient,
+  /** What the reporting source says it is, and which source that is (asset intelligence). */
+  seen: { kind?: AssetKind; source?: string } = {},
 ): Promise<void> {
   const run = client ? (text: string, params: unknown[]) => client.query(text, params) : query;
   await run(
@@ -814,9 +820,13 @@ export async function upsertAsset(
          'low'
        ) AS risk
      )
-     INSERT INTO assets (id, tenant_id, name, os, ip_address, risk, online, last_seen)
-     SELECT $6, $1, $2, COALESCE($4, 'unknown'), $3, computed.risk, true, now() FROM computed
+     INSERT INTO assets (id, tenant_id, name, os, ip_address, risk, online, last_seen, kind, sources)
+     SELECT $6, $1, $2, COALESCE($4, 'unknown'), $3, computed.risk, true, now(), $7, CASE WHEN $8::text IS NULL THEN '{}'::text[] ELSE ARRAY[$8::text] END FROM computed
      ON CONFLICT (tenant_id, name) DO UPDATE SET
+       -- The first source that knows what it is decides; a later "unknown" never erases that.
+       kind       = CASE WHEN assets.kind = 'unknown' THEN EXCLUDED.kind ELSE assets.kind END,
+       -- Every platform that reported it, once each (bounded).
+       sources    = CASE WHEN $8::text IS NULL OR $8::text = ANY(assets.sources) OR cardinality(assets.sources) >= 40 THEN assets.sources ELSE assets.sources || $8::text END,
        last_seen  = now(),
        online     = true,
        risk       = EXCLUDED.risk,
@@ -824,7 +834,8 @@ export async function upsertAsset(
        -- Only fill in the OS if we never learned it; sensors report it
        -- inconsistently and a later blank must not erase a known value.
        os         = CASE WHEN assets.os = 'unknown' THEN EXCLUDED.os ELSE assets.os END`,
-    [tenantId, name, ip, os, String(RISK_WINDOW_DAYS), `AST-${randomUUID().slice(0, 12).toUpperCase()}`]
+    [tenantId, name, ip, os, String(RISK_WINDOW_DAYS), `AST-${randomUUID().slice(0, 12).toUpperCase()}`,
+      seen.kind && (ASSET_KINDS as readonly string[]).includes(seen.kind) ? seen.kind : "unknown", seen.source ? seen.source.slice(0, 60) : null]
   );
 }
 

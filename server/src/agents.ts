@@ -97,8 +97,9 @@ export function skillData(): SkillDataSource {
     async listAssets(tenantId, q) {
       if (!UUID.test(tenantId)) return [];
       const names = q.names ? new Set(q.names) : null;
+      // Machines only: a user account is in the inventory but is not a host the exposure skills reason about.
       return (await store.listAssets(tenantId))
-        .filter((a) => !names || names.has(a.name))
+        .filter((a) => a.kind !== "user" && (!names || names.has(a.name)))
         .slice(0, q.limit)
         .map((a) => ({
           name: a.name, tenantId: a.tenant_id, ip: a.ip_address, os: a.os, risk: a.risk, online: a.online,

@@ -629,7 +629,13 @@ export interface Asset {
   risk: "critical" | "high" | "medium" | "low";
   online: boolean;
   last_seen: string;
+  /** What it is, as the first platform that knew said. */
+  kind: AssetKind;
+  /** Every platform that has reported it. */
+  sources: string[];
+  first_seen: string;
 }
+export type AssetKind = "server" | "endpoint" | "user" | "cloud" | "unknown";
 
 export function getAssets(filters?: {
   risk?: string;

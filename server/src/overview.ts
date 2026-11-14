@@ -57,7 +57,7 @@ export async function overview(tenantId: string): Promise<Overview> {
       "SELECT kind, name, status, last_success_at FROM integration_connections WHERE tenant_id = $1 AND status <> 'disabled' ORDER BY created_at",
       [tenantId]),
     queryOne<{ total: number; online: number }>(
-      "SELECT count(*)::int AS total, count(*) FILTER (WHERE online)::int AS online FROM assets WHERE tenant_id = $1", [tenantId]),
+      "SELECT count(*)::int AS total, count(*) FILTER (WHERE online)::int AS online FROM assets WHERE tenant_id = $1 AND kind <> 'user'", [tenantId]),
     queryOne<{ total: number; active: number }>(
       "SELECT count(*)::int AS total, count(*) FILTER (WHERE status = 'active')::int AS active FROM machine_identities WHERE tenant_id = $1::text AND kind = 'ai_agent' AND status <> 'revoked'",
       [tenantId]),

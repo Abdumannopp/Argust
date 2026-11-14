@@ -805,3 +805,18 @@ ALTER TABLE alerts ADD COLUMN IF NOT EXISTS reopened_count int NOT NULL DEFAULT 
 -- Audit A-7: the tickets an alert became (Jira, ...) live on the alert itself, so the link outlives the
 -- delivered outbox rows, which are pruned after NOTIFY_RETENTION_DAYS. [{connection_id, key, url, at}].
 ALTER TABLE alerts ADD COLUMN IF NOT EXISTS tickets jsonb NOT NULL DEFAULT '[]'::jsonb;
+
+-- Asset intelligence: one inventory for servers, endpoints, user accounts and cloud resources. `kind` is what the
+-- first source that knew said it is ('unknown' until one does); `sources` is every platform that reported it;
+-- `first_seen` is when Legion first heard of it. A user account is an asset but not a machine: it is not counted
+-- against the plan's endpoint limit.
+ALTER TABLE assets ADD COLUMN IF NOT EXISTS kind text NOT NULL DEFAULT 'unknown';
+ALTER TABLE assets ADD COLUMN IF NOT EXISTS sources text[] NOT NULL DEFAULT '{}';
+ALTER TABLE assets ADD COLUMN IF NOT EXISTS first_seen timestamptz NOT NULL DEFAULT now();
+DO $$ BEGIN
+  ALTER TABLE assets ADD CONSTRAINT assets_kind_check CHECK (kind IN ('server', 'endpoint', 'user', 'cloud', 'unknown'));
+EXCEPTION WHEN duplicate_object THEN NULL; END $$;
+DO $$ BEGIN
+  ALTER TABLE assets ADD CONSTRAINT assets_sources_check CHECK (cardinality(sources) <= 40);
+EXCEPTION WHEN duplicate_object THEN NULL; END $$;
+CREATE INDEX IF NOT EXISTS assets_tenant_kind_idx ON assets (tenant_id, kind);
