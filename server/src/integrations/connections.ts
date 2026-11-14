@@ -18,7 +18,7 @@ import type { Alert } from "../types.js";
 import { ingestFindings } from "./ingest.js";
 import { scrubError } from "./scrub.js";
 import { withTenant } from "../db/rls.js";
-import { connectedPushAdapter, intelAdapter, outboundAdapter, pullAdapter, pullKinds } from "./registry.js";
+import { connectedPushAdapter, intelAdapter, outboundAdapter, pullAdapter, pullKinds, responseAdapter } from "./registry.js";
 
 export interface ConnectionView {
   id: string;
@@ -53,7 +53,7 @@ export async function create(
   input: { kind: string; name: string; config: unknown; secrets: Record<string, string>; pollSeconds?: number },
   createdBy: string,
 ): Promise<ConnectionView> {
-  const adapter = pullAdapter(input.kind) ?? outboundAdapter(input.kind) ?? connectedPushAdapter(input.kind) ?? intelAdapter(input.kind);
+  const adapter = pullAdapter(input.kind) ?? outboundAdapter(input.kind) ?? connectedPushAdapter(input.kind) ?? intelAdapter(input.kind) ?? responseAdapter(input.kind);
   // Outbound, push and threat-intelligence connections are never polled.
   const outbound = !pullAdapter(input.kind);
   if (!adapter || adapter.manifest.status !== "available") throw new ConnectionError("unknown_kind", "That integration is not available.");
@@ -96,7 +96,7 @@ export async function setStatus(tenantId: string, id: string, status: "active" |
 
 // --- One view of every vendor (the "integration engine" page) ---------------------
 
-export type Direction = "in" | "out" | "intel";
+export type Direction = "in" | "out" | "intel" | "respond";
 export type Health = "ok" | "waiting" | "failing" | "overdue" | "stopped" | "paused";
 export interface ConnectionHealth {
   id: string; kind: string; name: string; direction: Direction; health: Health;
@@ -115,6 +115,7 @@ export interface HealthReport {
 
 export function directionOf(kind: string): Direction {
   if (intelAdapter(kind)) return "intel";
+  if (responseAdapter(kind)) return "respond";
   if (outboundAdapter(kind)) return "out";
   return "in";
 }

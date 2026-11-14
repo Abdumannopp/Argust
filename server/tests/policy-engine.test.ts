@@ -60,8 +60,22 @@ describe("evaluator: hard refusals", () => {
     expect(evaluatePolicy({ action_id: "ip.block", actor: human, origin: "human", mode: "live", protection: { mode: "manual", auto_actions: ["ip.block"] } }, allowAll).reason_codes).toEqual(["LIVE_NOT_ENABLED"]);
     // Opted in, but there is nothing to call for these: simulation only.
     const auto = { mode: "automatic", auto_actions: [] } as const;
-    for (const id of ["alert.set_status", "ip.unblock", "payment.reject", "payment.release", "account.disable", "host.isolate"]) {
+    for (const id of ["alert.set_status", "ip.unblock", "payment.reject", "payment.release"]) {
       expect(evaluatePolicy({ action_id: id, actor: human, origin: "human", mode: "live", protection: auto }, allowAll).reason_codes, id).toEqual(["NO_LIVE_EXECUTOR"]);
+    }
+    // Response in a customer's systems has an executor, but no setting and no policy lets it run on its own:
+    // a machine's proposal always waits for people, even in automatic mode, even if someone listed it.
+    const listed = { mode: "hybrid", auto_actions: ["host.isolate", "account.disable", "host.release", "account.enable"] } as const;
+    for (const id of ["host.isolate", "account.disable", "host.release", "account.enable"]) {
+      for (const protection of [auto, listed]) {
+        expect(evaluatePolicy(agentReq(id, "Vanguard", { mode: "live", protection }), allowAll).decision, id).toBe("REQUIRE_APPROVAL");
+        expect(evaluatePolicy(agentReq(id, "Vanguard", { mode: "live", protection, origin: "llm" }), allowAll).decision, id).toBe("REQUIRE_APPROVAL");
+      }
+      expect(evaluatePolicy(agentReq(id, "Vanguard", { mode: "live" }), allowAll).reason_codes, id).toEqual(["LIVE_NOT_ENABLED"]);
+    }
+    // Isolating a host or disabling an account is critical: even an administrator's own request needs approval.
+    for (const id of ["host.isolate", "account.disable"]) {
+      expect(evaluatePolicy({ action_id: id, actor: human, origin: "human", mode: "live", protection: auto }, allowAll), id).toMatchObject({ decision: "REQUIRE_APPROVAL", risk_class: "R4" });
     }
   });
   it("actor and origin must agree: an agent cannot claim to be a human, a human request cannot be marked as model output", () => {

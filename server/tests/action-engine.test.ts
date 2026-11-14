@@ -20,7 +20,7 @@ import * as store from "../src/store.js";
 import type { User } from "../src/types.js";
 import { putPolicy } from "../src/policy/store.js";
 import { proposeAction, runQueued, syncWithApproval, type Proposal } from "../src/actions/engine.js";
-import { catalogList, LIVE_ACTION_IDS } from "../src/policy/catalog.js";
+import { catalogList, LIVE_ACTION_IDS, RESPONSE_LIVE_ACTION_IDS } from "../src/policy/catalog.js";
 
 let tenantA: string; let tenantB: string;
 let admin1: User; let admin2: User; let analyst: User; let viewer: User; let adminB: User;
@@ -269,6 +269,7 @@ describe("v0 has no path to a side effect", () => {
       "notify.admins": { subject: "Look at SEC-1", alert_id: "SEC-1" }, "ip.unblock": { ip: "185.220.101.4" }, "ip.block": { ip: "185.220.101.4", minutes: 30 },
       "payment.reject": { payment_id: "PAY-00000000000000AA" }, "payment.release": { payment_id: "PAY-00000000000000AA" },
       "account.disable": { account: "jdoe", system: "okta" }, "host.isolate": { host: "web-01" },
+      "account.enable": { account: "jdoe", system: "okta" }, "host.release": { host: "web-01" },
     };
     expect(Object.keys(inputs).sort()).toEqual(catalogList().map((c) => c.id).sort());
     const before = await sideEffectSnapshot();
@@ -313,5 +314,8 @@ describe("v0 has no path to a side effect", () => {
     }
     const executors = [...live.matchAll(/^  "([a-z]+\.[a-z_]+)": async/gm)].map((m) => m[1]).sort();
     expect(executors).toEqual([...LIVE_ACTION_IDS].sort());
+    // The only other executors act through a response connection, and are exactly the catalog's response actions.
+    const response = [...live.matchAll(/^EXECUTORS\["([a-z]+\.[a-z_]+)"\] = /gm)].map((m) => m[1]).sort();
+    expect(response).toEqual([...RESPONSE_LIVE_ACTION_IDS].sort());
   });
 });

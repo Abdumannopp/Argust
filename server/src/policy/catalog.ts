@@ -10,7 +10,7 @@ import { z } from "zod";
 import type { Agent } from "../types.js";
 import type { RiskClass } from "./types.js";
 
-export const CATALOG_VERSION = "2026-11-04.1";
+export const CATALOG_VERSION = "2026-11-14.1";
 
 const noControl = (s: string) => !/[\u0000-\u001f\u007f]/.test(s);
 const text = (max: number) => z.string().trim().min(1).max(max).refine(noControl, "Text must not contain control characters");
@@ -85,6 +85,17 @@ const entries: CatalogEntry[] = [
     summary: "Isolate a host from the network through an EDR",
     input: z.strictObject({ host: text(200), reason }), targetOf: (i) => String(i.host),
   },
+  // The way back from the two above. Lower risk (it restores what was there), still a change in a customer system.
+  {
+    id: "account.enable", class: "R3", effect: "write", agents: ["Vanguard"], reversible: true,
+    summary: "Restore a user account that was disabled in a connected identity system",
+    input: z.strictObject({ account: text(200), system: z.enum(["entra", "okta", "google"]), reason }), targetOf: (i) => `${String(i.system)}:${String(i.account)}`,
+  },
+  {
+    id: "host.release", class: "R3", effect: "write", agents: ["Vanguard"], reversible: true,
+    summary: "Release a host from network isolation through an EDR",
+    input: z.strictObject({ host: text(200), reason }), targetOf: (i) => String(i.host),
+  },
 ];
 
 /**
@@ -94,6 +105,17 @@ const entries: CatalogEntry[] = [
  * a migration as well as code, and a test (protection.test.ts) keeps the three in step.
  */
 export const LIVE_ACTION_IDS: readonly string[] = ["ip.block", "notify.admins"];
+
+/**
+ * Response in a customer's own systems, through a response connector (integrations/response.ts). They have an
+ * executor too, but they are a different thing from the list above: they can NEVER be pre-authorised. A machine's
+ * proposal always waits for people (isolate and disable are critical: two people, each with a second-factor code),
+ * and only an administrator can start one by hand. They are not in the database's list of actions a workspace may
+ * let Legion take on its own, and policy/evaluate.ts never treats them as authorised by a protection setting.
+ */
+export const RESPONSE_LIVE_ACTION_IDS: readonly string[] = ["host.isolate", "host.release", "account.disable", "account.enable"];
+/** Everything Legion has an executor for. */
+export const EXECUTABLE_ACTION_IDS: readonly string[] = [...LIVE_ACTION_IDS, ...RESPONSE_LIVE_ACTION_IDS];
 
 const byId = new Map(entries.map((e) => [e.id, Object.freeze(e)]));
 

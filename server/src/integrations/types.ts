@@ -166,4 +166,4 @@ export interface IntelAdapter {
   lookup(conn: ConnectionContext, indicators: IntelIndicator[], signal: AbortSignal): Promise<IntelAnswer[]>;
 }
 
-export type Adapter = PushAdapter | PullAdapter | OutboundAdapter | IntelAdapter;
+export type Adapter = PushAdapter | PullAdapter | OutboundAdapter | IntelAdapter | import("./response.js").ResponseAdapter;
