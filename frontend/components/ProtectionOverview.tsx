@@ -100,7 +100,7 @@ export default function ProtectionOverview({ data }: { data: Overview }) {
       )}
 
       <div className="grid gap-3 sm:grid-cols-3">
-        <section className="lg-surface px-4 py-3.5">
+        <section className="lg-surface px-4 py-3.5 min-w-0">
           <h3 className="text-ink-muted text-[11px] uppercase tracking-wide mb-2">{o.protectedTitle}</h3>
           {data.protected.sources.length === 0 ? (
             <p className="text-ink-faint text-xs">{o.noSources}</p>
@@ -121,7 +121,7 @@ export default function ProtectionOverview({ data }: { data: Overview }) {
           <p className="text-ink-faint text-[11px]">{o.agentsLine(data.protected.agents.total, data.protected.agents.active)}</p>
         </section>
 
-        <section className="lg-surface px-4 py-3.5">
+        <section className="lg-surface px-4 py-3.5 min-w-0">
           <h3 className="text-ink-muted text-[11px] uppercase tracking-wide mb-2">{o.threatsTitle}</h3>
           {data.threats.open_total === 0 ? (
             <p className="text-ink-faint text-xs flex items-center gap-1.5"><CheckCircle2 size={13} className="text-success" />{o.noThreats}</p>
@@ -138,7 +138,7 @@ export default function ProtectionOverview({ data }: { data: Overview }) {
               <ul className="space-y-1">
                 {data.threats.top.map((a) => (
                   <li key={a.id}>
-                    <Link href={`/incident/${a.id}`} className="text-[11px] text-ink-muted hover:text-brand-bright flex items-center gap-1.5">
+                    <Link href={`/incident/${a.id}`} className="text-[11px] text-ink-muted hover:text-brand-bright flex items-center gap-1.5 min-w-0">
                       <span className={`w-1.5 h-1.5 rounded-full shrink-0 ${SEVERITY_DOT[a.severity]}`} />
                       <span className="truncate">{a.title}</span>
                     </Link>
@@ -150,7 +150,7 @@ export default function ProtectionOverview({ data }: { data: Overview }) {
           <p className="text-ink-faint text-[11px] mt-2">{o.newToday(data.threats.new_last_24h)}</p>
         </section>
 
-        <section className="lg-surface px-4 py-3.5">
+        <section className="lg-surface px-4 py-3.5 min-w-0">
           <h3 className="text-ink-muted text-[11px] uppercase tracking-wide mb-0.5">{o.blockedTitle}</h3>
           <p className="text-ink-faint text-[10px] mb-2">{o.blockedWindow(data.blocked.window_days)}</p>
           {data.protected.agents.total === 0 ? (

@@ -167,7 +167,7 @@ export default function BillingPage() {
   return (
     <div className="flex min-h-screen lg-app-bg">
       <Sidebar />
-      <div className="flex-1 flex flex-col">
+      <div className="flex-1 min-w-0 flex flex-col">
         <div className="border-b border-line px-6 py-4 flex items-center gap-2.5">
           <div className="w-8 h-8 rounded-lg bg-brand/15 flex items-center justify-center">
             <CreditCard size={16} color={palette.brandBright} />

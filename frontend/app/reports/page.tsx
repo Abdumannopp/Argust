@@ -154,7 +154,7 @@ export default function ReportsPage() {
   return (
     <div className="flex min-h-screen lg-app-bg">
       <Sidebar />
-      <div className="flex-1 p-4 sm:p-6">
+      <div className="flex-1 min-w-0 p-4 sm:p-6">
         <div className="max-w-5xl mx-auto">
           <div className="mb-6">
             <h1 className="legion-title text-ink flex items-center gap-2">

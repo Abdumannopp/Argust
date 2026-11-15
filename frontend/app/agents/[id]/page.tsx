@@ -173,7 +173,7 @@ export default function AgentPage() {
   if (missing) {
     return (
       <div className="flex min-h-screen lg-app-bg"><Sidebar />
-        <div className="flex-1 p-4 sm:p-6"><div className="max-w-3xl mx-auto space-y-4">{header}
+        <div className="flex-1 min-w-0 p-4 sm:p-6"><div className="max-w-3xl mx-auto space-y-4">{header}
           <ErrorNotice error={new ApiError(t.errors.notFound.title, 404)} />
         </div></div>
       </div>
@@ -185,7 +185,7 @@ export default function AgentPage() {
   return (
     <div className="flex min-h-screen lg-app-bg">
       <Sidebar />
-      <div className="flex-1 p-4 sm:p-6">
+      <div className="flex-1 min-w-0 p-4 sm:p-6">
         <div className="max-w-3xl mx-auto space-y-4">
           {header}
           {error != null && <ErrorNotice error={error} onRetry={load} isAdmin={isAdmin} />}
