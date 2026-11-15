@@ -4,10 +4,11 @@ import { useState, useEffect, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import { Search, Loader2, Monitor, Wifi, WifiOff } from "lucide-react";
 import Sidebar from "@/components/Sidebar";
-import { Asset, getAssets, isLoggedIn, ApiError } from "@/lib/api";
+import { Asset, AssetKind, getAssets, isLoggedIn, ApiError } from "@/lib/api";
 import { palette } from "@/lib/theme";
 import { useLanguage } from "@/lib/i18n/LanguageContext";
 
+const KIND_FILTERS: (AssetKind | "all")[] = ["all", "server", "endpoint", "user", "cloud", "unknown"];
 const RISK_COLOR: Record<Asset["risk"], string> = {
   critical: palette.critical,
   high: palette.high,
@@ -27,6 +28,7 @@ export default function AssetsPage() {
   const [assets, setAssets] = useState<Asset[]>([]);
   const [query, setQuery] = useState("");
   const [riskFilter, setRiskFilter] = useState("all");
+  const [kindFilter, setKindFilter] = useState<AssetKind | "all">("all");
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -63,7 +65,10 @@ export default function AssetsPage() {
     medium: assets.filter((a) => a.risk === "medium").length,
     low: assets.filter((a) => a.risk === "low").length,
   };
-  const onlineCount = assets.filter((a) => a.online).length;
+  const shown = kindFilter === "all" ? assets : assets.filter((a) => a.kind === kindFilter);
+  // A user account is in the inventory but is not a device.
+  const machines = assets.filter((a) => a.kind !== "user");
+  const onlineCount = machines.filter((a) => a.online).length;
 
   return (
     <div className="flex min-h-screen lg-app-bg">
@@ -76,8 +81,9 @@ export default function AssetsPage() {
               {t.assets.title}
             </h1>
             <p className="text-ink-faint text-[11px] tracking-[0.1em] uppercase mt-1.5">
-              {t.assets.summary(assets.length, onlineCount)}
+              {t.assets.summary(machines.length, onlineCount)}
             </p>
+            <p className="text-ink-muted text-xs mt-2">{t.assets.intro}</p>
           </div>
 
           <div className="flex flex-wrap items-center gap-2 mb-4">
@@ -93,6 +99,20 @@ export default function AssetsPage() {
                 className="w-full bg-surface border border-line rounded-lg pl-9 pr-3 py-2 text-sm text-ink placeholder:text-ink-disabled outline-none focus:border-brand-hover"
               />
             </div>
+            {KIND_FILTERS.filter((k) => k === "all" || k === kindFilter || assets.some((a) => a.kind === k)).map((k) => (
+              <button
+                key={k}
+                onClick={() => setKindFilter(k)}
+                data-testid={`asset-kind-${k}`}
+                className={`text-xs font-medium px-3 py-2 rounded-lg border transition-colors whitespace-nowrap ${
+                  kindFilter === k ? "border-brand-hover text-brand-bright bg-brand/10" : "border-line text-ink-faint hover:text-ink-muted"
+                }`}
+              >
+                {t.assets.kinds[k]} {k === "all" ? assets.length : assets.filter((a) => a.kind === k).length}
+              </button>
+            ))}
+          </div>
+          <div className="flex flex-wrap gap-2 mb-4">
             {(["all", "critical", "high", "medium", "low"] as const).map((f) => (
               <button
                 key={f}
@@ -142,16 +162,20 @@ export default function AssetsPage() {
                   </tr>
                 </thead>
                 <tbody>
-                  {assets.map((asset) => (
+                  {shown.map((asset) => (
                     <tr
                       key={asset.id}
                       className="border-b border-line last:border-b-0 hover:bg-panel transition-colors"
                     >
                       <td className="px-4 py-3">
-                        <p className="text-ink font-medium">{asset.name}</p>
-                        <p className="text-ink-faint text-[11px] font-mono">{asset.id}</p>
+                        <p className="text-ink font-medium break-all">{asset.name}</p>
+                        <p className="text-ink-faint text-[11px]">
+                          <span className="text-ink-muted">{t.assets.kind[asset.kind]}</span>
+                          {asset.sources.length > 0 && ` · ${t.assets.reportedBy(asset.sources.join(", "))}`}
+                        </p>
                       </td>
                       <td className="px-4 py-3">
+                        {asset.kind === "user" ? <span className="text-ink-faint text-xs">{t.assets.notApplicable}</span> : (
                         <div className="flex items-center gap-1.5">
                           <span
                             className="w-2 h-2 rounded-full"
@@ -171,6 +195,7 @@ export default function AssetsPage() {
                             )}
                           </span>
                         </div>
+                        )}
                       </td>
                       <td className="px-4 py-3">
                         <span
@@ -194,7 +219,7 @@ export default function AssetsPage() {
                   ))}
                 </tbody>
               </table>
-              {assets.length === 0 && (
+              {shown.length === 0 && (
                 <div className="text-center py-12 text-ink-faint text-sm">
                   {t.assets.empty}
                 </div>

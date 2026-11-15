@@ -1,18 +1,18 @@
 "use client";
 
 import { useCallback, useEffect, useState } from "react";
-import { CheckCircle2, Loader2, Pause, Play, Plus, Trash2 } from "lucide-react";
+import { CheckCircle2, Loader2, Pause, Play, Plus, RefreshCw, Trash2 } from "lucide-react";
 import ErrorNotice from "@/components/ErrorNotice";
-import { ConnectionInfo, createConnection, listConnections, removeConnection, setConnectionStatus, githubWebhookUrl } from "@/lib/api";
+import { checkConnectionNow, ConnectionHealth, ConnectionInfo, createConnection, getIntegrationHealth, IntegrationHealth, listConnections, removeConnection, setConnectionStatus, githubWebhookUrl } from "@/lib/api";
 import { useLanguage } from "@/lib/i18n/LanguageContext";
 import { timeAgo } from "@/lib/i18n/format";
 
 type Kind = "m365" | "azure" | "gcp" | "guardduty" | "okta" | "github" | "slack" | "teams" | "pagerduty" | "jira"
-  | "crowdstrike" | "sentinelone" | "msentinel" | "securityhub" | "elastic" | "splunk" | "cloudflare" | "gworkspace" | "servicenow" | "opsgenie";
+  | "crowdstrike" | "sentinelone" | "msentinel" | "securityhub" | "elastic" | "splunk" | "cloudflare" | "gworkspace" | "servicenow" | "opsgenie" | "virustotal" | "misp" | "opencti" | "crowdstrike_response" | "okta_response" | "entra_response" | "abuseipdb" | "entra_id" | "cortex_xdr" | "tenable" | "qualys";
 type FieldType = "text" | "password" | "regions" | "severity" | "choice" | "number";
 interface Field { key: string; where: "config" | "secrets"; type: FieldType; options?: string[] }
-// Grouped as the card shows them: endpoint and SIEM, cloud, identity and edge, then where alerts are sent.
-const KINDS: Kind[] = ["crowdstrike", "sentinelone", "m365", "msentinel", "elastic", "splunk", "azure", "guardduty", "securityhub", "gcp", "okta", "gworkspace", "cloudflare", "github", "slack", "teams", "pagerduty", "opsgenie", "jira", "servicenow"];
+// Grouped as the card shows them: endpoint and SIEM, cloud, identity and edge, threat intelligence, then where alerts are sent.
+const KINDS: Kind[] = ["crowdstrike", "sentinelone", "cortex_xdr", "m365", "msentinel", "elastic", "splunk", "azure", "guardduty", "securityhub", "gcp", "okta", "entra_id", "gworkspace", "cloudflare", "github", "tenable", "qualys", "virustotal", "abuseipdb", "misp", "opencti", "crowdstrike_response", "okta_response", "entra_response", "slack", "teams", "pagerduty", "opsgenie", "jira", "servicenow"];
 const OUTBOUND: Kind[] = ["slack", "teams", "pagerduty", "opsgenie", "jira", "servicenow"];
 // Technical identifiers: they must match the server's schema for each connector.
 const FIELDS: Record<Kind, Field[]> = {
@@ -35,7 +35,23 @@ const FIELDS: Record<Kind, Field[]> = {
   cloudflare: [{ key: "zone_id", where: "config", type: "text" }, { key: "min_events", where: "config", type: "number" }, { key: "api_token", where: "secrets", type: "password" }],
   gworkspace: [{ key: "admin_email", where: "config", type: "text" }, { key: "service_account_json", where: "secrets", type: "password" }],
   servicenow: [{ key: "instance", where: "config", type: "text" }, { key: "username", where: "secrets", type: "text" }, { key: "password", where: "secrets", type: "password" }, { key: "min_severity", where: "config", type: "severity" }],
+  virustotal: [{ key: "api_key", where: "secrets", type: "password" }],
+  misp: [{ key: "host", where: "config", type: "text" }, { key: "api_key", where: "secrets", type: "password" }],
+  opencti: [{ key: "host", where: "config", type: "text" }, { key: "api_token", where: "secrets", type: "password" }],
+  crowdstrike_response: [{ key: "cloud", where: "config", type: "choice", options: ["us-1", "us-2", "eu-1", "us-gov-1"] }, { key: "client_id", where: "config", type: "text" }, { key: "client_secret", where: "secrets", type: "password" }, { key: "never", where: "config", type: "regions" }],
+  okta_response: [{ key: "domain", where: "config", type: "text" }, { key: "api_token", where: "secrets", type: "password" }, { key: "never", where: "config", type: "regions" }],
+  entra_response: [{ key: "directory_id", where: "config", type: "text" }, { key: "client_id", where: "config", type: "text" }, { key: "client_secret", where: "secrets", type: "password" }, { key: "never", where: "config", type: "regions" }],
+  abuseipdb: [{ key: "api_key", where: "secrets", type: "password" }],
+  entra_id: [{ key: "directory_id", where: "config", type: "text" }, { key: "client_id", where: "config", type: "text" }, { key: "client_secret", where: "secrets", type: "password" }],
+  cortex_xdr: [{ key: "api_host", where: "config", type: "text" }, { key: "api_key_id", where: "config", type: "text" }, { key: "key_type", where: "config", type: "choice", options: ["advanced", "standard"] }, { key: "api_key", where: "secrets", type: "password" }],
+  tenable: [{ key: "access_key", where: "secrets", type: "password" }, { key: "secret_key", where: "secrets", type: "password" }, { key: "min_severity", where: "config", type: "choice", options: ["high", "critical", "medium"] }],
+  qualys: [{ key: "platform", where: "config", type: "choice", options: ["us1", "us2", "us3", "us4", "eu1", "eu2", "in1", "ca1", "ae1", "uk1", "au1"] }, { key: "username", where: "secrets", type: "text" }, { key: "password", where: "secrets", type: "password" }],
   opsgenie: [{ key: "region", where: "config", type: "choice", options: ["us", "eu"] }, { key: "api_key", where: "secrets", type: "password" }, { key: "min_severity", where: "config", type: "severity" }],
+};
+// Connections Legion polls on a schedule: only these can be checked on request.
+const POLLED: string[] = KINDS.filter((k) => !OUTBOUND.includes(k) && !["github", "virustotal", "misp", "opencti", "abuseipdb", "crowdstrike_response", "okta_response", "entra_response"].includes(k));
+const HEALTH_CHIP: Record<ConnectionHealth["health"], string> = {
+  ok: "lg-status lg-status-healthy", waiting: "lg-status lg-status-brand", failing: "lg-status lg-status-high", overdue: "lg-status lg-status-medium", stopped: "lg-status lg-status-critical", paused: "lg-status lg-status-low",
 };
 const card = "lg-surface p-4";
 const input = "w-full rounded-lg border border-line bg-canvas px-3 py-2 text-sm text-ink";
@@ -45,6 +61,7 @@ export default function ConnectionsSection({ isAdmin }: { isAdmin: boolean }) {
   const { t, locale } = useLanguage();
   const m = t.connections;
   const [list, setList] = useState<ConnectionInfo[] | null>(null);
+  const [health, setHealth] = useState<IntegrationHealth | null>(null);
   const [adding, setAdding] = useState<Kind | null>(null);
   const [values, setValues] = useState<Record<string, string>>({});
   const [busy, setBusy] = useState(false);
@@ -52,7 +69,11 @@ export default function ConnectionsSection({ isAdmin }: { isAdmin: boolean }) {
   const [notice, setNotice] = useState<string | null>(null);
 
   const load = useCallback(async () => {
-    try { setList((await listConnections()).connections); } catch (err) { setError(err); }
+    try {
+      setList((await listConnections()).connections);
+      // The health view is extra detail: the list still works if it cannot be read.
+      setHealth(await getIntegrationHealth().catch(() => null));
+    } catch (err) { setError(err); }
   }, []);
   useEffect(() => { if (isAdmin) load(); }, [isAdmin, load]);
 
@@ -79,6 +100,8 @@ export default function ConnectionsSection({ isAdmin }: { isAdmin: boolean }) {
     await load();
   });
   const act = (c: ConnectionInfo, action: "pause" | "resume") => run(async () => { await setConnectionStatus(c.id, action); await load(); });
+  const check = (c: ConnectionInfo) => run(async () => { await checkConnectionNow(c.id); setNotice(m.engine.checkRequested); });
+  const healthOf = (id: string) => health?.connections.find((h) => h.id === id);
   const remove = (c: ConnectionInfo) => {
     if (!window.confirm(m.removeConfirm)) return;
     run(async () => { await removeConnection(c.id); await load(); });
@@ -92,16 +115,35 @@ export default function ConnectionsSection({ isAdmin }: { isAdmin: boolean }) {
       <ErrorNotice error={error} />
       {notice && <p className="text-xs text-success flex items-center gap-1 mt-2"><CheckCircle2 size={13} />{notice}</p>}
 
+      {health && health.summary.total > 0 && (
+        <div className="mt-3 flex flex-wrap gap-2" data-testid="connections-health">
+          <span className="lg-status lg-status-healthy">{m.engine.working(health.summary.ok)}</span>
+          {health.summary.attention > 0 && <span className="lg-status lg-status-high">{m.engine.attention(health.summary.attention)}</span>}
+          {health.summary.paused > 0 && <span className="lg-status lg-status-low">{m.engine.paused(health.summary.paused)}</span>}
+        </div>
+      )}
+
       <ul className="mt-3 space-y-2">
         {list === null && <li className="text-ink-faint text-xs"><Loader2 size={13} className="animate-spin inline" /></li>}
         {list?.length === 0 && <li className="text-ink-faint text-xs">{m.empty}</li>}
         {list?.map((c) => (
           <li key={c.id} className="rounded-lg border border-line bg-canvas/40 px-3 py-2.5 flex flex-wrap items-center gap-2" data-testid="connection-row">
             <div className="min-w-0 flex-1">
-              <p className="text-ink text-sm">{c.name} <span className="text-ink-faint text-[11px]">· {m.status[c.status]}</span></p>
+              <p className="text-ink text-sm flex flex-wrap items-center gap-2">{c.name}
+                {healthOf(c.id) ? <span className={HEALTH_CHIP[healthOf(c.id)!.health]}>{m.engine.health[healthOf(c.id)!.health]}</span> : <span className="text-ink-faint text-[11px]">· {m.status[c.status]}</span>}
+              </p>
+              {healthOf(c.id) && (
+                <p className="text-ink-faint text-[11px]">
+                  {m.engine.direction[healthOf(c.id)!.direction]}
+                  {healthOf(c.id)!.alerts_24h !== null && ` · ${m.engine.alerts(healthOf(c.id)!.alerts_24h!)}`}
+                  {(healthOf(c.id)!.queued ?? 0) > 0 && ` · ${m.engine.queued(healthOf(c.id)!.queued!)}`}
+                  {(healthOf(c.id)!.undelivered ?? 0) > 0 && ` · ${m.engine.undelivered(healthOf(c.id)!.undelivered!)}`}
+                </p>
+              )}
               <p className="text-ink-muted text-[11px]">{c.last_success_at ? m.health.ok(timeAgo(c.last_success_at, locale)) : m.health.never}{c.failures > 0 ? ` · ${m.health.failing(c.failures)}` : ""}</p>
               {c.last_error && <p className="text-danger text-[11px] break-words">{c.last_error}</p>}
             </div>
+            {c.status === "active" && POLLED.includes(c.kind) && <button disabled={busy} onClick={() => check(c)} className="text-xs px-2.5 py-1.5 rounded-lg border border-line text-ink-muted hover:text-ink flex items-center gap-1" data-testid="check-now"><RefreshCw size={12} />{m.engine.checkNow}</button>}
             {c.status === "paused" || c.status === "error"
               ? <button disabled={busy} onClick={() => act(c, "resume")} className="text-xs px-2.5 py-1.5 rounded-lg border border-line text-ink-muted hover:text-ink flex items-center gap-1"><Play size={12} />{m.resume}</button>
               : <button disabled={busy} onClick={() => act(c, "pause")} className="text-xs px-2.5 py-1.5 rounded-lg border border-line text-ink-muted hover:text-ink flex items-center gap-1"><Pause size={12} />{m.pause}</button>}
@@ -109,6 +151,10 @@ export default function ConnectionsSection({ isAdmin }: { isAdmin: boolean }) {
           </li>
         ))}
       </ul>
+
+      {health && health.sources.some((x) => x.alerts_24h > 0) && (
+        <p className="mt-3 text-ink-faint text-[11px]">{m.engine.sourcesTitle}: {health.sources.filter((x) => x.alerts_24h > 0).map((x) => m.engine.sourceRow(x.source, x.alerts_24h)).join(" · ")}</p>
+      )}
 
       {adding === null ? (
         <div className="mt-3 flex flex-wrap gap-2">

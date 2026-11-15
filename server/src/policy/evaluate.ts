@@ -13,7 +13,7 @@
  *      approval; R0 reads are allowed unless a rule denies them.
  */
 import type { Agent } from "../types.js";
-import { CATALOG_VERSION, LIVE_ACTION_IDS, catalogEntry } from "./catalog.js";
+import { CATALOG_VERSION, EXECUTABLE_ACTION_IDS, LIVE_ACTION_IDS, catalogEntry } from "./catalog.js";
 import { DEFAULT_POLICY, type PolicyDocument, type PolicyRule } from "./document.js";
 import { explain } from "./explain.js";
 import { AGENTS, canonicalAgent, type ActorRef, type Autonomy, type Decision, type ExecutionMode, type Origin, type ProtectionView, type RiskClass, riskRank, strictest } from "./types.js";
@@ -87,12 +87,13 @@ export function evaluatePolicy(req: PolicyRequest, policy: PolicyDocument | null
   // cannot grant either; it can still refuse or require approval below.
   const live = req.mode === "live";
   if (live) {
-    if (!LIVE_ACTION_IDS.includes(req.action_id)) return outcome(req, "DENY", ["NO_LIVE_EXECUTOR"], base);
+    if (!EXECUTABLE_ACTION_IDS.includes(req.action_id)) return outcome(req, "DENY", ["NO_LIVE_EXECUTOR"], base);
     if (!req.protection || req.protection.mode === "manual") return outcome(req, "DENY", ["LIVE_NOT_ENABLED"], base);
   }
   // Pre-authorised by the administrator: hybrid = the chosen list; automatic = everything with an executor
   // that is not critical. R4 is never authorised here (the floor below also holds).
-  const preauthorized = live && !!req.protection && cls !== "R4" && (
+  // Response in a customer's systems (isolate, disable and their opposites) is never in that set, in any mode.
+  const preauthorized = live && !!req.protection && cls !== "R4" && LIVE_ACTION_IDS.includes(req.action_id) && (
     req.protection.mode === "automatic" || (req.protection.mode === "hybrid" && req.protection.auto_actions.includes(req.action_id)));
 
   const codes: ReasonCode[] = [];

@@ -53,6 +53,8 @@ const SIMULATORS: Record<string, Simulator> = {
   "payment.reject": async (t, i) => paymentSim(t, String(i.payment_id), "reject"),
   "account.disable": async (t, i) => connectorSim(t, "account.disable", i),
   "host.isolate": async (t, i) => connectorSim(t, "host.isolate", i),
+  "account.enable": async (t, i) => connectorSim(t, "account.enable", i),
+  "host.release": async (t, i) => connectorSim(t, "host.release", i),
 };
 
 /** What a connected system would be asked to do (integrations/action-connectors.ts). Nothing is sent. */

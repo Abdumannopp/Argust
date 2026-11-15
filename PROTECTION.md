@@ -28,14 +28,18 @@ Dangerous actions always wait for a person.
 
 ## What is real, and what is not
 
-Only two actions have a real executor (`LIVE_ACTION_IDS`; a database `CHECK` enforces the same list):
+Only two actions can be allowed to run on their own (`LIVE_ACTION_IDS`; a database `CHECK` enforces the same list):
 
 - `ip.block` — add a **public** address to the blocklist.
 - `notify.admins` — e-mail the workspace administrators.
 
-Everything else (disable an account, isolate a host, kill a process, money, …)
-stays **simulation only** and always needs a person. These cannot be allowed
-(the API answers 422).
+Four more have an executor but can **never** be allowed to run on their own (`RESPONSE_LIVE_ACTION_IDS`): isolate
+or release a host through CrowdStrike, suspend or restore an account in Okta or Microsoft Entra ID. They need a separate response
+connection and people's approval every time — two administrators with a two-factor code for isolate and suspend
+([INTEGRATIONS.md](INTEGRATIONS.md), "Response"). Trying to put one in the automatic list is refused (422, and by
+the database).
+
+Everything else (kill a process, money, other identity systems and EDRs, …) stays **simulation only**.
 
 ## Safety rules (cannot be changed by settings)
 

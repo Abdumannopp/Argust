@@ -33,7 +33,7 @@ export interface Finding {
   /** 0–100: how sure the source is. */
   confidence: number;
   /** The asset to upsert in the inventory, if the source identifies one. */
-  asset?: { name: string; ip: string | null; os: string | null } | null;
+  asset?: { name: string; ip: string | null; os: string | null; kind?: "server" | "endpoint" | "user" | "cloud" | "unknown" } | null;
 }
 
 export type Plane = "data" | "tool";
@@ -54,6 +54,8 @@ export interface IntegrationManifest {
   summary: string;
   /** How it authenticates to or from the vendor. */
   auth: string;
+  /** A threat-intelligence source that is asked about indicators (IntelAdapter). */
+  intel?: true;
 }
 
 /** A configured connection as an adapter sees it: its settings and opened secrets. */
@@ -137,4 +139,31 @@ export interface OutboundAdapter {
   deliver(conn: ConnectionContext, message: OutboundMessage, signal: AbortSignal, remember?: RememberFn): Promise<DeliveryResult>;
 }
 
-export type Adapter = PushAdapter | PullAdapter | OutboundAdapter;
+export type IntelIndicatorType = "ip" | "domain" | "url" | "hash" | "cve" | "email";
+export interface IntelIndicator { type: IntelIndicatorType; value: string }
+/** One source's answer about one indicator. `notes` is the source's text: untrusted, shown as data. */
+export interface IntelAnswer {
+  indicator: string;
+  type: IntelIndicatorType;
+  verdict: "malicious" | "suspicious" | "benign" | "unknown";
+  confidence: number | null;
+  lastSeen: string | null;
+  notes: string | null;
+}
+
+/**
+ * A threat-intelligence source Legion ASKS (VirusTotal, MISP, OpenCTI). Read only: it answers "what is known
+ * about this indicator"; it brings in no alerts and can change nothing. Only what `supports` lists is ever
+ * sent to it, and an indicator it has nothing on is simply left out of the answer (no source, no opinion).
+ */
+export interface IntelAdapter {
+  manifest: IntegrationManifest & { inbound: null; plane: "data"; intel: true };
+  configSchema: z.ZodType<Record<string, unknown>>;
+  secretFields: string[];
+  supports: IntelIndicatorType[];
+  /** How many indicators one call may spend on this source (vendor quotas). */
+  maxPerCall: number;
+  lookup(conn: ConnectionContext, indicators: IntelIndicator[], signal: AbortSignal): Promise<IntelAnswer[]>;
+}
+
+export type Adapter = PushAdapter | PullAdapter | OutboundAdapter | IntelAdapter | import("./response.js").ResponseAdapter;

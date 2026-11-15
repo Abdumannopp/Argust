@@ -23,7 +23,7 @@ import * as outbox from "../src/outbox.js";
 import { config } from "../src/config.js";
 import type { User } from "../src/types.js";
 import { putPolicy } from "../src/policy/store.js";
-import { catalogList, LIVE_ACTION_IDS } from "../src/policy/catalog.js";
+import { catalogList, LIVE_ACTION_IDS, RESPONSE_LIVE_ACTION_IDS } from "../src/policy/catalog.js";
 import { ActionError, failLiveUnknown, getAction, proposeAction, runQueued, setPaused, syncWithApproval, type Proposal } from "../src/actions/engine.js";
 import { decide } from "../src/approvals/engine.js";
 import { EXECUTOR_IDS } from "../src/actions/live.js";
@@ -158,12 +158,17 @@ describe("turning protection on takes an administrator who just proved who they 
   });
 
   it("the three lists agree: catalog, executors and the database CHECK", async () => {
-    expect([...EXECUTOR_IDS].sort()).toEqual([...LIVE_ACTION_IDS].sort());
+    expect([...EXECUTOR_IDS].sort()).toEqual([...LIVE_ACTION_IDS, ...RESPONSE_LIVE_ACTION_IDS].sort());
     const def = (await query("SELECT pg_get_constraintdef(oid) AS d FROM pg_constraint WHERE conrelid = 'tenants'::regclass AND pg_get_constraintdef(oid) LIKE '%protection_auto_actions%'")).rows[0].d as string;
     for (const id of LIVE_ACTION_IDS) expect(def).toContain(`'${id}'`);
     expect(def.match(/'[a-z]+\.[a-z_]+'/g)).toHaveLength(LIVE_ACTION_IDS.length);
     // Every live-capable action exists in the catalog, and none is critical.
     for (const id of LIVE_ACTION_IDS) expect(catalogList().find((c) => c.id === id)?.class).not.toBe("R4");
+    // Response in a customer's systems can be executed, but the database will not let a workspace pre-authorise it.
+    for (const id of RESPONSE_LIVE_ACTION_IDS) {
+      expect(def).not.toContain(`'${id}'`);
+      await expect(query("UPDATE tenants SET protection_auto_actions = ARRAY[$2] WHERE id = $1", [tA, id]), id).rejects.toThrow(/check constraint/);
+    }
   });
 });
 
@@ -247,13 +252,28 @@ describe("automatic: everything Legion can really do and that is not critical â€
     expect((await runQueued(tA, mail.action.id))?.status).toBe("executed");
   });
 
-  it("never does what it cannot do for real: critical and money actions stay simulation-only, whoever asks", async () => {
-    for (const [id, input] of [["account.disable", { account: "jdoe", system: "entra" }], ["host.isolate", { host: "web-01" }], ["payment.release", { payment_id: "PAY-0123456789ABCDEF" }], ["ip.unblock", { ip: "185.220.101.4" }]] as const) {
+  it("never does what it cannot do for real: money actions stay simulation-only, whoever asks", async () => {
+    for (const [id, input] of [["payment.release", { payment_id: "PAY-0123456789ABCDEF" }], ["payment.reject", { payment_id: "PAY-0123456789ABCDEF" }], ["ip.unblock", { ip: "185.220.101.4" }]] as const) {
       const a = (await proposeAction(tA, agent(id, input))).action;
       expect(a.status, id).toBe("denied");
       const h = await request(app).post("/actions").set(...as(admin)).send({ action_id: id, input, mode: "live", idempotency_key: key() });
       expect(h.body.action.status, id).toBe("denied");
     }
+  });
+
+  it("response in a customer's systems never runs on its own, in any mode: it waits for people, whoever asks", async () => {
+    await enable("automatic", []);
+    for (const [id, input] of [["account.disable", { account: "jdoe@acme.io", system: "okta" }], ["host.isolate", { host: "web-01" }], ["host.release", { host: "web-01" }], ["account.enable", { account: "jdoe@acme.io", system: "okta" }]] as const) {
+      const a = (await proposeAction(tA, agent(id, input))).action;
+      expect(a.status, id).toBe("awaiting_approval");
+      // Running it before anyone approved does nothing.
+      expect((await runQueued(tA, a.id))?.status, id).toBe("awaiting_approval");
+    }
+    for (const [id, input] of [["account.disable", { account: "jdoe@acme.io", system: "okta" }], ["host.isolate", { host: "web-01" }]] as const) {
+      const h = await request(app).post("/actions").set(...as(admin)).send({ action_id: id, input, mode: "live", idempotency_key: key() });
+      expect(h.body.action.status, id).toBe("awaiting_approval");
+    }
+    expect((await query("SELECT count(*)::int AS n FROM action_requests WHERE tenant_id = $1 AND status IN ('queued', 'running', 'executed')", [tA])).rows[0].n).toBe(0);
   });
 
   it("anything an AI model produced waits for a person, even here", async () => {

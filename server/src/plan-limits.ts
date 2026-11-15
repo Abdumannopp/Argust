@@ -71,10 +71,10 @@ export async function resolvePlan(tenantId: string): Promise<ResolvedPlan> {
 
 // --- usage --------------------------------------------------------------------
 
-/** Machines seen in the last 30 days: the workspace's endpoint count. */
+/** Machines seen in the last 30 days: the workspace's endpoint count. A user account is an asset, not a machine. */
 export async function endpointUsage(tenantId: string): Promise<number> {
   const r = await queryOne<{ n: number }>(
-    "SELECT count(*)::int AS n FROM assets WHERE tenant_id = $1 AND last_seen > now() - interval '30 days'", [tenantId]);
+    "SELECT count(*)::int AS n FROM assets WHERE tenant_id = $1 AND kind <> 'user' AND last_seen > now() - interval '30 days'", [tenantId]);
   return r?.n ?? 0;
 }
 

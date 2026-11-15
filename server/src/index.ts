@@ -21,6 +21,7 @@ import { DATE_FORMATS, TIME_FORMATS, effectiveSettings, isTimeZone, regionOf, re
 import * as integrations from "./integrations/registry.js";
 import * as connections from "./integrations/connections.js";
 import { ingestFindings } from "./integrations/ingest.js";
+import { lookupIndicators } from "./threat-intel.js";
 import { wazuhAdapter } from "./integrations/wazuh.js";
 import { genericWebhookAdapter } from "./integrations/generic.js";
 import { cefAdapter } from "./integrations/cef.js";
@@ -66,6 +67,7 @@ import { startRuntime, stopRuntime } from "./runtime/worker.js";
 import { collectMetrics } from "./metrics.js";
 import { pruneExpiredMemory } from "./memory/store.js";
 import type { AccessState, Alert, Role, Severity, Subscription, User } from "./types.js";
+import { ASSET_KINDS } from "./types.js";
 
 export const app = express();
 export const httpServer = createServer(app);
@@ -1460,6 +1462,20 @@ app.get("/alerts/:id/deliveries", auth, async (req: AuthedRequest, res) => {
   res.json({ deliveries: await deliveriesForAlert(req.user!.tenant_id, alert.id) });
 });
 
+// Threat intelligence for one alert's source address, asked of the workspace's own sources (VirusTotal, MISP,
+// OpenCTI) only when a person presses the button: the address leaves Legion, so it is never sent by itself.
+app.post("/alerts/:id/intel", requireRole("analyst"), async (req: AuthedRequest, res) => {
+  const alert = await store.getAlert(req.user!.tenant_id, String(req.params.id));
+  if (!alert) return res.status(404).json({ detail: "Alert not found" });
+  if (!alert.source_ip) return res.json({ status: "no_indicator", sources: [], results: [], skipped: [] });
+  const report = await lookupIndicators(req.user!.tenant_id, [{ type: "ip", value: alert.source_ip }]);
+  await store.audit({
+    tenant_id: req.user!.tenant_id, user_id: req.user!.id, user_email: req.user!.email, action: "intel.lookup", resource_type: "alert", resource_id: alert.id,
+    detail: `${report.status}; sources: ${report.sources.map((s) => s.kind).join(", ") || "none"}`, ip_address: req.ip ?? null,
+  });
+  res.json(report);
+});
+
 app.patch("/alerts/:id/status", requireRole("analyst"), async (req: AuthedRequest, res) => {
   const body = parse(z.object({ status: z.enum(["open", "investigating", "resolved"]), reason: z.string().trim().min(1).max(500).optional() }), req.body, res); if (!body) return;
   let alert;
@@ -1517,9 +1533,10 @@ app.get("/assets", auth, async (req: AuthedRequest, res) => {
     online: z.enum(["true", "false"]).optional(),
     q: z.string().max(200).optional(),
     limit: z.coerce.number().int().min(1).max(5_000).optional(),
+    kind: z.enum(ASSET_KINDS).optional(),
   }), req.query, res); if (!q) return;
   res.json(await store.listAssets(req.user!.tenant_id, {
-    risk: q.risk, online: q.online === undefined ? undefined : q.online === "true", q: q.q, limit: q.limit,
+    risk: q.risk, online: q.online === undefined ? undefined : q.online === "true", q: q.q, limit: q.limit, kind: q.kind,
   }));
 });
 
@@ -2627,6 +2644,23 @@ app.post("/integrations", requireRole("admin"), async (req: AuthedRequest, res) 
     return res.status(201).json(created);
   } catch (error) {
     if (error instanceof connections.ConnectionError) return res.status(error.code === "not_found" ? 404 : 400).json({ detail: error.message });
+    throw error;
+  }
+});
+
+// One view of every vendor: is each connection working, how fresh, how much it brought in or still has to send.
+app.get("/integrations/health", requireRole("admin"), async (req: AuthedRequest, res) => {
+  res.json(await connections.health(req.user!.tenant_id));
+});
+
+app.post("/integrations/:id/check", requireRole("admin"), async (req: AuthedRequest, res) => {
+  if (!UUID_RE.test(String(req.params.id))) return res.status(404).json({ detail: "Integration not found." });
+  try {
+    const c = await connections.checkNow(req.user!.tenant_id, String(req.params.id));
+    await log(req, "integration.check_requested", "integration", c.id, c.kind);
+    return res.json(c);
+  } catch (error) {
+    if (error instanceof connections.ConnectionError) return res.status(404).json({ detail: error.message });
     throw error;
   }
 });

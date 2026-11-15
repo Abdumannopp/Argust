@@ -31,6 +31,10 @@
  *                       sign-ins, or failing against many accounts (spraying).
  *   account_compromise  the same address then signs in to an account it was
  *                       failing against: the password was guessed or stolen.
+ *   multi_platform      different security platforms (say the EDR and the identity
+ *                       provider, or the cloud and the SIEM) report the same attacking
+ *                       address, or serious alerts on the same host or account, within
+ *                       the hour: one attack seen from several sides.
  *   slow_intrusion      cyber espionage: on one host over days, persistence
  *                       plus command-and-control, exfiltration or credential
  *                       dumping — quiet, patient, the opposite of rapid_chain.
@@ -57,7 +61,7 @@ export const CORRELATION_SOURCE = "legion-correlation";
 export const CAMPAIGN_RULES = [
   "rapid_chain", "wide_sweep", "swarm", "velocity", "ai_manipulation",
   "ransomware", "mailbox_takeover", "phishing_execution", "supply_chain", "slow_intrusion",
-  "credential_attack", "account_compromise",
+  "credential_attack", "account_compromise", "multi_platform",
 ] as const;
 export type CampaignRule = (typeof CAMPAIGN_RULES)[number];
 
@@ -70,6 +74,8 @@ export const THRESHOLDS = {
   credential_attack: { windowMinutes: 10, failures: 10, accounts: 5 },
   /** A successful sign-in to an account from the address that just failed against it. */
   account_compromise: { windowMinutes: 30, failuresBefore: 3 },
+  /** The same attacker address, or the same host or account, reported by this many different platforms. */
+  multi_platform: { windowMinutes: 60, platforms: 2 },
   /** File changes on one host that look like encryption in progress. */
   ransomware: { windowMinutes: 10, fileChanges: 50 },
   /** An install, then attacker activity on the same host. */
@@ -254,6 +260,42 @@ async function signInDetections(tenantId: string, ip: string, want: { failures: 
   return found;
 }
 
+/**
+ * One attack seen from several sides: the same attacking address, or the same host or account, in the alerts of
+ * two or more DIFFERENT platforms within the hour. Legion's own alerts (legion-…) are not platforms. For a host or
+ * account each platform must have a high or critical alert: a busy server is in every tool's ordinary noise.
+ * Skipped while such a campaign is already active for the subject, so a flood stays cheap.
+ */
+/** Vulnerability scanners: they report weaknesses, not attacks. */
+export const SCANNER_SOURCES: ReadonlySet<string> = new Set(["tenable", "qualys"]);
+
+async function acrossPlatforms(tenantId: string, by: "source_ip" | "target", subject: string): Promise<Detection[]> {
+  if (await hasActive(tenantId, "multi_platform", subject)) return [];
+  const th = THRESHOLDS.multi_platform;
+  const rows = await queryAll<{ t: Date; source: string; severity: Severity; source_ip: string | null; target: string | null; mitre_technique: string | null }>(
+    `SELECT ${EVENT_TIME} AS t, source, severity, source_ip, target, mitre_technique
+       FROM alerts
+      WHERE tenant_id = $1 AND ${by === "source_ip" ? "source_ip" : "target"} = $2 AND source NOT LIKE 'legion-%'
+        -- A weakness a scanner found is not an attack in progress: it never counts as a platform seeing one.
+        AND source <> ALL($4::text[]) AND title !~* 'CVE-[0-9]{4}-[0-9]{4,7} affects '
+        AND created_at >= now() - interval '1 day'
+        AND ${EVENT_TIME} >= now() - make_interval(mins => $3)
+      ORDER BY created_at DESC
+      LIMIT 500`,
+    [tenantId, subject, th.windowMinutes, [...SCANNER_SOURCES]],
+  );
+  const counted = by === "source_ip" ? rows : rows.filter((r) => r.severity === "high" || r.severity === "critical");
+  const platforms = distinct(counted.map((r) => r.source));
+  if (platforms.length < th.platforms) return [];
+  const used = rows.filter((r) => platforms.includes(r.source));
+  return [{
+    rule: "multi_platform", subject, alertCount: used.length,
+    sources: distinct(used.map((r) => r.source_ip)).filter((ip) => isIP(ip) !== 0), targets: distinct(used.map((r) => r.target)),
+    techniques: parentTechniques(used.map((r) => r.mitre_technique)), minutes: spanMinutes(used),
+    sourceIp: by === "source_ip" ? subject : null, target: by === "target" ? subject : null, signals: platforms,
+  }];
+}
+
 async function byTarget(tenantId: string, target: string): Promise<Detection[]> {
   const rows = await queryAll<{ t: Date; source_ip: string; mitre_technique: string | null }>(
     `SELECT ${EVENT_TIME} AS t, source_ip, mitre_technique
@@ -415,7 +457,7 @@ const list = (xs: string[], n = 8) => (xs.length > n ? `${xs.slice(0, n).join(",
 const SEVERITY: Record<CampaignRule, Severity> = {
   rapid_chain: "critical", swarm: "critical", wide_sweep: "high", velocity: "high", ai_manipulation: "high",
   ransomware: "critical", mailbox_takeover: "high", phishing_execution: "high", supply_chain: "high", slow_intrusion: "critical",
-  credential_attack: "high", account_compromise: "critical",
+  credential_attack: "high", account_compromise: "critical", multi_platform: "high",
 };
 
 /** The announcing alert's wording. English, like every sensor alert title. */
@@ -495,6 +537,14 @@ export function describe(d: Detection): { title: string; summary: string } {
           + "The password was guessed or stolen, often by phishing. With automatic response on, Legion blocks the address. "
           + `Now: reset the password of ${d.subject}, end its sessions, require a second factor, and check what the account did after the sign-in.`,
       };
+    case "multi_platform":
+      return {
+        title: `One attack seen by ${(d.signals ?? []).length} platforms: ${d.subject}`,
+        summary: `${list(d.signals ?? [])} each reported ${d.sourceIp ? `the address ${d.subject}` : `serious alerts on ${d.subject}`} within ${d.minutes} minute(s) (${d.alertCount} alerts`
+          + `${d.targets.length ? `; affected: ${list(d.targets)}` : ""}${!d.sourceIp && d.sources.length ? `; from ${list(d.sources)}` : ""}). `
+          + "Separate tools seeing the same thing is stronger evidence than any one of them, and together they show how far the attack has reached. "
+          + "Read the alerts of each platform as one incident, and confirm the address or account from a second source before blocking it.",
+      };
     case "slow_intrusion":
       return {
         title: `Long-running intrusion (possible espionage) on ${d.subject}`,
@@ -570,6 +620,10 @@ export async function correlate(tenantId: string, alerts: Alert[], opts: { realt
     detections.push(...await bySource(tenantId, ip, { failures: kinds.some((k) => k.failed), success: kinds.some((k) => k.ok) }));
   }
   for (const target of distinct(fresh.map((a) => a.target))) detections.push(...await byTarget(tenantId, target));
+  // Seen from several sides: only alerts that came from a platform (not Legion's own) can start this.
+  const external = fresh.filter((a) => !a.source.startsWith("legion-") && !SCANNER_SOURCES.has(a.source));
+  for (const ip of distinct(external.map((a) => a.source_ip)).filter((ip) => isIP(ip) !== 0)) detections.push(...await acrossPlatforms(tenantId, "source_ip", ip));
+  for (const target of distinct(external.map((a) => a.target))) detections.push(...await acrossPlatforms(tenantId, "target", target));
   for (const a of fresh) { const m = manipulation(a); if (m) detections.push(m); }
   for (const a of fresh) {
     detections.push(...threatDetections(a));

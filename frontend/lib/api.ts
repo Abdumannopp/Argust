@@ -629,7 +629,13 @@ export interface Asset {
   risk: "critical" | "high" | "medium" | "low";
   online: boolean;
   last_seen: string;
+  /** What it is, as the first platform that knew said. */
+  kind: AssetKind;
+  /** Every platform that has reported it. */
+  sources: string[];
+  first_seen: string;
 }
+export type AssetKind = "server" | "endpoint" | "user" | "cloud" | "unknown";
 
 export function getAssets(filters?: {
   risk?: string;
@@ -917,6 +923,16 @@ export interface AlertDelivery { connection: string; kind: string; status: "pend
 export function getAlertDeliveries(id: string): Promise<{ deliveries: AlertDelivery[] }> {
   return request(`/alerts/${encodeURIComponent(id)}/deliveries`);
 }
+export interface IntelReport {
+  status: "ok" | "not_configured" | "unavailable" | "no_indicator";
+  sources: { name: string; kind: string; ok: boolean }[];
+  results: { indicator: string; type: string; verdict: "malicious" | "suspicious" | "benign" | "unknown"; source: string; confidence: number | null; lastSeen: string | null; notes: string | null }[];
+  skipped: { value: string; reason: "private_address" | "invalid" | "unsupported" }[];
+}
+/** Asks the workspace's threat-intelligence sources about the alert's source address. Sends the address to them. */
+export function checkAlertReputation(id: string): Promise<IntelReport> {
+  return request(`/alerts/${encodeURIComponent(id)}/intel`, { method: "POST" });
+}
 /** Where GitHub sends alerts for one connection: this API's GitHub webhook, as an absolute URL. */
 export function githubWebhookUrl(connectionId: string): string {
   return `${absoluteApi("/security-events/webhook/github")}?connection=${encodeURIComponent(connectionId)}`;
@@ -929,6 +945,22 @@ export function createConnection(body: { kind: string; name: string; config: Rec
 }
 export function setConnectionStatus(id: string, action: "pause" | "resume"): Promise<ConnectionInfo> {
   return request(`/integrations/${encodeURIComponent(id)}/${action}`, { method: "POST" });
+}
+export interface ConnectionHealth {
+  id: string; kind: string; name: string; direction: "in" | "out" | "intel" | "respond"; health: "ok" | "waiting" | "failing" | "overdue" | "stopped" | "paused";
+  alerts_24h: number | null; queued: number | null; undelivered: number | null;
+}
+export interface IntegrationHealth {
+  summary: { total: number; ok: number; attention: number; paused: number };
+  connections: ConnectionHealth[];
+  sources: { source: string; alerts_24h: number; last_alert_at: string | null }[];
+}
+export function getIntegrationHealth(): Promise<IntegrationHealth> {
+  return request("/integrations/health");
+}
+/** Ask Legion to poll a working pull connection at once instead of waiting for its interval. */
+export function checkConnectionNow(id: string): Promise<ConnectionInfo> {
+  return request(`/integrations/${encodeURIComponent(id)}/check`, { method: "POST" });
 }
 export function removeConnection(id: string): Promise<{ status: string }> {
   return request(`/integrations/${encodeURIComponent(id)}`, { method: "DELETE" });
@@ -1198,6 +1230,14 @@ export function updateProtection(patch: { mode?: ProtectionMode; auto_actions?: 
 /** The emergency stop: refuses new actions and holds queued ones until lifted. */
 export const setActionsPaused = (paused: boolean, reason?: string) =>
   request<{ paused: boolean }>("/actions/controls", { method: "POST", body: JSON.stringify(reason ? { paused, reason } : { paused }) });
+export interface ResponseActionResult {
+  action: { id: string; action_id: string; status: "denied" | "recorded" | "awaiting_approval" | "queued" | "running" | "executed" | "failed" | "cancelled" | "rejected" | "expired" | "simulated"; error: string | null; target: string | null };
+}
+/** Ask Legion to act in a connected system for real. Critical actions wait for two other administrators. */
+export function proposeResponse(action_id: "host.isolate" | "host.release" | "account.disable" | "account.enable", input: Record<string, unknown>, reason: string): Promise<ResponseActionResult> {
+  const idempotency_key = `ui-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 12)}`;
+  return request("/actions", { method: "POST", body: JSON.stringify({ action_id, input, mode: "live", idempotency_key, reason }) });
+}
 export const getSocApprovals = () => request<{ approvals: SocApproval[] }>("/approvals?status=pending");
 export function decideSocApproval(a: SocApproval, decision: "approve" | "reject", opts: { reason?: string; mfa_code?: string } = {}) {
   return request(`/approvals/${encodeURIComponent(a.id)}/decision`, {

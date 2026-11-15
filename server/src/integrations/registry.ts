@@ -7,7 +7,7 @@
  * (types.ts), one register() call, and its manifest — no change to routes,
  * storage, the worker, notifications or tenant isolation.
  */
-import type { Adapter, IntegrationManifest, OutboundAdapter, PullAdapter, PushAdapter } from "./types.js";
+import type { Adapter, IntegrationManifest, IntelAdapter, OutboundAdapter, PullAdapter, PushAdapter } from "./types.js";
 import { azureAdapter } from "./azure.js";
 import { gcpAdapter } from "./gcp.js";
 import { oktaAdapter } from "./okta.js";
@@ -31,10 +31,19 @@ import { cloudflareAdapter } from "./cloudflare.js";
 import { gworkspaceAdapter } from "./gworkspace.js";
 import { servicenowAdapter } from "./servicenow.js";
 import { opsgenieAdapter } from "./opsgenie.js";
+import { virustotalAdapter } from "./virustotal.js";
+import { mispAdapter } from "./misp.js";
+import { openctiAdapter } from "./opencti.js";
+import { abuseipdbAdapter } from "./abuseipdb.js";
+import { entraAdapter } from "./entra.js";
+import { cortexAdapter } from "./cortex.js";
+import { tenableAdapter } from "./tenable.js";
+import { qualysAdapter } from "./qualys.js";
+import { RESPONSE_ADAPTERS, type ResponseAdapter } from "./response.js";
 
 const adapters = new Map<string, Adapter>();
 const BUILT_IN = new Set(["wazuh", "generic_webhook", "cef", "slack", "jira", "m365", "guardduty", "azure", "gcp", "okta", "pagerduty", "teams", "github",
-  "crowdstrike", "sentinelone", "msentinel", "securityhub", "elastic", "splunk", "cloudflare", "gworkspace", "servicenow", "opsgenie"]);
+  "crowdstrike", "sentinelone", "msentinel", "securityhub", "elastic", "splunk", "cloudflare", "gworkspace", "servicenow", "opsgenie", "virustotal", "misp", "opencti", "crowdstrike_response", "okta_response", "entra_response", "abuseipdb", "entra_id", "cortex_xdr", "tenable", "qualys"]);
 
 export function register(adapter: Adapter): void {
   if (!/^[a-z][a-z0-9_]{1,40}$/.test(adapter.manifest.kind)) throw new Error(`invalid integration kind: ${adapter.manifest.kind}`);
@@ -63,6 +72,18 @@ export function connectedPushAdapter(kind: string): (PushAdapter & { configSchem
   const a = adapters.get(kind) as (PushAdapter & { configSchema?: unknown; secretFields?: unknown }) | undefined;
   return a && a.manifest.inbound === "push" && a.configSchema && Array.isArray(a.secretFields) ? (a as never) : null;
 }
+/** A connector Legion can act through (isolate a host, suspend an account). Only the action engine uses it. */
+export function responseAdapter(kind: string): ResponseAdapter | null {
+  const a = adapters.get(kind);
+  return a && "respond" in a ? (a as ResponseAdapter) : null;
+}
+export function responseKinds(): string[] { return [...adapters.values()].filter((a) => "respond" in a).map((a) => a.manifest.kind); }
+/** A threat-intelligence source that is asked about indicators. */
+export function intelAdapter(kind: string): IntelAdapter | null {
+  const a = adapters.get(kind);
+  return a && "lookup" in a ? (a as IntelAdapter) : null;
+}
+export function intelKinds(): string[] { return [...adapters.values()].filter((a) => "lookup" in a).map((a) => a.manifest.kind); }
 /** Kinds the poll worker may claim: only real pull adapters. */
 export function pullKinds(): string[] { return [...adapters.values()].filter((a) => a.manifest.inbound === "pull").map((a) => a.manifest.kind); }
 /** Kinds that receive alerts (notify/ticket). */
@@ -91,6 +112,15 @@ register(cloudflareAdapter);
 register(gworkspaceAdapter);
 register(servicenowAdapter);
 register(opsgenieAdapter);
+register(virustotalAdapter);
+register(mispAdapter);
+register(openctiAdapter);
+register(abuseipdbAdapter);
+register(entraAdapter);
+register(cortexAdapter);
+register(tenableAdapter);
+register(qualysAdapter);
+for (const a of RESPONSE_ADAPTERS) register(a);
 
 /**
  * The roadmap, as contracts. Each is the adapter type it will be, the data it

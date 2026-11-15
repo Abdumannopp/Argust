@@ -88,7 +88,14 @@ export interface User {
 }
 
 export interface Alert { id: string; tenant_id: string; title: string; severity: Severity; agent: Agent; status: AlertStatus; summary: string; confidence: number; created_at: string; ai_explanation: string | null; ai_explanation_locale: Locale | null; /** Written by a model, or by Legion's deterministic fallback. Null: predates this field. */ ai_explanation_source: "ai" | "local" | null; explained_at: string | null; /** This alert's version: per-tenant, bumped by every change, assigned in commit order. */ seq: number; /** The seq it was created with; a change with created_seq above a client's baseline is an alert that client has not seen. */ created_seq: number; source_ip: string | null; target: string | null; mitre_technique: string | null; source: string; /** First time the alert left "open" (null: never, or from before this was recorded). */ acknowledged_at: string | null; /** When it was resolved (null while not resolved). */ resolved_at: string | null; /** Who resolved it: user:<id>, agent:<id> or system:<component>. */ resolved_by: string | null; /** How often a resolved alert was reopened. */ reopened_count: number; /** When the event happened at its source (the sensor's own timestamp), if it said; created_at is when Legion stored it. They differ when a sensor re-sends after an outage. */ occurred_at: string | null }
-export interface Asset { id: string; tenant_id: string; name: string; os: string; ip_address: string | null; risk: Severity; online: boolean; last_seen: string }
+export const ASSET_KINDS = ["server", "endpoint", "user", "cloud", "unknown"] as const;
+export type AssetKind = (typeof ASSET_KINDS)[number];
+export interface Asset { id: string; tenant_id: string; name: string; os: string; ip_address: string | null; risk: Severity; online: boolean; last_seen: string;
+  /** What it is, as the first source that knew said. */
+  kind: AssetKind;
+  /** Every platform that has reported it. */
+  sources: string[];
+  first_seen: string }
 export interface AuditLog { id: string; tenant_id: string; user_id: string | null; user_email: string | null; action: string; resource_type: string | null; resource_id: string | null; detail: string | null; ip_address: string | null; created_at: string }
 export interface Subscription { tenant_id: string; status: "trialing" | "active" | "past_due" | "paused" | "canceled"; paddle_customer_id: string; paddle_subscription_id: string | null; paddle_price_id: string | null; current_period_end: string | null; cancel_at_period_end: boolean; last_event_at: string | null;
   /** Which plan the subscription's price is (null: a subscription from before plans existed). */

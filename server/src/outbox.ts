@@ -147,7 +147,7 @@ async function enqueueRealtime(client: PoolClient, alert: Alert, payload: unknow
 
 export interface IngestOptions {
   /** Asset the alert was raised on; upserted in the same transaction. */
-  asset?: { name: string; ip: string | null; os: string | null } | null;
+  asset?: { name: string; ip: string | null; os: string | null; kind?: import("./types.js").AssetKind } | null;
   /** Builds the realtime frame; when given, it is queued durably. */
   realtime?: (alert: Alert) => unknown;
 }
@@ -167,7 +167,7 @@ export async function insertAlertAndNotify(alert: NewAlert, opts: IngestOptions 
     const inserted = await store.insertAlert(alert, client);
     if (!inserted) return null;
     if (opts.asset?.name) {
-      await store.upsertAsset(inserted.tenant_id, opts.asset.name, opts.asset.ip, opts.asset.os, client);
+      await store.upsertAsset(inserted.tenant_id, opts.asset.name, opts.asset.ip, opts.asset.os, client, { kind: opts.asset.kind, source: inserted.source });
     }
     await enqueueAlertEmail(client, inserted);
     await enqueueIntegrationMessages(client, inserted);

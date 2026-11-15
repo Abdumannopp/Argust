@@ -18,7 +18,7 @@ import type { Alert } from "../types.js";
 import { ingestFindings } from "./ingest.js";
 import { scrubError } from "./scrub.js";
 import { withTenant } from "../db/rls.js";
-import { connectedPushAdapter, outboundAdapter, pullAdapter, pullKinds } from "./registry.js";
+import { connectedPushAdapter, intelAdapter, outboundAdapter, pullAdapter, pullKinds, responseAdapter } from "./registry.js";
 
 export interface ConnectionView {
   id: string;
@@ -53,8 +53,8 @@ export async function create(
   input: { kind: string; name: string; config: unknown; secrets: Record<string, string>; pollSeconds?: number },
   createdBy: string,
 ): Promise<ConnectionView> {
-  const adapter = pullAdapter(input.kind) ?? outboundAdapter(input.kind) ?? connectedPushAdapter(input.kind);
-  // Outbound and push connections are never polled.
+  const adapter = pullAdapter(input.kind) ?? outboundAdapter(input.kind) ?? connectedPushAdapter(input.kind) ?? intelAdapter(input.kind) ?? responseAdapter(input.kind);
+  // Outbound, push and threat-intelligence connections are never polled.
   const outbound = !pullAdapter(input.kind);
   if (!adapter || adapter.manifest.status !== "available") throw new ConnectionError("unknown_kind", "That integration is not available.");
   const parsed = adapter.configSchema.safeParse(input.config ?? {});
@@ -91,6 +91,78 @@ export async function setStatus(tenantId: string, id: string, status: "active" |
     [id, tenantId, status],
   );
   if (!row) throw new ConnectionError("not_found", "Integration not found.");
+  return view(row);
+}
+
+// --- One view of every vendor (the "integration engine" page) ---------------------
+
+export type Direction = "in" | "out" | "intel" | "respond";
+export type Health = "ok" | "waiting" | "failing" | "overdue" | "stopped" | "paused";
+export interface ConnectionHealth {
+  id: string; kind: string; name: string; direction: Direction; health: Health;
+  last_success_at: string | null; last_error: string | null; failures: number;
+  /** Alerts this vendor brought in over the last 24 hours (inbound only; per vendor, not per connection). */
+  alerts_24h: number | null;
+  /** Messages still to be sent to it / given up on (outbound only). */
+  queued: number | null; undelivered: number | null;
+}
+export interface HealthReport {
+  summary: { total: number; ok: number; attention: number; paused: number };
+  connections: ConnectionHealth[];
+  /** Every source that brought alerts in the last 30 days, connected here or not (Wazuh, webhooks, Legion's own correlation). */
+  sources: { source: string; alerts_24h: number; last_alert_at: string | null }[];
+}
+
+export function directionOf(kind: string): Direction {
+  if (intelAdapter(kind)) return "intel";
+  if (responseAdapter(kind)) return "respond";
+  if (outboundAdapter(kind)) return "out";
+  return "in";
+}
+
+/** Status, freshness and volume of every connection of one workspace. Read only; tenant-scoped. */
+export async function health(tenantId: string): Promise<HealthReport> {
+  const rows = await queryAll<{ id: string; kind: string; name: string; status: string; failures: number; last_success_at: string | null; last_error: string | null; next_poll_at: string; poll_seconds: number; overdue: boolean }>(
+    `SELECT id, kind, name, status, failures, last_success_at, last_error, next_poll_at, poll_seconds,
+            (next_poll_at < now() - make_interval(secs => GREATEST(poll_seconds * 3, 900))) AS overdue
+       FROM integration_connections WHERE tenant_id = $1 AND status <> 'disabled' ORDER BY created_at`, [tenantId]);
+  const bySource = await queryAll<{ source: string; n: number; last: string | null }>(
+    `SELECT source, count(*) FILTER (WHERE created_at > now() - interval '24 hours')::int AS n, max(created_at) AS last
+       FROM alerts WHERE tenant_id = $1 AND created_at > now() - interval '30 days' GROUP BY source ORDER BY source`, [tenantId]);
+  const queue = await queryAll<{ recipient: string; queued: number; dead: number }>(
+    `SELECT recipient, count(*) FILTER (WHERE status IN ('pending', 'sending'))::int AS queued, count(*) FILTER (WHERE status = 'dead')::int AS dead
+       FROM notification_outbox WHERE tenant_id = $1 AND kind = 'integration_message' AND created_at > now() - interval '7 days' GROUP BY recipient`, [tenantId]);
+  const alerts = new Map(bySource.map((r) => [r.source, r.n]));
+  const q = new Map(queue.map((r) => [r.recipient, r]));
+  const list: ConnectionHealth[] = rows.map((r) => {
+    const direction = directionOf(r.kind);
+    const state: Health = r.status === "paused" ? "paused" : r.status === "error" ? "stopped"
+      : r.failures > 0 ? "failing"
+      : direction === "in" && pullAdapter(r.kind) && r.overdue ? "overdue"
+      : r.last_success_at ? "ok" : "waiting";
+    return {
+      id: r.id, kind: r.kind, name: r.name, direction, health: state, last_success_at: iso(r.last_success_at), last_error: r.last_error ?? null, failures: r.failures,
+      alerts_24h: direction === "in" ? alerts.get(r.kind) ?? 0 : null,
+      queued: direction === "out" ? q.get(r.id)?.queued ?? 0 : null, undelivered: direction === "out" ? q.get(r.id)?.dead ?? 0 : null,
+    };
+  });
+  return {
+    summary: {
+      total: list.length, ok: list.filter((c) => c.health === "ok" || c.health === "waiting").length,
+      attention: list.filter((c) => c.health === "failing" || c.health === "overdue" || c.health === "stopped").length, paused: list.filter((c) => c.health === "paused").length,
+    },
+    connections: list,
+    sources: bySource.map((r) => ({ source: r.source, alerts_24h: r.n, last_alert_at: iso(r.last) })),
+  };
+}
+
+/** "Check now": a working pull connection is polled at the next worker tick instead of waiting for its interval. */
+export async function checkNow(tenantId: string, id: string): Promise<ConnectionView> {
+  const row = await queryOne(
+    `UPDATE integration_connections SET next_poll_at = now(), updated_at = now()
+      WHERE id = $1 AND tenant_id = $2 AND status = 'active' AND kind = ANY($3::text[]) AND (lease_until IS NULL OR lease_until < now()) RETURNING *`,
+    [id, tenantId, pullKinds()]);
+  if (!row) throw new ConnectionError("not_found", "Only a working connection that Legion polls can be checked now.");
   return view(row);
 }
 

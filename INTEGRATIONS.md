@@ -208,6 +208,194 @@ What each reads, and how repeats are handled:
 
 Firewall for self-hosted installs: allow outbound 443 to the hosts in the table (and 8089 to `<stack>.splunkcloud.com` for Splunk).
 
+## Third wave: Entra ID, Cortex XDR, Tenable, Qualys, AbuseIPDB, FortiGate
+
+| Kind | What it brings | What you create at the source | Settings | Secret | Hosts Legion calls |
+|---|---|---|---|---|---|
+| `entra_id` | identity risk detections (leaked password, impossible travel, anonymous or malicious address, password spray, token theft) | app registration, application permission **IdentityRiskEvent.Read.All**, admin consent; needs Entra ID P1/P2 | `directory_id`, `client_id` | `client_secret` | `login.microsoftonline.com`, `graph.microsoft.com` |
+| `cortex_xdr` | Cortex XDR incidents | API key with the **Viewer** role (Advanced recommended) | `api_host` (`api-<name>.xdr.<region>.paloaltonetworks.com`), `api_key_id`, `key_type` | `api_key` | your `api_host` |
+| `tenable` | open vulnerabilities per asset (CVE, severity, fix) | API keys of a **Basic** user who may view the assets | `min_severity` (default `high`) | `access_key`, `secret_key` | `cloud.tenable.com` |
+| `qualys` | confirmed open vulnerabilities of severity 4–5 per host | a **Reader** user with API access | `platform` (us1…au1) | `username`, `password` | the platform's `qualysapi.…` host |
+| `abuseipdb` | reputation of an address (0–100 abuse score), asked on demand | an AbuseIPDB API key | — | `api_key` | `api.abuseipdb.com` |
+| `entra_response` | blocks sign-in for an account, and allows it again — after approval (see "Response") | a **separate** app registration with **User.EnableDisableAccount.All** only | `directory_id`, `client_id`, `never` | `client_secret` | the two Microsoft hosts |
+
+How each behaves:
+
+- **Entra ID.** One alert per risk detection, about the account (which becomes a user asset). Detections Microsoft
+  marked dismissed, remediated or "hidden" are skipped. `entra_id` can only read; blocking an account needs the
+  separate `entra_response` connection and two approvals.
+- **Cortex XDR.** One alert per incident, about its first host. Resolved incidents are skipped. With an Advanced
+  key the key itself is never sent: each request carries SHA-256(key + nonce + timestamp).
+- **Tenable.** Tenable prepares bulk data as an export that takes minutes. Legion asks for it in one poll and reads
+  it in a later one, so the first results arrive a few minutes after connecting. One alert per (asset, plugin).
+- **Qualys.** Host detections joined with the knowledge base (name, CVEs, fix). Only **Confirmed** detections;
+  "Potential" ones are skipped. Qualys answers in XML: Legion reads only the tags it needs and expands nothing.
+- **Vulnerabilities** from both scanners are written as `CVE-… affects <component> on <host>`, the form Legion's
+  `vulnerability_analysis` and `exposure_review` skills already read. A weakness is not an attack: scanner findings
+  never start or join an attack campaign.
+- **AbuseIPDB.** Addresses only. 75+ malicious, 25–74 suspicious; an address with no reports is "nothing known",
+  not "safe". Legion never reports an address to AbuseIPDB.
+- **FortiGate.** There is no FortiGate connection to add: a FortiGate is a device on your network, and Legion does
+  not open a syslog port or call into your network. Send its logs in **CEF** to a collector you run (rsyslog,
+  Vector, Fluent Bit…) that posts them to Legion's CEF route with a sensor credential (see "Syslog / CEF"). Legion
+  recognises FortiOS CEF and puts what the firewall found (the IPS signature, virus or application) in the title.
+
+Honest limits:
+
+- **Tested against simulated answers only**, written from each vendor's API documentation — no real Entra, Cortex,
+  Tenable, Qualys, AbuseIPDB or FortiGate was used. Field names can differ in a real tenant; expect to adjust.
+- Tenable and Qualys: at most 2 000 findings per poll, high and critical by default. A first connection to a large
+  estate creates many alerts at once.
+- Qualys: Qualys Cloud Platform only (the eleven listed platforms); a private cloud platform is not supported.
+  Tenable: Tenable Vulnerability Management (cloud) only, not Tenable Security Center or Nessus on your network.
+- Cortex XDR: incidents only (not every raw alert), and no response action (isolating through Cortex is not built).
+- Entra ID: risk detections only — not the full sign-in or audit log.
+- FortiGate: only what the collector forwards. Legion cannot change a FortiGate rule; firewall blocking stays the
+  blocklist enforced by your Wazuh manager.
+
+## Threat intelligence: VirusTotal, MISP, OpenCTI
+
+Sources Legion **asks** about an indicator ("what is known about this address?"). They bring in no alerts and
+change nothing. Add them on Dashboard → **Connect** like any other connection (administrators only).
+
+| Kind | What you create at the source | Settings | Secret | Hosts Legion calls |
+|---|---|---|---|---|
+| `virustotal` | A VirusTotal account's API key | — | `api_key` | `www.virustotal.com` |
+| `misp` | API key of a **read-only** MISP user | `host` (DNS name of your MISP) | `api_key` | your `host`, port 443 |
+| `opencti` | API token of a **read-only** OpenCTI user | `host` (DNS name of your OpenCTI) | `api_token` | your `host`, port 443 |
+
+Where it is used:
+
+- **On an alert** — the incident page has **Threat intelligence → Check reputation** (analysts and administrators).
+  It asks about the alert's source address and shows each source's verdict.
+- **Hunter's `threat_intelligence` skill** — an AI agent with `intel:read` gets the same answers for addresses,
+  domains, URLs, file hashes and e-mail addresses.
+
+How a verdict is reached (each source is shown separately; Legion does not blend them into one score):
+
+| Source | Malicious | Suspicious | No detections / no verdict |
+|---|---|---|---|
+| VirusTotal | 3 or more security vendors flag it | 1–2 vendors flag it | 10 or more looked and none flagged it → "no detections" |
+| MISP | an attribute with this exact value is marked for detection (`to_ids`) | the value is recorded, not marked for detection | not in MISP → no answer |
+| OpenCTI | score 70–100 | score 40–69 | lower or no score → "no verdict" (being recorded is not being malicious) |
+
+Rules that cannot be changed:
+
+- **Only on demand.** Legion never sends an indicator to a third party by itself; a person presses the button or
+  an agent calls the skill. Every lookup from the dashboard is written to the audit log.
+- **Private addresses never leave.** A private, loopback, link-local or reserved address (and a URL on one) is
+  not sent to any source.
+- **No source, no opinion.** An indicator nobody has information on is "unknown" — never guessed, and never "safe".
+- **Your own server, guarded.** MISP and OpenCTI are servers you run, so this is the one place Legion calls a host
+  you typed. It must be a DNS name (not an address), on HTTPS port 443 with a valid certificate; the name must
+  resolve only to public internet addresses, and Legion connects to exactly the address it checked. Redirects are
+  not followed.
+- A source's text is untrusted data: bounded, shown as text, never followed as an instruction.
+- Each connection's key is sealed and sent only to its own source. Errors are scrubbed of it.
+
+Honest limits:
+
+- **Tested against simulated answers only**, written from each vendor's API documentation — not yet against a real
+  VirusTotal account, MISP or OpenCTI server (audit A-1 applies here too).
+- A MISP or OpenCTI that is reachable **only inside your network** cannot be connected to hosted Legion.
+- VirusTotal's free key allows 4 lookups a minute: one call spends at most 4, and the rest are answered on a later
+  call. Answers are remembered for 12 hours per workspace and source (per server instance), so a verdict can be
+  up to 12 hours old.
+- VirusTotal is not asked about e-mail addresses or CVEs (it has no such lookup). CVEs are not sent to any source.
+- A reputation is a hint, not proof: addresses change hands and can be forged in a log.
+- Legion does **not** import indicator feeds or match every incoming event against them; it enriches on request.
+
+## One view of every connection (integration engine)
+
+Dashboard → **Connect** → Connections shows, for every connection, whether it works and how fresh it is:
+
+| It says | It means |
+|---|---|
+| Working | the last attempt succeeded |
+| Waiting for its first success | saved, nothing has succeeded yet |
+| Failing | the last attempts failed (the error is shown, with the credential removed) |
+| Not checked for too long | Legion polls it, and the poll is more than three intervals (at least 15 minutes) late |
+| Stopped after repeated errors | 10 failures in a row; an administrator must resume it |
+| Paused | an administrator paused it |
+
+Each row also shows its direction (brings alerts in / receives alerts / threat intelligence / acts when people
+approve), the alerts that vendor brought in over 24 hours, and for chat and ticket connections how many messages
+are still waiting or could not be delivered. **Check now** asks Legion to poll a working connection within a minute.
+API: `GET /integrations/health`, `POST /integrations/:id/check` (administrators).
+
+Honest limits: the 24-hour alert count is per vendor, not per connection (two Okta connections share one number).
+"Check now" exists only for connections Legion polls; a webhook source is checked by its own next delivery.
+
+## Asset intelligence: one inventory
+
+Dashboard → **Assets** lists servers, endpoints, user accounts and cloud resources from every connected platform.
+
+- **Kind** comes from the platform that reported it: Wazuh → server; CrowdStrike, SentinelOne, Defender → endpoint;
+  GuardDuty, Security Hub, Azure, Google Cloud → cloud resource; a SIEM or a webhook does not say → not classified.
+  The first platform that knows decides; a later different opinion does not change it.
+- **User accounts** come from identity alerts (Okta, Google Workspace): the account the alert is about.
+- **One asset, many platforms.** The same name reported by several platforms is one row that lists them all.
+- A user account is an asset but not a machine: it does not count against the plan's endpoint limit.
+
+Honest limits: assets are matched **by name, exactly**. `web-1` and `web-1.corp.example.com` are two assets, and an
+account is not linked to the laptop its owner uses. Legion learns of an asset only when an alert mentions it — it
+does not import the full device or user list from a platform, so a quiet machine is not in the inventory.
+
+## Correlation across platforms
+
+When two or more **different** platforms report the same attacking address — or high/critical alerts on the same
+host or account — within 60 minutes, Legion records one campaign (`multi_platform`) and one alert from Hunter that
+names the platforms. It is evidence joined, not a verdict: it never triggers automatic blocking.
+
+Honest limits: this is a fixed rule, not a model; it joins alerts that share an **exact** address or name. An attack
+whose stages use different addresses and different names in each tool is not joined by this rule (the other
+campaign rules in WAZUH.md look at techniques and timing). Legion's own alerts do not count as a platform.
+
+## Response: acting in your systems (people approve first)
+
+Three **response connections** let Legion change something in your environment. They are separate from the
+read-only connections, with their own credential:
+
+| Kind | What it can do | What you create | Hosts |
+|---|---|---|---|
+| `crowdstrike_response` | isolate a host from the network (Falcon containment) and release it | a separate Falcon API client with **Hosts: Read** and **Hosts: Write** only | the Falcon cloud you choose |
+| `okta_response` | suspend a user account and restore it (nothing is deleted) | a separate API token of an administrator whose role may only suspend users | your Okta domain |
+| `entra_response` | block sign-in for a user account and allow it again (nothing is deleted) | a separate app registration with **User.EnableDisableAccount.All** only | Microsoft Graph |
+
+How one action happens:
+
+1. An administrator turned protection on (Defense page; see PROTECTION.md). Without it nothing live exists.
+2. Someone asks: an administrator on the alert's page (**Respond in your systems**), or the Vanguard agent.
+3. Isolating a host or suspending an account is **critical**: two administrators — not the one who asked — approve
+   that exact action on the Defense page, each with a current two-factor code. The request expires in an hour.
+4. Legion looks again (protection still on, the connection present, the target not on the never-touch list),
+   finds **exactly one** matching device or account, acts, writes the audit log and tells the administrators.
+
+Rules that cannot be changed:
+
+- These actions can **never** be pre-authorised: no protection mode, policy or setting lets Legion isolate a host or
+  suspend an account on its own. The database refuses to store them in a workspace's automatic list.
+- No connection, more than one possible connection, no such device, two devices with the name, or a protected
+  target: nothing is done, and the request ends "not done" with the reason.
+- An action whose outcome is unknown (the worker stopped while doing it) is not retried; the administrators are told.
+- Every action has its opposite (`host.release`, `account.enable`). An administrator's own request to undo runs at
+  once; a machine's still waits for approval.
+
+Honest limits:
+
+- **Tested against simulated vendor answers only.** Do not rely on it in an incident before trying it on a test
+  host and a test account in your own CrowdStrike and Okta.
+- Only CrowdStrike (hosts), Okta and Entra ID (accounts). SentinelOne, Defender for Endpoint, Cortex XDR and Google
+  Workspace accounts are not connected for response: an action for them ends "no response connection". Entra ID
+  refuses to block an administrator's account with this permission; that is Microsoft's rule.
+- Firewall: blocking an address is the existing blocklist, enforced by your Wazuh manager (WAZUH.md). Legion does not
+  push rules to Cloudflare or to a network firewall.
+- The dashboard button asks to isolate or suspend; releasing and restoring are done through the API
+  (`POST /actions` with `host.release` / `account.enable`) or in the vendor's own console.
+- Three administrators are needed when a person asks (the asker cannot approve): a team of one or two cannot use
+  this by hand. A request from the Vanguard agent needs two.
+- Suspending an Okta account does not sign the person out of other systems where they already have a session.
+
 ## What Legion can DO in these systems today
 
-Everything above **reads, notifies or opens tickets**. The only real response actions remain (a) blocking a public address (enforced by the Wazuh manager's active response) and (b) e-mailing administrators, both opt-in per workspace ([PROTECTION.md](PROTECTION.md)). Disabling an Entra, Okta or Google account, isolating a host (Defender for Endpoint, CrowdStrike, SentinelOne), changing a Cloudflare rule and similar actions are **simulation only**: they need a connector with write permission in the customer's tenant, a security review of that executor, and a person's approval every time. They are not built.
+Everything above **reads, notifies or opens tickets**, except the two response connections described in "Response: acting in your systems". What Legion can really do: (a) block a public address (enforced by the Wazuh manager's active response) and (b) e-mail administrators — both can be allowed to run on their own, opt-in per workspace ([PROTECTION.md](PROTECTION.md)); (c) isolate or release a host through CrowdStrike and (d) suspend or restore an Okta or Entra ID account — only after people approve each one. Disabling a Google account, isolating a host through Defender for Endpoint or SentinelOne, changing a Cloudflare rule and similar actions are **simulation only**: they are not built.

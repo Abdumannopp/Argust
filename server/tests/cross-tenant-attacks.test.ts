@@ -546,6 +546,7 @@ describe("route coverage", () => {
   const COVERED: Record<string, string> = {
     "GET /alerts/:id": "tenant A accessing tenant B's alerts",
     "GET /alerts/:id/deliveries": "tenant A accessing tenant B's alerts (also integrations-outbound.test.ts: B gets 404)",
+    "POST /alerts/:id/intel": "threat-intel.test.ts (another workspace's admin gets 404; its own sources are never asked)",
     "PATCH /alerts/:id/status": "tenant A accessing tenant B's alerts",
     "POST /alerts/:id/explain": "tenant A accessing tenant B's alerts / AI context",
     "POST /users/:id/resend-invite": "tenant A accessing tenant B's users",
@@ -574,6 +575,7 @@ describe("route coverage", () => {
     "DELETE /integrations/:id": "integrations.test.ts (another workspace's admin gets 404; the connection is unchanged)",
     "POST /integrations/:id/pause": "integrations.test.ts (another workspace's admin gets 404)",
     "POST /integrations/:id/resume": "integrations.test.ts (another workspace's admin gets 404)",
+    "POST /integrations/:id/check": "integration-health.test.ts (another workspace's admin gets 404; the poll time is unchanged)",
     "GET /firewall/approvals/:id": "policy-responses.test.ts (people: another tenant's admin gets 404; agents: another agent's request is 404)",
     "POST /firewall/approvals/:id/approve": "policy-responses.test.ts + agent-security.test.ts (another tenant's admin gets 404)",
     "POST /firewall/approvals/:id/deny": "policy-responses.test.ts (another tenant's admin gets 404)",

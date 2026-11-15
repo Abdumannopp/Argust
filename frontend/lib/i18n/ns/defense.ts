@@ -45,6 +45,7 @@ export const defense = defineMessages({
         slow_intrusion: "Long-running intrusion (espionage)",
         credential_attack: "Password attack (unauthorized access)",
         account_compromise: "Account broken into",
+        multi_platform: "One attack seen by several platforms",
       } as Record<string, string>,
     },
     coverage: {
