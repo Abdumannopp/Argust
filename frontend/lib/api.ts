@@ -937,6 +937,10 @@ export function checkAlertReputation(id: string): Promise<IntelReport> {
 export function githubWebhookUrl(connectionId: string): string {
   return `${absoluteApi("/security-events/webhook/github")}?connection=${encodeURIComponent(connectionId)}`;
 }
+/** Where a FortiGate automation stitch sends its events for one connection. */
+export function fortigateWebhookUrl(connectionId: string): string {
+  return `${absoluteApi("/security-events/webhook/fortigate")}?connection=${encodeURIComponent(connectionId)}`;
+}
 export function listConnections(): Promise<{ connections: ConnectionInfo[] }> {
   return request("/integrations");
 }
@@ -1238,6 +1242,9 @@ export function proposeResponse(action_id: "host.isolate" | "host.release" | "ac
   const idempotency_key = `ui-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 12)}`;
   return request("/actions", { method: "POST", body: JSON.stringify({ action_id, input, mode: "live", idempotency_key, reason }) });
 }
+export interface ExecutedAction { id: string; action_id: string; input: Record<string, unknown>; target: string | null; status: string; created_at: string; result: Record<string, unknown> | null }
+/** Actions Legion really carried out, newest first (the list the undo view is built from). */
+export const getExecutedActions = () => request<{ actions: ExecutedAction[] }>("/actions?status=executed&limit=200");
 export const getSocApprovals = () => request<{ approvals: SocApproval[] }>("/approvals?status=pending");
 export function decideSocApproval(a: SocApproval, decision: "approve" | "reject", opts: { reason?: string; mfa_code?: string } = {}) {
   return request(`/approvals/${encodeURIComponent(a.id)}/decision`, {

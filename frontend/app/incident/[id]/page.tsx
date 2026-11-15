@@ -176,7 +176,7 @@ export default function IncidentDetailsPage() {
   return (
     <div className="flex min-h-screen lg-app-bg">
       <Sidebar />
-      <div className="flex-1 p-4 sm:p-6">
+      <div className="flex-1 min-w-0 p-4 sm:p-6">
         <div className="max-w-4xl mx-auto">
           <button
             onClick={() => router.push("/")}
@@ -186,9 +186,9 @@ export default function IncidentDetailsPage() {
           </button>
 
           <div className="flex items-start justify-between flex-wrap gap-3 mb-6">
-            <div>
-              <div className="flex items-center gap-2 mb-1.5">
-                <span className="text-ink-faint text-xs font-mono">{alert.id}</span>
+            <div className="min-w-0 max-w-full">
+              <div className="flex flex-wrap items-center gap-2 mb-1.5">
+                <span className="text-ink-faint text-xs font-mono break-all">{alert.id}</span>
                 <span
                   className="text-[10px] uppercase tracking-wide px-1.5 py-0.5 rounded"
                   style={{ color: sevColor, backgroundColor: `${sevColor}1A` }}
@@ -199,7 +199,7 @@ export default function IncidentDetailsPage() {
                   {t.common.status[alert.status]}
                 </span>
               </div>
-              <h1 className="legion-title text-ink">
+              <h1 className="legion-title text-ink break-words">
                 {alert.title}
               </h1>
             </div>
@@ -235,7 +235,7 @@ export default function IncidentDetailsPage() {
 
           <div className="grid md:grid-cols-2 gap-4">
             {/* Left: technical details */}
-            <div className="lg-surface px-4">
+            <div className="lg-surface px-4 min-w-0">
               <DetailRow
                 Icon={Clock}
                 label={t.incident.detail.detected}
@@ -266,19 +266,19 @@ export default function IncidentDetailsPage() {
             </div>
 
             {/* Right: AI explanation */}
-            <div className="lg-surface p-4">
+            <div className="lg-surface p-4 min-w-0">
               <div className="flex items-center gap-2 mb-3">
                 <Sparkles size={14} color={palette.brandBright} />
                 <h2 className="text-ink text-sm font-medium">{t.incident.aiExplanation}</h2>
               </div>
 
-              <p className="text-ink-muted text-sm leading-relaxed mb-4">{alert.summary}</p>
+              <p className="text-ink-muted text-sm leading-relaxed mb-4 break-words">{alert.summary}</p>
 
               {alert.ai_explanation ? (
                 <>
                   <div className="bg-panel border border-line rounded-lg p-3">
                     <div className="mb-2"><AiBadge aiGenerated={alert.ai_generated === true} /></div>
-                    <p className="text-ink-soft text-sm leading-relaxed whitespace-pre-line">
+                    <p className="text-ink-soft text-sm leading-relaxed whitespace-pre-line break-words">
                       {alert.ai_explanation}
                     </p>
                   </div>

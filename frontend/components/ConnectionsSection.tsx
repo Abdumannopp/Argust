@@ -3,16 +3,16 @@
 import { useCallback, useEffect, useState } from "react";
 import { CheckCircle2, Loader2, Pause, Play, Plus, RefreshCw, Trash2 } from "lucide-react";
 import ErrorNotice from "@/components/ErrorNotice";
-import { checkConnectionNow, ConnectionHealth, ConnectionInfo, createConnection, getIntegrationHealth, IntegrationHealth, listConnections, removeConnection, setConnectionStatus, githubWebhookUrl } from "@/lib/api";
+import { checkConnectionNow, ConnectionHealth, ConnectionInfo, createConnection, fortigateWebhookUrl, getIntegrationHealth, IntegrationHealth, listConnections, removeConnection, setConnectionStatus, githubWebhookUrl } from "@/lib/api";
 import { useLanguage } from "@/lib/i18n/LanguageContext";
 import { timeAgo } from "@/lib/i18n/format";
 
 type Kind = "m365" | "azure" | "gcp" | "guardduty" | "okta" | "github" | "slack" | "teams" | "pagerduty" | "jira"
-  | "crowdstrike" | "sentinelone" | "msentinel" | "securityhub" | "elastic" | "splunk" | "cloudflare" | "gworkspace" | "servicenow" | "opsgenie" | "virustotal" | "misp" | "opencti" | "crowdstrike_response" | "okta_response" | "entra_response" | "abuseipdb" | "entra_id" | "cortex_xdr" | "tenable" | "qualys";
+  | "crowdstrike" | "sentinelone" | "msentinel" | "securityhub" | "elastic" | "splunk" | "cloudflare" | "gworkspace" | "servicenow" | "opsgenie" | "virustotal" | "misp" | "opencti" | "crowdstrike_response" | "okta_response" | "entra_response" | "abuseipdb" | "entra_id" | "cortex_xdr" | "tenable" | "qualys" | "fortigate" | "sentinelone_response" | "defender_response" | "cortex_response";
 type FieldType = "text" | "password" | "regions" | "severity" | "choice" | "number";
 interface Field { key: string; where: "config" | "secrets"; type: FieldType; options?: string[] }
 // Grouped as the card shows them: endpoint and SIEM, cloud, identity and edge, threat intelligence, then where alerts are sent.
-const KINDS: Kind[] = ["crowdstrike", "sentinelone", "cortex_xdr", "m365", "msentinel", "elastic", "splunk", "azure", "guardduty", "securityhub", "gcp", "okta", "entra_id", "gworkspace", "cloudflare", "github", "tenable", "qualys", "virustotal", "abuseipdb", "misp", "opencti", "crowdstrike_response", "okta_response", "entra_response", "slack", "teams", "pagerduty", "opsgenie", "jira", "servicenow"];
+const KINDS: Kind[] = ["crowdstrike", "sentinelone", "cortex_xdr", "m365", "msentinel", "elastic", "splunk", "azure", "guardduty", "securityhub", "gcp", "okta", "entra_id", "gworkspace", "cloudflare", "fortigate", "github", "tenable", "qualys", "virustotal", "abuseipdb", "misp", "opencti", "crowdstrike_response", "sentinelone_response", "defender_response", "cortex_response", "okta_response", "entra_response", "slack", "teams", "pagerduty", "opsgenie", "jira", "servicenow"];
 const OUTBOUND: Kind[] = ["slack", "teams", "pagerduty", "opsgenie", "jira", "servicenow"];
 // Technical identifiers: they must match the server's schema for each connector.
 const FIELDS: Record<Kind, Field[]> = {
@@ -46,10 +46,14 @@ const FIELDS: Record<Kind, Field[]> = {
   cortex_xdr: [{ key: "api_host", where: "config", type: "text" }, { key: "api_key_id", where: "config", type: "text" }, { key: "key_type", where: "config", type: "choice", options: ["advanced", "standard"] }, { key: "api_key", where: "secrets", type: "password" }],
   tenable: [{ key: "access_key", where: "secrets", type: "password" }, { key: "secret_key", where: "secrets", type: "password" }, { key: "min_severity", where: "config", type: "choice", options: ["high", "critical", "medium"] }],
   qualys: [{ key: "platform", where: "config", type: "choice", options: ["us1", "us2", "us3", "us4", "eu1", "eu2", "in1", "ca1", "ae1", "uk1", "au1"] }, { key: "username", where: "secrets", type: "text" }, { key: "password", where: "secrets", type: "password" }],
+  fortigate: [{ key: "token", where: "secrets", type: "password" }],
+  sentinelone_response: [{ key: "console", where: "config", type: "text" }, { key: "api_token", where: "secrets", type: "password" }, { key: "never", where: "config", type: "regions" }],
+  defender_response: [{ key: "directory_id", where: "config", type: "text" }, { key: "client_id", where: "config", type: "text" }, { key: "client_secret", where: "secrets", type: "password" }, { key: "never", where: "config", type: "regions" }],
+  cortex_response: [{ key: "api_host", where: "config", type: "text" }, { key: "api_key_id", where: "config", type: "text" }, { key: "key_type", where: "config", type: "choice", options: ["advanced", "standard"] }, { key: "api_key", where: "secrets", type: "password" }, { key: "never", where: "config", type: "regions" }],
   opsgenie: [{ key: "region", where: "config", type: "choice", options: ["us", "eu"] }, { key: "api_key", where: "secrets", type: "password" }, { key: "min_severity", where: "config", type: "severity" }],
 };
 // Connections Legion polls on a schedule: only these can be checked on request.
-const POLLED: string[] = KINDS.filter((k) => !OUTBOUND.includes(k) && !["github", "virustotal", "misp", "opencti", "abuseipdb", "crowdstrike_response", "okta_response", "entra_response"].includes(k));
+const POLLED: string[] = KINDS.filter((k) => !OUTBOUND.includes(k) && !["github", "virustotal", "misp", "opencti", "abuseipdb", "fortigate", "crowdstrike_response", "sentinelone_response", "defender_response", "cortex_response", "okta_response", "entra_response"].includes(k));
 const HEALTH_CHIP: Record<ConnectionHealth["health"], string> = {
   ok: "lg-status lg-status-healthy", waiting: "lg-status lg-status-brand", failing: "lg-status lg-status-high", overdue: "lg-status lg-status-medium", stopped: "lg-status lg-status-critical", paused: "lg-status lg-status-low",
 };
@@ -96,7 +100,7 @@ export default function ConnectionsSection({ isAdmin }: { isAdmin: boolean }) {
     if (OUTBOUND.includes(adding) && adding !== "pagerduty") config.min_severity ??= "high";
     if (adding === "pagerduty") config.min_severity ??= "critical"; // i18n-ignore: API value
     const made = await createConnection({ kind: adding, name: m.kinds[adding].name, config, secrets });
-    setAdding(null); setValues({}); setNotice(adding === "github" ? m.githubUrl(githubWebhookUrl(made.id)) : m.saved);
+    setAdding(null); setValues({}); setNotice(adding === "github" ? m.githubUrl(githubWebhookUrl(made.id)) : adding === "fortigate" ? m.fortigateUrl(fortigateWebhookUrl(made.id)) : m.saved);
     await load();
   });
   const act = (c: ConnectionInfo, action: "pause" | "resume") => run(async () => { await setConnectionStatus(c.id, action); await load(); });
@@ -141,6 +145,7 @@ export default function ConnectionsSection({ isAdmin }: { isAdmin: boolean }) {
                 </p>
               )}
               <p className="text-ink-muted text-[11px]">{c.last_success_at ? m.health.ok(timeAgo(c.last_success_at, locale)) : m.health.never}{c.failures > 0 ? ` · ${m.health.failing(c.failures)}` : ""}</p>
+              {c.kind === "fortigate" && <p className="text-ink-faint text-[11px] break-all">{m.fortigateUrl(fortigateWebhookUrl(c.id))}</p>}
               {c.last_error && <p className="text-danger text-[11px] break-words">{c.last_error}</p>}
             </div>
             {c.status === "active" && POLLED.includes(c.kind) && <button disabled={busy} onClick={() => check(c)} className="text-xs px-2.5 py-1.5 rounded-lg border border-line text-ink-muted hover:text-ink flex items-center gap-1" data-testid="check-now"><RefreshCw size={12} />{m.engine.checkNow}</button>}

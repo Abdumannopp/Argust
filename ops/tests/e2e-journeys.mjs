@@ -453,6 +453,25 @@ async function main() {
   await sees(page, "what to do", "Check that you're in the right workspace");
   await shot(page, "error-explained");
 
+  console.log("▶ 14. on a phone (390 px wide): every main page fits, and the bottom menu is there");
+  await page.setViewportSize({ width: 390, height: 844 });
+  const incident = await sql(DB, "SELECT id FROM alerts ORDER BY created_at DESC LIMIT 1").then((r) => r[0]?.id).catch(() => null);
+  const pages = ["/", "/incidents", "/assets", "/connect", "/defense", "/copilot", "/team", "/agents", "/reports", "/billing", "/settings", ...(incident ? [`/incident/${incident}`] : [])];
+  for (const path of pages) {
+    await page.goto(`${WEB}${path}`);
+    await page.waitForLoadState("networkidle").catch(() => {});
+    await sleep(400);
+    const m = await page.evaluate(() => {
+      const wide = [...document.querySelectorAll("body *")].filter((e) => { const r = e.getBoundingClientRect(); return r.width > 0 && r.right > window.innerWidth + 1 && !e.closest("[class*=overflow-x-auto],[class*=overflow-auto],pre"); })
+        .slice(0, 3).map((e) => `${e.tagName.toLowerCase()}.${String(e.className).slice(0, 60)}`);
+      return { scroll: document.documentElement.scrollWidth, inner: window.innerWidth, nav: !!document.querySelector(".lg-bottom-nav"), wide };
+    });
+    check(`${path} fits the screen without sideways scrolling`, m.scroll <= m.inner + 1, `page is ${m.scroll}px wide on a ${m.inner}px screen; sticking out: ${m.wide.join(", ")}`);
+    check(`${path} has the bottom menu`, m.nav);
+    await shot(page, `phone${path.replace(/[^a-z]+/g, "-").replace(/-$/, "") || "-dashboard"}`);
+  }
+  await page.setViewportSize({ width: 1280, height: 720 });
+
   check("no uncaught errors in the browser", pageErrors.length === 0, pageErrors.join(" | "));
 }
 

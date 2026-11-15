@@ -10,7 +10,7 @@ import { z } from "zod";
 import type { Agent } from "../types.js";
 import type { RiskClass } from "./types.js";
 
-export const CATALOG_VERSION = "2026-11-14.1";
+export const CATALOG_VERSION = "2026-11-15.1";
 
 const noControl = (s: string) => !/[\u0000-\u001f\u007f]/.test(s);
 const text = (max: number) => z.string().trim().min(1).max(max).refine(noControl, "Text must not contain control characters");
@@ -18,6 +18,8 @@ const ip = z.string().trim().min(2).max(45).refine((v) => isIP(v) !== 0, "Not an
 const alertId = z.string().trim().min(1).max(64).regex(/^[A-Za-z0-9_.:-]+$/, "Not an alert id");
 const paymentId = z.string().regex(/^PAY-[0-9A-F]{16}$/, "Not a payment id");
 const reason = text(500).optional();
+/** Which EDR to act through, when a workspace has more than one response connection (integrations/response.ts has the same list). */
+const via = z.enum(["crowdstrike_response", "sentinelone_response", "defender_response", "cortex_response"]).optional();
 
 export interface CatalogEntry {
   id: string;
@@ -83,7 +85,7 @@ const entries: CatalogEntry[] = [
   {
     id: "host.isolate", class: "R4", effect: "write", agents: ["Vanguard"], reversible: true,
     summary: "Isolate a host from the network through an EDR",
-    input: z.strictObject({ host: text(200), reason }), targetOf: (i) => String(i.host),
+    input: z.strictObject({ host: text(200), reason, via }), targetOf: (i) => String(i.host),
   },
   // The way back from the two above. Lower risk (it restores what was there), still a change in a customer system.
   {
@@ -94,7 +96,7 @@ const entries: CatalogEntry[] = [
   {
     id: "host.release", class: "R3", effect: "write", agents: ["Vanguard"], reversible: true,
     summary: "Release a host from network isolation through an EDR",
-    input: z.strictObject({ host: text(200), reason }), targetOf: (i) => String(i.host),
+    input: z.strictObject({ host: text(200), reason, via }), targetOf: (i) => String(i.host),
   },
 ];
 

@@ -26,6 +26,7 @@ import { wazuhAdapter } from "./integrations/wazuh.js";
 import { genericWebhookAdapter } from "./integrations/generic.js";
 import { cefAdapter } from "./integrations/cef.js";
 import { githubAdapter } from "./integrations/github.js";
+import { fortigateAdapter } from "./integrations/fortigate.js";
 import { deliveriesForAlert } from "./integration-notify.js";
 import type { PushAdapter } from "./integrations/types.js";
 import { closePool, currentRoleAttributes, inTenant, migrate, query, transaction, withTenant } from "./db/pool.js";
@@ -84,7 +85,7 @@ app.use(accessLog(() => config.accessLog));
 app.use(securityHeaders());
 app.use(corsMiddleware());
 // Machine endpoints authenticated by signature; they are not browsers.
-app.use(originGuard(/^\/(security-events\/webhook(\/(generic|cef|github))?|billing\/webhook)$/));
+app.use(originGuard(/^\/(security-events\/webhook(\/(generic|cef|github|fortigate))?|billing\/webhook)$/));
 // Paddle signs the RAW bytes, so keep a copy before JSON.parse rewrites them.
 // The sensor webhook is parsed by its own route instead (below): its body is
 // kept as raw bytes and only parsed AFTER the signature over those bytes checks
@@ -95,13 +96,14 @@ export const WEBHOOK_GENERIC_PATH = "/security-events/webhook/generic";
 export const WEBHOOK_CEF_PATH = "/security-events/webhook/cef";
 // GitHub signs with its own scheme (X-Hub-Signature-256) and a secret that belongs to one connection (?connection=<id>).
 export const WEBHOOK_GITHUB_PATH = "/security-events/webhook/github";
+export const WEBHOOK_FORTIGATE_PATH = "/security-events/webhook/fortigate";
 // The Wazuh manager's pull of its blocklist: signed like the webhook, so raw too.
 export const BLOCKLIST_PATH = "/security-events/blocklist";
 const jsonBody = express.json({
   limit: "256kb",
   verify: (req, _res, buf) => { (req as Request & { rawBody?: Buffer }).rawBody = buf; },
 });
-app.use((req, res, next) => (req.path === WEBHOOK_PATH || req.path === WEBHOOK_GENERIC_PATH || req.path === WEBHOOK_CEF_PATH || req.path === WEBHOOK_GITHUB_PATH || req.path === BLOCKLIST_PATH || req.path === payments.PAYMENT_CHECK_PATH ? next() : jsonBody(req, res, next)));
+app.use((req, res, next) => (req.path === WEBHOOK_PATH || req.path === WEBHOOK_GENERIC_PATH || req.path === WEBHOOK_CEF_PATH || req.path === WEBHOOK_GITHUB_PATH || req.path === WEBHOOK_FORTIGATE_PATH || req.path === BLOCKLIST_PATH || req.path === payments.PAYMENT_CHECK_PATH ? next() : jsonBody(req, res, next)));
 app.use(express.urlencoded({ extended: false, limit: "32kb" }));
 app.use(cookieParser());
 // Error messages and confirmations in the reader's language (Accept-Language).
@@ -120,7 +122,7 @@ app.use(rejectNul);
  * reason — their callers are authenticated or trivial, and rate limiting them
  * breaks the integration rather than protecting it.
  */
-const RATE_LIMIT_EXEMPT = /^\/(health|security-events\/webhook(\/(generic|cef|github))?|billing\/webhook)$/;
+const RATE_LIMIT_EXEMPT = /^\/(health|security-events\/webhook(\/(generic|cef|github|fortigate))?|billing\/webhook)$/;
 app.use((req, res, next) => {
   if (RATE_LIMIT_EXEMPT.test(req.path)) return next();
   return apiLimiter(req, res, next);
@@ -2409,6 +2411,37 @@ app.post(WEBHOOK_GITHUB_PATH, webhookFailureGate, express.raw({ type: "applicati
     const report = await ingestFindings(conn.tenantId, normalized.source, normalized.findings, { realtime: newAlertFrame });
     await connections.touchSuccess(conn.id, conn.tenantId);
     return res.status(202).json({ status: report.ingested.length ? "ingested" : "skipped", ...(report.ingested.length ? {} : { reason: "duplicate" }) });
+  });
+});
+
+/**
+ * FortiGate deliveries (automation stitch → Webhook): the connection is named in the URL and proves itself with
+ * its token in the Authorization header. FortiOS cannot sign, so this is a bearer token, compared in constant
+ * time (as digests, so neither length nor content leaks). Unknown connection, wrong token and no token all look
+ * the same (401) and count as failures for the address. A replayed delivery is dropped as a duplicate.
+ */
+app.post(WEBHOOK_FORTIGATE_PATH, webhookFailureGate, express.raw({ type: () => true, limit: config.webhookMaxBodyBytes }), async (req: Request, res: Response) => {
+  const reject = () => res.status(401).json({ detail: "Invalid request" });
+  const id = String(req.query.connection ?? "");
+  const raw = Buffer.isBuffer(req.body) ? req.body : null;
+  const given = /^Bearer ([A-Za-z0-9_\-.~+/=]{1,200})$/.exec(req.header("authorization") ?? "")?.[1] ?? "";
+  if (!UUID_RE.test(id) || !raw || !given) return reject();
+  const conn = await connections.fortigateToken(id);
+  const digest = (v: string) => createHash("sha256").update(v).digest();
+  // Always one comparison, whether or not the connection exists, so the answer does not reveal which ids are real.
+  const same = timingSafeEqual(digest(given), digest(conn?.token ?? "unknown-connection:" + id));
+  if (!conn || !same) return reject();
+  return withTenant(conn.tenantId, async () => {
+    const workspace = await store.getTenant(conn.tenantId);
+    if (workspace && !servesRegion(workspace)) return misdirected(res, workspace);
+    const text = raw.toString("utf8");
+    let payload: unknown = text;
+    if (/^\s*[[{]/.test(text)) { try { payload = JSON.parse(text); } catch { return res.status(400).json({ detail: "Invalid request" }); } }
+    const normalized = fortigateAdapter.normalize(payload);
+    await connections.touchSuccess(conn.id, conn.tenantId);
+    if (normalized.skipped) return res.status(202).json({ status: "skipped" });
+    const report = await ingestFindings(conn.tenantId, normalized.source, normalized.findings, { realtime: newAlertFrame });
+    return res.status(202).json({ status: report.ingested.length ? "ingested" : "skipped", ...(report.ingested.length ? { ingested: report.ingested.length } : { reason: "duplicate" }) });
   });
 });
 

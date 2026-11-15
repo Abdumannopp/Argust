@@ -235,10 +235,9 @@ How each behaves:
   never start or join an attack campaign.
 - **AbuseIPDB.** Addresses only. 75+ malicious, 25–74 suspicious; an address with no reports is "nothing known",
   not "safe". Legion never reports an address to AbuseIPDB.
-- **FortiGate.** There is no FortiGate connection to add: a FortiGate is a device on your network, and Legion does
-  not open a syslog port or call into your network. Send its logs in **CEF** to a collector you run (rsyslog,
-  Vector, Fluent Bit…) that posts them to Legion's CEF route with a sensor credential (see "Syslog / CEF"). Legion
-  recognises FortiOS CEF and puts what the firewall found (the IPS signature, virus or application) in the title.
+- **FortiGate.** The firewall **sends** its events; Legion never connects to it. Add the `fortigate` connection
+  (see "FortiGate webhook" below). A collector posting CEF to Legion's CEF route still works too, and FortiOS CEF
+  is recognised there.
 
 Honest limits:
 
@@ -248,10 +247,31 @@ Honest limits:
   estate creates many alerts at once.
 - Qualys: Qualys Cloud Platform only (the eleven listed platforms); a private cloud platform is not supported.
   Tenable: Tenable Vulnerability Management (cloud) only, not Tenable Security Center or Nessus on your network.
-- Cortex XDR: incidents only (not every raw alert), and no response action (isolating through Cortex is not built).
+- Cortex XDR: incidents only (not every raw alert). Isolating an endpoint needs the separate `cortex_response` connection.
 - Entra ID: risk detections only — not the full sign-in or audit log.
-- FortiGate: only what the collector forwards. Legion cannot change a FortiGate rule; firewall blocking stays the
-  blocklist enforced by your Wazuh manager.
+- FortiGate: only the events your automation stitch sends. Its proof is a bearer token, which is weaker than the
+  signed sensor webhook: someone who captured a request could re-send it (it would be dropped as a duplicate), so
+  keep the token secret and rotate it by replacing the connection. Legion cannot change a FortiGate rule; firewall
+  blocking stays the blocklist enforced by your Wazuh manager.
+
+## FortiGate webhook
+
+1. Dashboard → **Connect** → *Fortinet FortiGate*: enter a long random token (32+ characters) and save. The page
+   shows the address: `POST /security-events/webhook/fortigate?connection=<id>`.
+2. On the FortiGate: **Security Fabric → Automation** → new stitch. Trigger: the log events you want (IPS, antivirus,
+   anomaly, or an event log at warning level or above). Action: **Webhook**, method POST, that address, with the
+   HTTP header `Authorization: Bearer <your token>` and this body:
+
+```
+{"logid":"%%log.logid%%","type":"%%log.type%%","subtype":"%%log.subtype%%","level":"%%log.level%%",
+ "severity":"%%log.severity%%","srcip":"%%log.srcip%%","dstip":"%%log.dstip%%","hostname":"%%log.hostname%%",
+ "attack":"%%log.attack%%","virus":"%%log.virus%%","msg":"%%log.msg%%","action":"%%log.action%%",
+ "user":"%%log.user%%","devname":"%%log.devname%%","eventtime":"%%log.eventtime%%"}
+```
+
+Raw FortiOS log lines (`key=value …`) are accepted as well. Traffic logs and notice-level lines are skipped. A
+variable FortiOS could not fill in is treated as empty. A wrong or missing token, a paused connection and an
+unknown address all answer 401 and count against the sender's address.
 
 ## Threat intelligence: VirusTotal, MISP, OpenCTI
 
@@ -353,12 +373,15 @@ campaign rules in WAZUH.md look at techniques and timing). Legion's own alerts d
 
 ## Response: acting in your systems (people approve first)
 
-Three **response connections** let Legion change something in your environment. They are separate from the
+Six **response connections** let Legion change something in your environment. They are separate from the
 read-only connections, with their own credential:
 
 | Kind | What it can do | What you create | Hosts |
 |---|---|---|---|
 | `crowdstrike_response` | isolate a host from the network (Falcon containment) and release it | a separate Falcon API client with **Hosts: Read** and **Hosts: Write** only | the Falcon cloud you choose |
+| `sentinelone_response` | disconnect an endpoint from the network and reconnect it | a separate API token of a service user who may only view endpoints and disconnect/reconnect them | `<console>.sentinelone.net` |
+| `defender_response` | isolate a device (Defender for Endpoint) and release it | a separate app registration with **Machine.Read.All** and **Machine.Isolate** only | `api.securitycenter.microsoft.com` |
+| `cortex_response` | isolate an endpoint (Cortex XDR) and release it | a separate API key whose role may only view endpoints and isolate/unisolate them | your Cortex API host |
 | `okta_response` | suspend a user account and restore it (nothing is deleted) | a separate API token of an administrator whose role may only suspend users | your Okta domain |
 | `entra_response` | block sign-in for a user account and allow it again (nothing is deleted) | a separate app registration with **User.EnableDisableAccount.All** only | Microsoft Graph |
 
@@ -385,17 +408,22 @@ Honest limits:
 
 - **Tested against simulated vendor answers only.** Do not rely on it in an incident before trying it on a test
   host and a test account in your own CrowdStrike and Okta.
-- Only CrowdStrike (hosts), Okta and Entra ID (accounts). SentinelOne, Defender for Endpoint, Cortex XDR and Google
-  Workspace accounts are not connected for response: an action for them ends "no response connection". Entra ID
-  refuses to block an administrator's account with this permission; that is Microsoft's rule.
+- Hosts: CrowdStrike, SentinelOne, Defender for Endpoint, Cortex XDR. Accounts: Okta, Entra ID. Google Workspace
+  accounts are not connected for response. Entra ID refuses to block an administrator's account with this
+  permission; that is Microsoft's rule.
+- With more than one EDR response connection, Legion does not choose: the request names one ("Through which EDR"
+  on the alert page, `via` in the API). Without it the action ends "not done".
+- Hosts are matched by exact name. Defender for Endpoint matches the full DNS name (`laptop-7.corp.example.com`),
+  so an alert that carries only the short name will find no device there.
 - Firewall: blocking an address is the existing blocklist, enforced by your Wazuh manager (WAZUH.md). Legion does not
   push rules to Cloudflare or to a network firewall.
-- The dashboard button asks to isolate or suspend; releasing and restoring are done through the API
-  (`POST /actions` with `host.release` / `account.enable`) or in the vendor's own console.
+- Undo: Dashboard → **Defense** → *Isolated hosts and suspended accounts* lists what Legion did and has not
+  undone, with **Release** / **Restore** (administrators; it runs at once and is recorded). The list is Legion's own
+  record: something isolated or released in the vendor's console is not known to it.
 - Three administrators are needed when a person asks (the asker cannot approve): a team of one or two cannot use
   this by hand. A request from the Vanguard agent needs two.
 - Suspending an Okta account does not sign the person out of other systems where they already have a session.
 
 ## What Legion can DO in these systems today
 
-Everything above **reads, notifies or opens tickets**, except the two response connections described in "Response: acting in your systems". What Legion can really do: (a) block a public address (enforced by the Wazuh manager's active response) and (b) e-mail administrators — both can be allowed to run on their own, opt-in per workspace ([PROTECTION.md](PROTECTION.md)); (c) isolate or release a host through CrowdStrike and (d) suspend or restore an Okta or Entra ID account — only after people approve each one. Disabling a Google account, isolating a host through Defender for Endpoint or SentinelOne, changing a Cloudflare rule and similar actions are **simulation only**: they are not built.
+Everything above **reads, notifies or opens tickets**, except the two response connections described in "Response: acting in your systems". What Legion can really do: (a) block a public address (enforced by the Wazuh manager's active response) and (b) e-mail administrators — both can be allowed to run on their own, opt-in per workspace ([PROTECTION.md](PROTECTION.md)); (c) isolate or release a host through CrowdStrike, SentinelOne, Defender for Endpoint or Cortex XDR and (d) suspend or restore an Okta or Entra ID account — only after people approve each one. Disabling a Google account, changing a Cloudflare or FortiGate rule and similar actions are **simulation only**: they are not built.

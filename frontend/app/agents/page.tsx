@@ -167,7 +167,7 @@ export default function AgentsPage() {
   return (
     <div className="flex min-h-screen lg-app-bg">
       <Sidebar />
-      <div className="flex-1 p-4 sm:p-6">
+      <div className="flex-1 min-w-0 p-4 sm:p-6">
         <div className="max-w-3xl mx-auto space-y-4">
           <header className="flex items-start justify-between gap-3 flex-wrap">
             <div>

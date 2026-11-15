@@ -12,6 +12,7 @@ import { Ban, Banknote, Eye, EyeOff, Loader2, Radar, ShieldAlert, ShieldCheck, T
 import Sidebar from "@/components/Sidebar";
 import ErrorNotice from "@/components/ErrorNotice";
 import ProtectionSection from "@/components/ProtectionSection";
+import ResponseUndo from "@/components/ResponseUndo";
 import {
   ApiError, AttackCampaign, AutoResponseSettings, IpBlock, PaymentCheck, PaymentConsent, ThreatCoverage,
   acknowledgePaymentNotice, blockAddress, getAutoResponse, getPaymentConsent, getBlocks, getCampaigns, getCoverage, getHeldPayments, rejectPayment, releasePayment, getMe, isLoggedIn, unblockAddress, updateAutoResponse,
@@ -128,7 +129,7 @@ export default function DefensePage() {
   return (
     <div className="flex min-h-screen lg-app-bg">
       <Sidebar />
-      <div className="flex-1 p-4 sm:p-6">
+      <div className="flex-1 min-w-0 p-4 sm:p-6">
         <div className="max-w-5xl mx-auto space-y-5">
           <div>
             <h1 className="legion-title text-ink flex items-center gap-2">
@@ -146,6 +147,7 @@ export default function DefensePage() {
             <>
               {/* Protection mode: how much Legion may do on its own, chosen by an administrator */}
               <ProtectionSection isAdmin={isAdmin} />
+              <ResponseUndo isAdmin={isAdmin} />
 
               {/* Automatic response */}
               <section className={card}>

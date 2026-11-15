@@ -39,7 +39,8 @@ export default function AssetsPage() {
         risk: riskFilter === "all" ? undefined : riskFilter,
         q: query || undefined,
       });
-      setAssets(data);
+      // An API from before asset intelligence does not send kind or sources: the page must still load.
+      setAssets(data.map((a) => ({ ...a, kind: a.kind ?? "unknown", sources: a.sources ?? [] })));
     } catch (err) {
       if (err instanceof ApiError && err.status === 401) {
         router.push("/login");
@@ -73,7 +74,7 @@ export default function AssetsPage() {
   return (
     <div className="flex min-h-screen lg-app-bg">
       <Sidebar />
-      <div className="flex-1 p-4 sm:p-6">
+      <div className="flex-1 min-w-0 p-4 sm:p-6">
         <div className="max-w-4xl mx-auto">
           <div className="mb-6">
             <h1 className="legion-title text-ink flex items-center gap-2">
