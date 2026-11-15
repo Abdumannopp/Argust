@@ -4,7 +4,7 @@ import { defineMessages } from "../core";
 export const connections = defineMessages({
   en: {
     title: "Connections",
-    intro: "Bring in alerts from your endpoint protection (CrowdStrike, SentinelOne, Defender), Cortex XDR, SIEM (Sentinel, Elastic, Splunk), cloud (AWS, Azure, Google Cloud), identity (Okta, Entra ID, Google Workspace), vulnerability scanners (Tenable, Qualys) and Cloudflare, check addresses against threat intelligence (VirusTotal, AbuseIPDB, MISP, OpenCTI), and send alerts to Slack, Teams, PagerDuty, Opsgenie, Jira or ServiceNow. Secrets are encrypted and never shown again.",
+    intro: "Bring in alerts from your endpoint protection (CrowdStrike, SentinelOne, Defender), Cortex XDR, SIEM (Sentinel, Elastic, Splunk), cloud (AWS, Azure, Google Cloud), identity (Okta, Entra ID, Google Workspace), your FortiGate firewall, vulnerability scanners (Tenable, Qualys) and Cloudflare, check addresses against threat intelligence (VirusTotal, AbuseIPDB, MISP, OpenCTI), and send alerts to Slack, Teams, PagerDuty, Opsgenie, Jira or ServiceNow. Secrets are encrypted and never shown again.",
     adminOnly: "Only administrators can manage connections.",
     empty: "No connections yet.",
     add: "Add a connection",
@@ -42,6 +42,10 @@ export const connections = defineMessages({
       cortex_xdr: { name: "Palo Alto Cortex XDR", help: "Reads incidents. In Cortex XDR create an API key with the Viewer role (Advanced recommended) and enter your API host, the key ID and the key." },
       tenable: { name: "Tenable Vulnerability Management", help: "Reads open vulnerabilities per asset with their CVEs and fixes. Generate API keys for a user with the Basic role who may view the assets. The first results arrive a few minutes after saving: Tenable prepares an export first." },
       qualys: { name: "Qualys VMDR", help: "Reads confirmed open vulnerabilities of severity 4 and 5 per host. Use a user with the Reader role and API access, and choose your Qualys platform (it is in the address you sign in at)." },
+      fortigate: { name: "Fortinet FortiGate", help: "Your FortiGate sends security events to Legion; Legion never connects to the firewall. Enter a long random token (32+ characters). On the FortiGate create an automation stitch: trigger on the log events you want (IPS, antivirus, anomaly), action Webhook, method POST, to the address shown after saving, with the HTTP header Authorization: Bearer <your token>. The body is described in INTEGRATIONS.md." },
+      sentinelone_response: { name: "SentinelOne — response", help: "Lets Legion disconnect an endpoint from the network, and reconnect it, after two administrators approve. Use a SEPARATE API token of a service user whose role may only view endpoints and disconnect or reconnect them. List endpoints that must never be disconnected." },
+      defender_response: { name: "Microsoft Defender for Endpoint — response", help: "Lets Legion isolate a device, and release it, after two administrators approve. Create a SEPARATE app registration with the WindowsDefenderATP application permissions Machine.Read.All and Machine.Isolate only. Enter devices by their full DNS name. List devices that must never be isolated." },
+      cortex_response: { name: "Palo Alto Cortex XDR — response", help: "Lets Legion isolate an endpoint, and release it, after two administrators approve. Create a SEPARATE API key whose role may only view endpoints and isolate or unisolate them. List endpoints that must never be isolated." },
       opsgenie: { name: "Opsgenie", help: "Alerts the on-call team for serious alerts. Add an API integration in Opsgenie and paste its key." },
     },
     fields: {
@@ -73,7 +77,7 @@ export const connections = defineMessages({
       api_key: "API key",
       stack: "Stack name (acme for acme.splunkcloud.com)",
       index: "Index (leave empty for notable)",
-      token: "Authentication token",
+      token: "Token",
       zone_id: "Zone ID",
       min_events: "Alert from this many blocked requests per hour (default 50)",
       admin_email: "Administrator e-mail to act as",
@@ -121,6 +125,7 @@ export const connections = defineMessages({
       status: { pending: "Waiting to send", sending: "Sending", sent: "Delivered", dead: "Could not be delivered" },
       ticket: (key: string) => `Ticket ${key}`,
     },
+    fortigateUrl: (url: string) => `FortiGate webhook address (POST, header Authorization: Bearer <token>): ${url}`,
     githubUrl: (url: string) => `Webhook address for GitHub (content type application/json): ${url}`,
     cannotAct: "These connections only read alerts, look up reputation, notify people or open tickets. The ones marked \"response\" are the exception: through them Legion can isolate a host or suspend an account, and only after two administrators approve that exact action.",
   },

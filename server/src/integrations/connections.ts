@@ -62,7 +62,7 @@ export async function create(
   const missing = adapter.secretFields.filter((f) => typeof input.secrets?.[f] !== "string" || !input.secrets[f]);
   if (missing.length) throw new ConnectionError("missing_secret", `Missing: ${missing.join(", ")}`);
   const secrets = Object.fromEntries(adapter.secretFields.map((f) => [f, input.secrets[f]!]));
-  const secretProblem = outboundAdapter(input.kind)?.validateSecrets?.(secrets);
+  const secretProblem = (adapter as { validateSecrets?: (s: Record<string, string>) => string | null }).validateSecrets?.(secrets);
   if (secretProblem) throw new ConnectionError("invalid_config", secretProblem);
   const id = randomUUID();
   const row = await queryOne(
@@ -174,6 +174,15 @@ export async function githubSecret(id: string): Promise<{ id: string; tenantId: 
   const opened = box.open(row.secrets_enc, "integration-secret", sealContext(row.id, row.tenant_id));
   if (opened === null) return null;
   try { const secret = (JSON.parse(opened) as { webhook_secret?: unknown }).webhook_secret; return typeof secret === "string" && secret ? { id: row.id, tenantId: row.tenant_id, secret } : null; } catch { return null; }
+}
+
+/** The token and workspace of an active FortiGate connection, or null. Before the token is checked the workspace is unknown. */
+export async function fortigateToken(id: string): Promise<{ id: string; tenantId: string; token: string } | null> {
+  const row = await queryOne<{ id: string; tenant_id: string; secrets_enc: string | null }>("SELECT * FROM legion_fortigate_connection($1)", [id]);
+  if (!row?.secrets_enc) return null;
+  const opened = box.open(row.secrets_enc, "integration-secret", sealContext(row.id, row.tenant_id));
+  if (opened === null) return null;
+  try { const token = (JSON.parse(opened) as { token?: unknown }).token; return typeof token === "string" && token ? { id: row.id, tenantId: row.tenant_id, token } : null; } catch { return null; }
 }
 
 /** Health for push connections: the last time a verified delivery arrived. */

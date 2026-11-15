@@ -73,12 +73,13 @@ const EXECUTORS: Record<string, Executor> = {
  * refuses a critical action without an approval, and the policy never pre-authorises these). The connector is the
  * workspace's own response connection for that system; with none, or more than one, nothing is done.
  */
-async function respondThrough(tenantId: string, action: ResponseAction, target: string, system: string | null, ctx: { actionId: string }): Promise<LiveResult> {
-  const kinds = responseKinds().filter((k) => { const a = responseAdapter(k)!; return a.actions.includes(action) && (system === null || a.system === system); });
+async function respondThrough(tenantId: string, action: ResponseAction, target: string, system: string | null, ctx: { actionId: string }, via: string | null = null): Promise<LiveResult> {
+  // `via` names one EDR when the workspace has several; it can only narrow the choice to a connector able to do this.
+  const kinds = responseKinds().filter((k) => { const a = responseAdapter(k)!; return a.actions.includes(action) && (system === null || a.system === system) && (via === null || k === via); });
   const conns = kinds.length ? await queryAll<{ id: string; tenant_id: string; kind: string; name: string; config: Record<string, unknown> | null; secrets_enc: string | null }>(
     "SELECT id, tenant_id, kind, name, config, secrets_enc FROM integration_connections WHERE tenant_id = $1 AND status = 'active' AND kind = ANY($2::text[]) ORDER BY created_at LIMIT 2", [tenantId, kinds]) : [];
   if (!conns.length) throw new LiveRefused("no_connector", "No response connection for this is set up in the workspace (Connect page)");
-  if (conns.length > 1) throw new LiveRefused("no_connector", "More than one response connection could do this; Legion does not choose between them");
+  if (conns.length > 1) throw new LiveRefused("no_connector", "More than one response connection could do this; say which one to act through (Legion does not choose between them)");
   const c = conns[0]!;
   if (c.tenant_id !== tenantId) throw new LiveRefused("no_connector", "No response connection for this workspace");
   const adapter = responseAdapter(c.kind)!;
@@ -104,8 +105,9 @@ async function respondThrough(tenantId: string, action: ResponseAction, target: 
   } finally { clearTimeout(timer); }
 }
 
-EXECUTORS["host.isolate"] = (t, i, ctx) => respondThrough(t, "host.isolate", String(i.host), null, ctx);
-EXECUTORS["host.release"] = (t, i, ctx) => respondThrough(t, "host.release", String(i.host), null, ctx);
+const viaOf = (i: Record<string, unknown>) => (typeof i.via === "string" ? i.via : null);
+EXECUTORS["host.isolate"] = (t, i, ctx) => respondThrough(t, "host.isolate", String(i.host), null, ctx, viaOf(i));
+EXECUTORS["host.release"] = (t, i, ctx) => respondThrough(t, "host.release", String(i.host), null, ctx, viaOf(i));
 EXECUTORS["account.disable"] = (t, i, ctx) => respondThrough(t, "account.disable", String(i.account), String(i.system), ctx);
 EXECUTORS["account.enable"] = (t, i, ctx) => respondThrough(t, "account.enable", String(i.account), String(i.system), ctx);
 

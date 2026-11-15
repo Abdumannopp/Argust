@@ -12,6 +12,7 @@ import { Ban, Banknote, Eye, EyeOff, Loader2, Radar, ShieldAlert, ShieldCheck, T
 import Sidebar from "@/components/Sidebar";
 import ErrorNotice from "@/components/ErrorNotice";
 import ProtectionSection from "@/components/ProtectionSection";
+import ResponseUndo from "@/components/ResponseUndo";
 import {
   ApiError, AttackCampaign, AutoResponseSettings, IpBlock, PaymentCheck, PaymentConsent, ThreatCoverage,
   acknowledgePaymentNotice, blockAddress, getAutoResponse, getPaymentConsent, getBlocks, getCampaigns, getCoverage, getHeldPayments, rejectPayment, releasePayment, getMe, isLoggedIn, unblockAddress, updateAutoResponse,
@@ -146,6 +147,7 @@ export default function DefensePage() {
             <>
               {/* Protection mode: how much Legion may do on its own, chosen by an administrator */}
               <ProtectionSection isAdmin={isAdmin} />
+              <ResponseUndo isAdmin={isAdmin} />
 
               {/* Automatic response */}
               <section className={card}>

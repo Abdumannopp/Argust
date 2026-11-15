@@ -8,6 +8,8 @@ import { useLanguage } from "@/lib/i18n/LanguageContext";
 import { palette } from "@/lib/theme";
 
 const ACCOUNT = /^[A-Za-z0-9._%+-]{1,64}@[A-Za-z0-9.-]{3,190}$/;
+type Via = "crowdstrike_response" | "sentinelone_response" | "defender_response" | "cortex_response";
+const VIAS: Via[] = ["crowdstrike_response", "sentinelone_response", "defender_response", "cortex_response"];
 const HOST = /^[A-Za-z0-9][A-Za-z0-9._-]{0,199}$/;
 
 /**
@@ -22,6 +24,7 @@ export default function ResponseCard({ alertId, target }: { alertId: string; tar
   const [error, setError] = useState<unknown>(null);
   const [note, setNote] = useState<string | null>(null);
   const [system, setSystem] = useState<"okta" | "entra">("okta");
+  const [via, setVia] = useState<"" | Via>("");
   const account = target && ACCOUNT.test(target) ? target : null;
   const host = target && !account && HOST.test(target) ? target : null;
 
@@ -30,7 +33,7 @@ export default function ResponseCard({ alertId, target }: { alertId: string; tar
     setBusy(true); setError(null); setNote(null);
     try {
       const r = kind === "host"
-        ? await proposeResponse("host.isolate", { host }, m.reason(alertId))
+        ? await proposeResponse("host.isolate", via ? { host, via } : { host }, m.reason(alertId))
         : await proposeResponse("account.disable", { account, system }, m.reason(alertId));
       const s = r.action.status;
       setNote(s === "awaiting_approval" ? m.waiting : s === "executed" ? m.executed : s === "failed" ? m.failed(r.action.error ?? "") : s === "denied" ? m.denied : m.other(s));
@@ -50,6 +53,15 @@ export default function ResponseCard({ alertId, target }: { alertId: string; tar
         <p className="text-ink-faint text-xs">{m.nothing}</p>
       ) : (
         <>
+          {host && (
+            <label className="block text-xs text-ink-muted mb-2">
+              {m.via}
+              <select value={via} onChange={(e) => setVia(e.target.value as "" | Via)} className="ml-2 rounded-lg border border-line bg-canvas px-2 py-1 text-xs text-ink" data-testid="response-via">
+                <option value="">{m.viaAuto}</option>
+                {VIAS.map((v) => <option key={v} value={v}>{m.vias[v]}</option>)}
+              </select>
+            </label>
+          )}
           {account && (
             <label className="block text-xs text-ink-muted mb-2">
               {m.system}

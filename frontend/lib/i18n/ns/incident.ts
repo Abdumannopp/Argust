@@ -41,6 +41,9 @@ export const incident = defineMessages({
       intro: "Act where the attack is, through a response connection. Isolating a host or suspending an account is critical: after you ask, two other administrators must approve it with their two-factor code. Legion never does this on its own.",
       isolate: (host: string) => `Isolate ${host} from the network`,
       suspend: (account: string) => `Suspend the account ${account}`,
+      via: "Through which EDR",
+      viaAuto: "The one that is connected",
+      vias: { crowdstrike_response: "CrowdStrike", sentinelone_response: "SentinelOne", defender_response: "Defender for Endpoint", cortex_response: "Cortex XDR" },
       system: "In which system",
       systems: { okta: "Okta", entra: "Microsoft Entra ID" },
       confirmIsolate: (host: string) => `Ask to isolate ${host}? It will be cut off from the network once two other administrators approve.`,
@@ -52,7 +55,7 @@ export const incident = defineMessages({
       failed: (why: string) => `Not done: ${why}`,
       denied: "Refused. Turn protection on (Defense page) and add a response connection (Connect page) first.",
       other: (status: string) => `Request is ${status}.`,
-      undoNote: "To undo later, an administrator can release the host or restore the account from the same systems; Legion records both.",
+      undoNote: "To undo later, an administrator releases the host or restores the account on the Defense page.",
     },
     suggestedActions: "Suggested actions",
     suggestedIntro:
