@@ -19,7 +19,7 @@
   },
   "dependencies": {
     "zod": "^4.1.12",
-    "libpg-query": "^18.1.5"
+    "libpg-query": "^18.2.4"
   },
   "devDependencies": {
     "@types/express": "^5.0.5",
