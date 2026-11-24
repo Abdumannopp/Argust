@@ -2,8 +2,8 @@ import { defineMessages } from "../core";
 
 export const confirmNotification = defineMessages({
   en: {
-    title: "Receive Legion security alerts?",
-    body: "An administrator of a Legion workspace asked for security alert emails to be sent to your address. Confirm only if you expect them.",
+    title: "Receive Argust security alerts?",
+    body: "An administrator of a Argust workspace asked for security alert emails to be sent to your address. Confirm only if you expect them.",
     confirm: "Yes, send alerts to this address",
     ignoreHint: "Not expecting this? Close this page — nothing will be sent to you.",
     confirmedTitle: "Address confirmed",

@@ -1,5 +1,5 @@
 /**
- * Tells a workspace's administrators what Legion did on its own, or what it is waiting for a person to
+ * Tells a workspace's administrators what Argust did on its own, or what it is waiting for a person to
  * decide. Queued in the SAME transaction as the state change (the outbox, outbox.ts), so a notice exists
  * if and only if the change committed; the worker sends it with the usual retries. Without SMTP nothing
  * is queued — the dashboard and the audit trail still show everything.

@@ -95,7 +95,7 @@ describe("an explicit provider that cannot be honoured", () => {
   it("treats an unknown provider name as off, and says so", () => {
     const s = settings({ aiProvider: "openai", openrouterApiKey: "sk-or-x" });
     expect(resolveProvider(s)).toBeNull();
-    expect(aiConfigWarnings(s)[0]).toMatch(/not a provider Legion knows/);
+    expect(aiConfigWarnings(s)[0]).toMatch(/not a provider Argust knows/);
   });
 
   it("accepts the name with stray case or spacing", () => {
@@ -105,11 +105,11 @@ describe("an explicit provider that cannot be honoured", () => {
 });
 
 describe("outbound request shape", () => {
-  it("identifies Legion to OpenRouter without disclosing the customer's hostname", () => {
+  it("identifies Argust to OpenRouter without disclosing the customer's hostname", () => {
     // OpenRouter also accepts HTTP-Referer. Sending it would hand them the
     // internal address of the customer's console, which is not ours to give.
     const headers = resolveProvider(settings({ openrouterApiKey: "sk-or-x" }))!.extraHeaders;
-    expect(headers["X-OpenRouter-Title"]).toBe("Legion");
+    expect(headers["X-OpenRouter-Title"]).toBe("Argust");
     expect(headers).not.toHaveProperty("HTTP-Referer");
   });
 

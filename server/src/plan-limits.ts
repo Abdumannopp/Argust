@@ -50,7 +50,7 @@ export function classifyPrices(priceIds: readonly string[]): { plan: PlanId | nu
   return { plan, addons: [...new Set(addons)], unknown, legacy };
 }
 
-/** Every price id Legion offers: the checkout may only grant access for these (audit P1-4). */
+/** Every price id Argust offers: the checkout may only grant access for these (audit P1-4). */
 export function offeredPriceIds(): Set<string> {
   return new Set([...Object.values(config.paddlePriceIds), ...Object.values(config.paddlePlanPrices), ...Object.values(config.paddleAddonPrices)]);
 }
@@ -123,7 +123,7 @@ export function planFor(feature: Feature): PlanId {
 
 const FEATURE_LABEL: Record<Feature, string> = {
   agentSecurity: "AI Agent Security",
-  aiAgents: "The five Legion agents",
+  aiAgents: "The five Argust agents",
   paymentCheck: "Payment fraud check",
   copilot: "The Copilot assistant",
   ipBlocking: "Blocking attacker addresses",

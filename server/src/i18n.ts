@@ -15,7 +15,7 @@ import { isIP } from "node:net";
 import type { NextFunction, Request, Response } from "express";
 import type { Alert } from "./types.js";
 
-/** Legion is English only (built for the global market); the type stays so a language can be added later. */
+/** Argust is English only (built for the global market); the type stays so a language can be added later. */
 export type Locale = "en";
 export const LOCALES: readonly Locale[] = ["en"];
 
@@ -46,8 +46,8 @@ const KNOWN_MESSAGES = new Set<string>([
   "Email confirmed. You can sign in now.",
   "If that account is waiting for confirmation, a new link has been sent.",
   "Email is already registered",
-  "This Legion installation is already set up. Ask an administrator to invite you.",
-  "A valid setup token is required. It is printed in the Legion server's console on startup.",
+  "This Argust installation is already set up. Ask an administrator to invite you.",
+  "A valid setup token is required. It is printed in the Argust server's console on startup.",
   "This sign-in attempt has expired. Please log in again.",
   "A code is required",
   "That code is not valid",
@@ -81,8 +81,8 @@ const KNOWN_MESSAGES = new Set<string>([
   "Paddle is not configured",
   "No Paddle customer on file for this tenant yet",
   "Paddle did not return a portal URL",
-  "Your subscription payment is past due. Legion is read-only until it is settled.",
-  "This workspace does not have an active Legion subscription.",
+  "Your subscription payment is past due. Argust is read-only until it is settled.",
+  "This workspace does not have an active Argust subscription.",
   "Unknown tenant",
   "Security event webhook is disabled",
   "Not found",
@@ -130,11 +130,11 @@ const KNOWN_MESSAGES = new Set<string>([
   "This invitation is invalid, has expired, or was sent to another account",
   "This is the workspace your account belongs to; it cannot be left",
   "A workspace must keep at least one admin",
-  "You already have a Legion account. Sign in to accept this invitation.",
+  "You already have a Argust account. Sign in to accept this invitation.",
   "That person is already a member of this workspace",
   "Integration not found.",
   "This workspace is hosted in another region.",
-  "Test alert: Legion is working",
+  "Test alert: Argust is working",
   "This is a test alert you sent from the Connect page. It shows what a real alert looks like and that live updates and notifications reach you. It is safe to resolve.",
   "Complete the security check and try again.",
   "The security check failed or expired. Complete it again.",

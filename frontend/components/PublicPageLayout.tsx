@@ -33,7 +33,7 @@ export default function PublicPageLayout({
       <header className="border-b border-line">
         <div className="max-w-3xl mx-auto px-6 py-4 flex items-center justify-between">
           {/* i18n-ignore: brand name */}
-          <Link href="/" aria-label="Legion">
+          <Link href="/" aria-label="Argust">
             <LegionLogo layout="horizontal" size={32} tagline={false} />
           </Link>
           <LanguageSwitcher compact />

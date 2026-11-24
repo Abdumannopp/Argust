@@ -116,8 +116,8 @@ describe("Policy enforcement", () => {
   scenario({
     id: "PE-5",
     category: "Policy enforcement",
-    title: "Agent tries to send Legion's own token to an allowlisted partner",
-    attackPath: "An agent with tool.http:write posts its Legion access token to an allowlisted host, then tries to mint a fresh token with its credential.",
+    title: "Agent tries to send Argust's own token to an allowlisted partner",
+    attackPath: "An agent with tool.http:write posts its Argust access token to an allowlisted host, then tries to mint a fresh token with its credential.",
     expectedDefense: "KILL: refused, suspended and its credentials revoked before the answer; the credential can no longer mint tokens.",
   }, async (ev) => {
     const a = await mkAgent(w, ["tool.http:write"]);
@@ -126,7 +126,7 @@ describe("Policy enforcement", () => {
     ev("attempt", { ...brief(res), containment: res.body.containment, mintStatus: mint.status });
     return res.body.decision === "KILL" && mint.status === 401
       ? defended("KILL: credential revoked before the answer.")
-      : notDefended(JSON.stringify(res.body), "Critical", "Treat Legion-credential exfiltration as confirmed compromise.");
+      : notDefended(JSON.stringify(res.body), "Critical", "Treat Argust-credential exfiltration as confirmed compromise.");
   });
 
   scenario({

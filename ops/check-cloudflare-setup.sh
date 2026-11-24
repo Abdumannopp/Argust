@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 #
-# After following DEPLOY-ONLINE.md section 12: is Legion really behind
+# After following DEPLOY-ONLINE.md section 12: is Argust really behind
 # Cloudflare, and does everything still work through it? Read-only — it
 # changes nothing anywhere.
 #
@@ -106,7 +106,7 @@ BASE="${BASE%/}"
 WORK="$(mktemp -d)"
 trap 'rm -rf "$WORK"' EXIT
 
-echo "Legion behind Cloudflare: $DOMAIN"
+echo "Argust behind Cloudflare: $DOMAIN"
 load_ranges
 
 # --- 1. DNS -------------------------------------------------------------------------------------------------------
@@ -138,8 +138,8 @@ if [[ "$code" == 000 ]]; then
   fail "$BASE/api/health: no answer ($(head -c 200 "$WORK/e"))"
   info "a certificate error here usually means Cloudflare SSL mode is not 'Full (strict)' or the server has no valid certificate"
 else
-  if [[ "$code" == 200 ]] && grep -q '"status"' "$WORK/b"; then ok "$BASE/api/health → 200, Legion answers"
-  else fail "$BASE/api/health → HTTP $code (expected 200 from Legion): $(head -c 200 "$WORK/b")"; fi
+  if [[ "$code" == 200 ]] && grep -q '"status"' "$WORK/b"; then ok "$BASE/api/health → 200, Argust answers"
+  else fail "$BASE/api/health → HTTP $code (expected 200 from Argust): $(head -c 200 "$WORK/b")"; fi
   if grep -qi '^server: *cloudflare' "$WORK/h" && grep -qi '^cf-ray:' "$WORK/h"; then ok "the answer came through Cloudflare (server: cloudflare, cf-ray)"
   else fail "the answer did not come through Cloudflare (no 'server: cloudflare' / 'cf-ray' header) — is the record proxied?"; fi
 fi
@@ -151,9 +151,9 @@ if [[ -z "$BASE_URL" ]]; then
 fi
 
 # --- 3. The Wazuh webhook through Cloudflare -----------------------------------------------------------------------
-section "3. Can the Wazuh sensor still reach Legion?"
+section "3. Can the Wazuh sensor still reach Argust?"
 # An unsigned request, sent the way integrations/custom-legion.py sends one.
-# Legion must answer (and refuse it): a JSON 4xx from Legion is the GOOD outcome.
+# Argust must answer (and refuse it): a JSON 4xx from Argust is the GOOD outcome.
 # A challenge page or block from Cloudflare means real events would be held back.
 wcode=$(curl -sS -m 20 -D "$WORK/wh" -o "$WORK/wb" -w '%{http_code}' -X POST \
   -H 'Content-Type: application/json' -H 'User-Agent: Legion-Wazuh-Integration/2 (+custom-legion.py)' \
@@ -162,7 +162,7 @@ if grep -qi '^cf-mitigated:' "$WORK/wh" 2>/dev/null || { [[ "$wcode" =~ ^(403|50
   fail "Cloudflare blocks the webhook (HTTP $wcode, challenge/block page): Wazuh events would be held in the sensor's spool"
   info "add a WAF custom rule: URI Path equals /api/security-events/webhook → Skip (bot protection, rate limiting) — DEPLOY-ONLINE.md §12.5"
 elif [[ "$wcode" =~ ^4[0-9][0-9]$ ]] && grep -qi '^content-type: *application/json' "$WORK/wh"; then
-  ok "the webhook reaches Legion through Cloudflare (Legion refused the unsigned test request with $wcode, as it should)"
+  ok "the webhook reaches Argust through Cloudflare (Argust refused the unsigned test request with $wcode, as it should)"
 else
   fail "unexpected answer from the webhook: HTTP $wcode $(head -c 200 "$WORK/wb" 2>/dev/null)"
 fi
@@ -195,7 +195,7 @@ if [[ $LOCAL -eq 1 ]]; then
   if command -v nginx >/dev/null 2>&1; then
     conf="$(nginx -T 2>/dev/null)"
     if grep -q 'real_ip_header CF-Connecting-IP' <<<"$conf"; then ok "nginx loads it (real_ip_header CF-Connecting-IP is active)"
-    else fail "nginx does not load the Cloudflare snippet: uncomment 'include $SNIPPET;' in the Legion site and reload nginx"; fi
+    else fail "nginx does not load the Cloudflare snippet: uncomment 'include $SNIPPET;' in the Argust site and reload nginx"; fi
     if grep -Eq 'set_real_ip_from +(0\.0\.0\.0/0|::/0)' <<<"$conf"; then fail "nginx trusts EVERY address for the visitor address (set_real_ip_from 0.0.0.0/0 or ::/0): anyone can forge it"; fi
   else
     warn "nginx not found"

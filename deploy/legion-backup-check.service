@@ -2,7 +2,7 @@
 # off the server. Independent of the backup job, so it also notices a job that
 # stopped running altogether.
 [Unit]
-Description=Legion backup health check
+Description=Argust backup health check
 
 [Service]
 Type=oneshot

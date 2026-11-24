@@ -50,7 +50,7 @@ import { isTestSource, sourceLabel } from "@/lib/sources";
 
 type Severity = Alert["severity"];
 
-// Palette from the Legion UI/UX Design Guide
+// Palette from the Argust UI/UX Design Guide
 const COLORS = {
   bg: palette.canvas,
   card: palette.surface,

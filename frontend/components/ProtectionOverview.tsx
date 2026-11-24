@@ -30,7 +30,7 @@ const SEVERITY_DOT: Record<string, string> = {
 
 /**
  * The first screen: one honest status, then what is protected, what threats
- * are open, and what Legion blocked — each in a sentence a person can act on.
+ * are open, and what Argust blocked — each in a sentence a person can act on.
  */
 export default function ProtectionOverview({ data }: { data: Overview }) {
   const { t, locale } = useLanguage();

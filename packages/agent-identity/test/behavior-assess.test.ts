@@ -167,7 +167,7 @@ describe("without a baseline", () => {
 });
 
 describe("helpers", () => {
-  it("unsafe = changes state or leaves Legion; reads are safe", () => {
+  it("unsafe = changes state or leaves Argust; reads are safe", () => {
     expect(["tool:shell.execute", "tool:http.post", "tool:slack.post_message", "tool:cloud.ec2:TerminateInstances", "egress:request", "agents:message", "tool:github.push_commit"].every(isUnsafeAction)).toBe(true);
     expect(["tool:database.select", "tool:http.get", "tool:files.read", "tool:cloud.ec2:DescribeInstances", "tool:github.read_issue", "tool:browser.navigate", "alerts:read", "alerts:update_status"].some(isUnsafeAction)).toBe(false);
   });

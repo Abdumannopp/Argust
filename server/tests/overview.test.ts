@@ -1,6 +1,6 @@
 /**
  * The first screen's answers (src/overview.ts): what is protected, what
- * threats are open, what Legion blocked and why, what is left to set up —
+ * threats are open, what Argust blocked and why, what is left to set up —
  * computed from this workspace's records only.
  */
 import { afterAll, beforeAll, beforeEach, describe, expect, it } from "vitest";
@@ -75,7 +75,7 @@ describe("protection status", () => {
     expect(o.reasons).toContain("source_silent");
   });
 
-  it("shows what Legion blocked, with the rule, for this workspace only", async () => {
+  it("shows what Argust blocked, with the rule, for this workspace only", async () => {
     const created = await request(app).post("/agents").set(...bearer(adminA)).send({ name: "exfil-bot", permissions: ["tool.database:read"] });
     const token = (await request(app).post("/agent/v1/token").set("Authorization", `Bearer ${created.body.credential.secret}`)).body.access_token;
     await request(app).post("/agent/v1/tools/authorize").set("Authorization", `Bearer ${token}`)
@@ -93,7 +93,7 @@ describe("the test alert and the permission catalogue", () => {
     expect((await request(app).post("/security-events/test").set(...bearer(viewerA))).status).toBe(403);
     const r = await request(app).post("/security-events/test").set(...bearer(adminA));
     const alert = await store.getAlert(tA, r.body.alert_id);
-    expect(alert).toMatchObject({ source: "legion-test", severity: "low", title: "Test alert: Legion is working" });
+    expect(alert).toMatchObject({ source: "legion-test", severity: "low", title: "Test alert: Argust is working" });
     for (let i = 0; i < 9; i++) await request(app).post("/security-events/test").set(...bearer(adminA));
     expect((await request(app).post("/security-events/test").set(...bearer(adminA))).status).toBe(429);
   });

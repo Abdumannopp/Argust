@@ -6,7 +6,7 @@
  *   sign up → confirm email → sign in → workspace creation → connect Wazuh
  *   (key, config block, first event) → first alert (and a test alert) →
  *   incident review → first AI agent → agent permission change → an action
- *   that waits for approval, approved in the dashboard → an action Legion
+ *   that waits for approval, approved in the dashboard → an action Argust
  *   blocks, explained → resume → emergency stop → billing / plan visibility
  *   → an error explained → the same screen in another language.
  *
@@ -139,7 +139,7 @@ async function main() {
 
   console.log("▶ 2. first screen: honest status and what to do first");
   await sees(page, "status says nothing is connected yet", "Not connected yet");
-  await sees(page, "the reason is explained", "No sensor is connected, so Legion can't see threats");
+  await sees(page, "the reason is explained", "No sensor is connected, so Argust can't see threats");
   await sees(page, "getting-started checklist is shown", "Getting started");
   await sees(page, "first step: connect a sensor", "Connect a security sensor");
   const t0 = await text(page);
@@ -198,7 +198,7 @@ async function main() {
     env: { ...process.env, LEGION_INTEGRATION_LOG: join(WORK, "integrations.log"), LEGION_SPOOL_DIR: join(WORK, "spool") }, encoding: "utf8", timeout: 30_000,
   });
   check("Wazuh integration script delivers the event with that key", delivered.status === 0, delivered.stderr);
-  await sees(page, "the page notices the first event by itself", "Connected — Legion received an event from Wazuh", 20_000);
+  await sees(page, "the page notices the first event by itself", "Connected — Argust received an event from Wazuh", 20_000);
   await page.getByRole("button", { name: "Send a test alert" }).click();
   await sees(page, "test alert sent and labelled as a test", "Test alert sent");
   await shot(page, "connect-connected");
@@ -212,8 +212,8 @@ async function main() {
   await sees(page, "the alert is listed", "sshd: brute force");
   const t1 = await text(page);
   check("alerts show where they came from", t1.includes("Wazuh"));
-  check("the test alert is marked as a test", /Test alert: Legion is working/.test(t1) && /\bTest\b/.test(t1));
-  check("connect and first-event steps are no longer asked for", !t1.includes("Link Wazuh (or another sensor)") && !t1.includes("Legion confirms the connection when the first real event arrives"));
+  check("the test alert is marked as a test", /Test alert: Argust is working/.test(t1) && /\bTest\b/.test(t1));
+  check("connect and first-event steps are no longer asked for", !t1.includes("Link Wazuh (or another sensor)") && !t1.includes("Argust confirms the connection when the first real event arrives"));
   await page.getByTestId("alert-row").filter({ hasText: "sshd: brute force" }).locator("p").first().click();
   await sees(page, "alert explains what to do", "What to do");
   await shot(page, "dashboard-first-alert");
@@ -234,7 +234,7 @@ async function main() {
   for (const name of ["Ransomware", "Business email compromise (BEC)", "Phishing", "DDoS", "AI deception (deepfakes)", "Cyber espionage", "Supply-chain attack"]) {
     await sees(page, `coverage row: ${name}`, name);
   }
-  await sees(page, "where Legion is blind, it says so and what to connect", "To see it, connect:");
+  await sees(page, "where Argust is blind, it says so and what to connect", "To see it, connect:");
   await sees(page, "deepfake calls are honestly only partly visible", "Partly visible");
   await shot(page, "defense-coverage");
 
@@ -321,7 +321,7 @@ async function main() {
 
   console.log("▶ 7. first AI agent");
   await page.goto(`${WEB}/agents`);
-  await sees(page, "agents page explains what Legion does for agents", "Legion checks every action your AI agents take");
+  await sees(page, "agents page explains what Argust does for agents", "Argust checks every action your AI agents take");
   await sees(page, "empty state says what to do", "No AI agents yet");
   await page.getByRole("button", { name: "Add an agent" }).click();
   await page.getByPlaceholder("e.g. Triage assistant").fill("Night triage");
@@ -349,7 +349,7 @@ async function main() {
   await sees(page, "new permission listed", "Read databases");
   await shot(page, "agent-permissions");
 
-  console.log("▶ 8b. Legion's five agents: give one of their skills to this agent");
+  console.log("▶ 8b. Argust's five agents: give one of their skills to this agent");
   await page.getByRole("tab", { name: "Skills" }).click();
   for (const name of ["Sentinel", "Hunter", "Guardian", "Oracle", "Vanguard"]) await sees(page, `skills are grouped under ${name}`, name);
   await page.getByLabel("Use this skill: Triage Priority").check();
@@ -363,9 +363,9 @@ async function main() {
   const grantedNow = await (await page.request.get(`${API}/agents/${agentId}`)).json();
   check("choosing skills granted no permission", !JSON.stringify(grantedNow).includes("intel:read"), "unexpected permission");
 
-  console.log("▶ 8c. the Legion team page");
+  console.log("▶ 8c. the Argust team page");
   await page.goto(`${WEB}/team`);
-  await sees(page, "team page is titled", "Legion team");
+  await sees(page, "team page is titled", "Argust team");
   await sees(page, "Vanguard only prepares the response", "Prepares the response");
   await sees(page, "a skill is described in words", "Lists the attacking addresses worth blocking");
   await sees(page, "the page says skills never act", "Nothing here blocks, deletes or changes anything");
@@ -394,14 +394,14 @@ async function main() {
   const retry = await agentCall(`/agent/v1/alerts/${alertId}/status`, { method: "PATCH", body: JSON.stringify({ status: "resolved" }), headers: { "x-legion-approval-id": askedBody.error?.approval?.id } });
   check("the approved action goes through, once", retry.status === 200, String(retry.status));
 
-  // A skill reads alert text, which Legion counts as external content: it runs after the approval step above.
+  // A skill reads alert text, which Argust counts as external content: it runs after the approval step above.
   const ran = await agentCall("/agent/v1/skills/triage_priority/invoke", { method: "POST", body: JSON.stringify({ input: {} }) });
   const ranBody = await ran.json();
   check("the agent runs its assigned skill over this workspace's alerts", ran.status === 200 && Array.isArray(ranBody.output?.queue) && ranBody.output.queue.length > 0, JSON.stringify(ranBody).slice(0, 300));
   const refused = await agentCall("/agent/v1/skills/exposure_review/invoke", { method: "POST", body: JSON.stringify({ input: {} }) });
   check("a skill nobody assigned to it is refused", refused.status === 403 && (await refused.json()).error?.code === "not_assigned");
 
-  console.log("▶ 10. block: Legion stops an agent reaching another workspace, and says why");
+  console.log("▶ 10. block: Argust stops an agent reaching another workspace, and says why");
   const grab = await agentCall("/agent/v1/tools/authorize", { method: "POST", body: JSON.stringify({ call: { kind: "database", operation: "query", sql: "SELECT id FROM alerts WHERE tenant_id = $1 LIMIT 5", params: [lab?.id] } }) });
   check("the API refuses and contains the agent", grab.status === 403 && (await grab.json()).decision === "QUARANTINE");
   await page.reload();
@@ -417,9 +417,9 @@ async function main() {
   check("rule ids stay out of the main text (they are under technical details)", !t2.includes("sql.foreign_tenant"));
   await shot(page, "agent-blocked");
   await page.goto(`${WEB}/`);
-  await sees(page, "dashboard reports what Legion blocked", "What Legion blocked");
+  await sees(page, "dashboard reports what Argust blocked", "What Argust blocked");
   await sees(page, "dashboard names the agent and the reason", "Night triage");
-  await sees(page, "dashboard reason is in words", "Legion paused or stopped an AI agent this week.");
+  await sees(page, "dashboard reason is in words", "Argust paused or stopped an AI agent this week.");
   await shot(page, "dashboard-blocked");
 
   console.log("▶ 11. resume, then emergency stop");

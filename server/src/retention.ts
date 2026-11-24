@@ -76,7 +76,7 @@ export async function pruneAgentLogs(months = config.retentionAgentLogMonths): P
 /**
  * SOC history (Task 10 core) grows with every alert: a policy decision per covered call, an action
  * request with its events, approvals, workflow runs, jobs and audit events — about 6.5 KB per action
- * (rate-limits-and-budgets.test.ts). Without a limit the database fills the disk and Legion stops.
+ * (rate-limits-and-budgets.test.ts). Without a limit the database fills the disk and Argust stops.
  *
  * After SOC_RETENTION_DAYS this removes only what has FINISHED: pending approvals, queued or running
  * actions and jobs, and running workflows are never touched, whatever their age. The oldest SOC audit

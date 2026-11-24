@@ -1,8 +1,8 @@
 # Global UX and onboarding — 2026-09-30
 
-Goal: a person who has never used Wazuh understands Legion on their own.
+Goal: a person who has never used Wazuh understands Argust on their own.
 Target path: **Sign up → Connect → Protected**. On the first screen they can
-see what is protected, what threats exist, what Legion blocked, why it
+see what is protected, what threats exist, what Argust blocked, why it
 blocked it, and what their AI agents can and cannot do.
 
 Everything below was checked in a real browser (Chromium) against the built
@@ -17,8 +17,8 @@ API and the built dashboard: `ops/tests/e2e-journeys.mjs`, now part of CI.
 | An empty alert list after sign-up. Nothing said what to do next. | The first screen says **"Not connected yet"**, explains why in one sentence, and offers **Connect a sensor**. Below that is a getting-started checklist: connect, first event, alert email, then optionally team and AI agent. |
 | Wazuh could only be connected through the API (`POST /security-events/credentials`, hand-edited `ossec.conf`). | **Connect** page with a three-step Wazuh wizard: (1) create a key, (2) copy one ready-made config block that already contains the key and this workspace's address, (3) the page waits for the first event and says so when it arrives. A **Send a test alert** button shows what an alert looks like. Technical details are collapsed. |
 | A "Security score" computed from all alerts, including resolved ones: it could read 0% with nothing open. | An honest status computed from real data: **Not connected yet / Connected — waiting for the first event / Needs your attention / Protected**, each with the reasons (e.g. "There are open high-severity threats."). |
-| Alerts labelled "Sentinel", "Hunter", "Oracle" (internal persona names). | Alerts show where they came from: **Wazuh**, **Test alert** (with a *Test* badge), **AI agent protection**, **Legion monitoring**. Reports group detections by source. |
-| No interface for AI agents at all. | **AI agents** section: add an agent, see what it can do, what it asks first, what it can't do, what it did and why Legion stopped it, approve or deny its requests, pause, resume, emergency stop. |
+| Alerts labelled "Sentinel", "Hunter", "Oracle" (internal persona names). | Alerts show where they came from: **Wazuh**, **Test alert** (with a *Test* badge), **AI agent protection**, **Argust monitoring**. Reports group detections by source. |
+| No interface for AI agents at all. | **AI agents** section: add an agent, see what it can do, what it asks first, what it can't do, what it did and why Argust stopped it, approve or deny its requests, pause, resume, emergency stop. |
 | Errors were the server's sentence and nothing else ("Forbidden", "Not found"). | Every error says **what happened, why, and what you can do**, with the one useful action (sign in, open Billing, go to the right region, try again). |
 | Landing page: "a console for teams running Wazuh". | Wazuh is one integration ("Wazuh today, more on the way"). The pitch is about computers and AI agents being protected. |
 | Billing during a trial: "You're not subscribed yet". | "Free trial — 14 days left (ends on Oct 14, 2026). Everything works until then." Members are told only admins can change the plan. |
@@ -41,7 +41,7 @@ not only API responses. Last run: **all 77 checks passed** across the 14 journey
 | 7 | First agent | Empty state explains; the "Triage assistant" preset shows in words what it can do and what no agent can ever do; ID and secret shown once with where the agent signs in |
 | 8 | Agent permission change | Change → tick "Read databases" → "Saved. The change applies to the agent's next action." |
 | 9 | Allow (confirmation) | An admin makes alert status changes ask first; the agent's attempt is held; the dashboard shows the request in words ("Change alert status…", "exactly this, once"); **Approve once**; the agent's retry goes through once |
-| 10 | Block (quarantine) | The agent tries to read another workspace's data; Legion blocks it and pauses the agent; the page says "Paused — it can't do anything until an admin resumes it"; activity shows **"Blocked — agent paused"**, **Why**: "It tried to reach data that belongs to another workspace.", **What to do**: "…keep the agent paused and check who controls it"; rule ids stay under *Technical details*; the dashboard's "What Legion blocked" names the agent and the reason |
+| 10 | Block (quarantine) | The agent tries to read another workspace's data; Argust blocks it and pauses the agent; the page says "Paused — it can't do anything until an admin resumes it"; activity shows **"Blocked — agent paused"**, **Why**: "It tried to reach data that belongs to another workspace.", **What to do**: "…keep the agent paused and check who controls it"; rule ids stay under *Technical details*; the dashboard's "What Argust blocked" names the agent and the reason |
 | 11 | Resume / kill switch | Resume → "Working"; Emergency stop → two plain choices ("I'm not sure yet" / "It's compromised") and a required reason → "Stopped. Admins have been notified." → the old key no longer works |
 | 12 | Billing / plan | "Free trial — N days left (ends on …)"; what the plan includes |
 | 13 | An error | A missing agent → "We couldn't find that" / Why / What you can do |
@@ -56,14 +56,14 @@ agent name was being truncated in the dashboard's "blocked" card.
 
 ## 3. AI security, in words
 
-| Legion's decision | What the person sees | What it means |
+| Argust's decision | What the person sees | What it means |
 |---|---|---|
 | ALLOW | **Allowed** | Within the agent's permissions and looked normal |
 | WARN | **Allowed, flagged** (or **Allowed — a person approved it**) | Allowed but noted |
 | CONFIRM | **Asked for approval** + an entry under *Waiting for you* | The agent stopped and asked; nothing happens until a person says yes, and a yes covers exactly that action, once |
 | BLOCK | **Blocked** | Refused; the agent carries on otherwise |
 | QUARANTINE | **Blocked — agent paused** | Refused and paused: it looked like an attack or a leak |
-| KILL | **Blocked — agent stopped** | Refused and stopped at once: it tried to use Legion's own secrets |
+| KILL | **Blocked — agent stopped** | Refused and stopped at once: it tried to use Argust's own secrets |
 
 More than a hundred firewall rule ids are grouped into 15 plain explanations, each with
 **Why** and **What to do** (`frontend/lib/agentRules.ts`). Examples: another
@@ -104,7 +104,7 @@ whatever an administrator asks.
   comes from the existing server policy; the dashboard shows it rather than
   restating it.
 - Out of the box, reaching another workspace, a secret leaving, and prompt
-  injection **pause the agent**. Touching Legion's own secrets **stops it**.
+  injection **pause the agent**. Touching Argust's own secrets **stops it**.
 - An agent can never do more than the person responsible for it (enforced by
   the server; said on the permission screen).
 - Keys and agent secrets are shown once, with a warning, and never again.
@@ -122,7 +122,7 @@ dashboard has never seen:
 
 | Situation | What happened | What you can do (action) |
 |---|---|---|
-| No connection | Legion can't be reached | Check the connection, try again (Try again) |
+| No connection | Argust can't be reached | Check the connection, try again (Try again) |
 | 401 | You've been signed out | Sign in again (Sign in) |
 | 402, trial over | This workspace's plan isn't active | Admin: choose a plan (Open Billing). Member: ask an admin |
 | 402, past due | Payment is overdue | Admin: update the payment method (Open Billing). Member: ask an admin |
@@ -158,7 +158,7 @@ billing and sign-up. The server now returns a machine-readable `code` on its
 All additive; no existing response shape changed.
 
 - `GET /overview`: status and reasons; what is protected (sources and their
-  health, devices, agents); open threats by severity; what Legion blocked in
+  health, devices, agents); open threats by severity; what Argust blocked in
   7 days; the onboarding checklist. Every number is a query on the
   workspace's own rows.
 - `GET /agent-permissions`: the permission catalogue with tiers, which ones
@@ -191,7 +191,7 @@ Full runs at the end of this change:
 ## 9. Known limits
 
 - **The Wazuh integration files** (`custom-legion`, `custom-legion.py`) still
-  have to be copied from the Legion package to the Wazuh server; the wizard
+  have to be copied from the Argust package to the Wazuh server; the wizard
   says where they are and gives the commands. Serving them from the dashboard
   would need them in the dashboard's build, which it does not have today.
 - **Firewall policy editing** (allowed hosts, which permissions ask first,

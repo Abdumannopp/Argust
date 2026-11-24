@@ -86,7 +86,7 @@ async function paddleRequest<T>(
   } catch (error) {
     // Transport errors name hosts, addresses and TLS details: they go to the
     // server log, and the tenant administrator gets a fixed sentence.
-    console.error("Legion: Paddle API request failed:", error instanceof Error ? error.name : "unknown error");
+    console.error("Argust: Paddle API request failed:", error instanceof Error ? error.name : "unknown error");
     return { ok: false, status: 502, detail: "Could not reach the billing provider. Try again later." };
   }
 }

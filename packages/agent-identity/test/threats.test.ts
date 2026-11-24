@@ -128,8 +128,8 @@ describe("Guardian: threat_coverage skill", () => {
   });
 });
 
-describe("Legion's own alerts are not evidence for coverage", () => {
-  it("a Legion alert that mentions a mailbox does not make BEC look watched, and its text is not a detection", async () => {
+describe("Argust's own alerts are not evidence for coverage", () => {
+  it("a Argust alert that mentions a mailbox does not make BEC look watched, and its text is not a detection", async () => {
     const data = new FakeData();
     data.events = [{
       id: "OWN1", tenantId: TENANT_A, title: "Payment held: 12,500.00 EUR", severity: "high", createdAt: new Date().toISOString(), source: "legion-payments",

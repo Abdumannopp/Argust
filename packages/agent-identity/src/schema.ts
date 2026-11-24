@@ -1,7 +1,7 @@
 import type { Pool } from "pg";
 
 /*
- * Idempotent: safe to run on every start, like Legion's own migrate().
+ * Idempotent: safe to run on every start, like Argust's own migrate().
  *
  * tenant_id and owner_user_id are TEXT without foreign keys because the host
  * schema (tenants.id / users.id types) was not available when this module was
@@ -125,7 +125,7 @@ CREATE INDEX IF NOT EXISTS principal_audit_resource
   ON principal_audit_log (tenant_id, resource_type, resource_id, seq DESC);
 
 -- F-02: may this transaction erase rows of an append-only table? Either
---  (a) one of the bounded erasure functions (Legion's 0008 migration: retention with a
+--  (a) one of the bounded erasure functions (Argust's 0008 migration: retention with a
 --      minimum age, workspace deletion) opened an erasure context for this transaction —
 --      only they can, the API's role cannot write legion_erasure_context; or
 --  (b) the legacy switch legion.audit_erasure is on AND the session's own login role
@@ -248,7 +248,7 @@ CREATE TABLE IF NOT EXISTS agent_delegations (
 CREATE INDEX IF NOT EXISTS agent_delegations_lookup
   ON agent_delegations (tenant_id, identity_id, user_id) WHERE revoked_at IS NULL;
 
--- Agent-to-agent messages relayed by Legion. The recipient's later actions
+-- Agent-to-agent messages relayed by Argust. The recipient's later actions
 -- that cite a message are limited to what it asked for, and carry its chain.
 CREATE TABLE IF NOT EXISTS agent_messages (
   id                   uuid PRIMARY KEY DEFAULT gen_random_uuid(),
@@ -364,7 +364,7 @@ CREATE TRIGGER tool_call_audit_no_truncate
   BEFORE TRUNCATE ON tool_call_audit
   FOR EACH STATEMENT EXECUTE FUNCTION principal_audit_log_append_only();
 
--- Proof, for a tool server, that Legion approved exactly this call. Single
+-- Proof, for a tool server, that Argust approved exactly this call. Single
 -- use, short-lived, bound to the digest of the call's arguments.
 CREATE TABLE IF NOT EXISTS tool_call_tickets (
   ticket_hash  bytea PRIMARY KEY CHECK (length(ticket_hash) = 32),

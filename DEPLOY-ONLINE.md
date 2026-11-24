@@ -1,10 +1,10 @@
-# Putting Legion online
+# Putting Argust online
 
-At the end of this guide Legion runs at an address such as
+At the end of this guide Argust runs at an address such as
 `https://legion.yourdomain.com`, over HTTPS, and starts by itself when the
 server reboots. It takes about 30–60 minutes. Copying the commands is enough.
 
-> **Why not Vercel or Netlify?** Legion needs an always-on server, a PostgreSQL
+> **Why not Vercel or Netlify?** Argust needs an always-on server, a PostgreSQL
 > database and live connections (WebSocket). "Serverless" services do not offer
 > these. An ordinary virtual server (VPS) is the right choice.
 
@@ -15,8 +15,8 @@ server reboots. It takes about 30–60 minutes. Copying the commands is enough.
 | | |
 |---|---|
 | **Server (VPS)** | Ubuntu 24.04, at least 2 CPUs, 4 GB RAM, 40 GB disk. Any provider: Hetzner, DigitalOcean, Contabo, a local host — it makes no difference. After buying, you get an **IP address** and a **root password** (or SSH key). |
-| **Domain** | For example `yourdomain.com`. We use a separate subdomain for Legion: `legion.yourdomain.com`. |
-| **Project files** | The `Legion-….zip` (or the Git repository). |
+| **Domain** | For example `yourdomain.com`. We use a separate subdomain for Argust: `legion.yourdomain.com`. |
+| **Project files** | The `Argust-….zip` (or the Git repository). |
 
 Everywhere below, replace `legion.yourdomain.com` with **your own domain** and
 `SERVER_IP` with your server's IP address.
@@ -73,20 +73,20 @@ sudo -u postgres psql -c "ALTER USER postgres PASSWORD 'PUT-A-STRONG-PASSWORD-HE
 
 ---
 
-## 4. Put the Legion files in place
+## 4. Put the Argust files in place
 
-Legion runs as a separate, unprivileged `legion` user.
+Argust runs as a separate, unprivileged `legion` user.
 
 **From a zip file** — upload it from your own computer (not the server!):
 
 ```bash
-scp Legion-*.zip root@SERVER_IP:/opt/
+scp Argust-*.zip root@SERVER_IP:/opt/
 ```
 
 Then on the server:
 
 ```bash
-cd /opt && unzip -q Legion-*.zip && rm Legion-*.zip   # creates the /opt/legion folder
+cd /opt && unzip -q Argust-*.zip && rm Argust-*.zip   # creates the /opt/legion folder
 ```
 
 **From Git**: `git clone <repository-url> /opt/legion`
@@ -111,7 +111,7 @@ sudo -u legion npm run build
 
 `npm run setup` asks for the PostgreSQL password — enter the one from step 3
 (just press Enter for Host, Port and Superuser name). It creates the database,
-Legion's own (non-superuser) role and all secrets. Thanks to `--domain`, the
+Argust's own (non-superuser) role and all secrets. Thanks to `--domain`, the
 addresses are written as `https://…` straight away.
 
 Your organisation's name appears on the privacy and terms pages — fill in
@@ -132,7 +132,7 @@ systemctl enable --now legion
 systemctl status legion        # should show "active (running)"
 ```
 
-Legion now starts by itself after a reboot or a crash.
+Argust now starts by itself after a reboot or a crash.
 
 ---
 
@@ -238,9 +238,9 @@ The database schema updates itself; data and secrets are kept.
 ## 12. DDoS protection (Cloudflare, recommended)
 
 The server alone cannot stop everything: if an attacker fills your connection
-(Gbit/s), the site goes down before a request even reaches Legion. Only a
+(Gbit/s), the site goes down before a request even reaches Argust. Only a
 service **in front of** the server (a CDN) solves that. The simplest option is
-Cloudflare's free plan. Legion and nginx are prepared to work correctly behind
+Cloudflare's free plan. Argust and nginx are prepared to work correctly behind
 it (ready-made scripts in `ops/` and `deploy/`).
 
 **Why this step matters.** Behind Cloudflare, nginx sees every visitor as a
@@ -291,7 +291,7 @@ systemctl daemon-reload
 systemctl enable --now legion-cloudflare-ips.timer
 ```
 
-> Nothing needs to be added to Legion (`server/.env`): it trusts only the nginx
+> Nothing needs to be added to Argust (`server/.env`): it trusts only the nginx
 > on this server and takes the client address from the header nginx sets.
 > Do not change `TRUSTED_PROXIES`.
 
@@ -329,7 +329,7 @@ ufw delete allow 'Nginx Full'                      # remove the open-to-everyone
 The SSH rule is untouched. Check: `curl -m 5 http://SERVER_IP/` must **not
 answer**, while `https://legion.yourdomain.com` must work.
 
-Note: after this, the Wazuh manager must send to Legion **by domain, not by IP**
+Note: after this, the Wazuh manager must send to Argust **by domain, not by IP**
 (`https://legion.yourdomain.com/api/security-events/webhook`), otherwise it hits
 the block. When Cloudflare adds a new range, the timer updates the nginx list,
 but you must re-run the `ufw` rules **by hand** (`--ufw --apply` — it adds only
@@ -340,7 +340,7 @@ the missing rules, no duplicates).
 (Menu names change over time; the free plan limits the number of rules.)
 
 - **Security → WAF → Rate limiting rules**: for the `/api/auth/` path, about 30
-  requests per minute from one address, block above that. (Legion and nginx
+  requests per minute from one address, block above that. (Argust and nginx
   have their own limits; Cloudflare's stops the request before it reaches the server.)
 - **Security → Settings**: you can enable *Bot Fight Mode*. During an attack,
   temporarily turn on **"I'm Under Attack"** mode.
@@ -359,7 +359,7 @@ the missing rules, no duplicates).
 
 ### 12.6. Scaling up (if the attack is large)
 
-Legion can run as several instances: a shared PostgreSQL and Redis
+Argust can run as several instances: a shared PostgreSQL and Redis
 (`REDIS_URL` in `server/.env`; details in [GLOBAL-SAAS-ARCHITECTURE.md](GLOBAL-SAAS-ARCHITECTURE.md))
 and one more `server` line in nginx's `upstream legion_api`.
 Tunable values (`server/.env`):
@@ -410,7 +410,7 @@ Good to know:
   script or terminal (that is the point). The Wazuh sensor and AI agents use
   keys — they are not affected.
 - If a browser ad/content blocker blocks the check, the page says so clearly.
-- Legion's side was tested in a browser (`ops/tests/e2e-turnstile.mjs`), but
+- Argust's side was tested in a browser (`ops/tests/e2e-turnstile.mjs`), but
   not against Cloudflare's real service (the test environment could not reach
   it) — sign in once yourself after enabling it.
 
@@ -418,7 +418,7 @@ Good to know:
 
 If the password-checking queue fills during an attack, new sign-ins get `503`.
 But for a person who has previously signed in **fully** (password + 2FA) from
-the same browser, Legion keeps a separate queue the attack cannot fill. Nothing
+the same browser, Argust keeps a separate queue the attack cannot fill. Nothing
 to configure: after a successful sign-in, the browser receives a signed 90-day
 cookie (`legion_device`).
 
@@ -433,7 +433,7 @@ cookie (`legion_device`).
 
 The numbers above came from a test machine. To find out what your server can
 handle, run the same test **on your own server**. It starts a separate temporary
-database and a separate Legion instance — it does not touch the running Legion
+database and a separate Argust instance — it does not touch the running Argust
 or its data, but it **keeps the whole CPU busy** for about 5 minutes. Run it
 when there are no users (or before going live).
 
@@ -449,7 +449,7 @@ sudo E2E_ADMIN_DATABASE_URL="postgresql://postgres:POSTGRES-PASSWORD@127.0.0.1:5
 Lines to look at in the result:
 
 - `responses: {... "per_second": …, "api_cpu_percent_of_one_core": …}` —
-  how many useless requests per second one Legion instance absorbed;
+  how many useless requests per second one Argust instance absorbed;
 - `legitimate traffic by phase` — how much ordinary users and the sensor slowed
   down during the attack (`p95`, milliseconds);
 - `sign-in from a known device` — signing in from a known device.
@@ -465,7 +465,7 @@ This test runs **only against this server itself** (the attack targets
   can only be stopped in front of the network, by a service like Cloudflare.
   Without one, you rely on your hosting provider's own protection.
 - **Slow, "human-like"** requests from thousands of different addresses (an L7
-  botnet) get around per-address limits. Legion softens this (counter memory is
+  botnet) get around per-address limits. Argust softens this (counter memory is
   bounded, the system stays up, sensor events are not lost, reading works), but
   password sign-in from a **new** browser — the most expensive operation — can
   return `503` while the attack lasts. Known devices (12.8) can sign in;
@@ -483,7 +483,7 @@ This test runs **only against this server itself** (the attack targets
 
 | Symptom | Cause and fix |
 |---|---|
-| `502 Bad Gateway` | Legion is not running: `systemctl status legion`, logs: `journalctl -u legion -n 50` |
+| `502 Bad Gateway` | Argust is not running: `systemctl status legion`, logs: `journalctl -u legion -n 50` |
 | Certbot fails | DNS does not point at the server yet (step 1) or port 80 is closed (`ufw status`) |
 | Correct password but cannot sign in | The site was opened over `http://` — use `https://` |
 | The page opens but shows no data | `NEXT_PUBLIC_API_URL` in `frontend/.env.local` is not `https://DOMAIN/api` — fix it and run `npm run build` |
@@ -494,9 +494,9 @@ This test runs **only against this server itself** (the attack targets
 
 ## One decision: who is it for?
 
-By default Legion serves **one organisation** (`DEPLOYMENT_MODE=self-hosted`):
+By default Argust serves **one organisation** (`DEPLOYMENT_MODE=self-hosted`):
 sign-up closes after the first administrator. This is the model of installing a
-separate Legion on each customer's own server.
+separate Argust on each customer's own server.
 
 If you want a service (SaaS) where **many customers sign up themselves** on one
 site and buy a subscription: use `npm run setup -- --saas --domain …` in step 5

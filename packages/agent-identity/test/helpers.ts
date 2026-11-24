@@ -10,7 +10,7 @@ export const TENANT_A = "11111111-1111-4111-8111-111111111111";
 export const TENANT_B = "22222222-2222-4222-8222-222222222222";
 
 /**
- * Stand-in for Legion's existing login: a person is signed in when the
+ * Stand-in for Argust's existing login: a person is signed in when the
  * request carries `cookie: session=<userId>`, exactly the kind of check the
  * real cookie/JWT middleware makes. The module only ever calls this.
  */
@@ -114,7 +114,7 @@ export async function makeApp(opts: { pool?: pg.Pool; logs?: string[]; extra?: P
   // Deliberately missing a guard: the firewall must flag it.
   app.get("/agent/v1/unguarded", (_req, res) => { res.json({ oops: true }); });
   // The test integration's proof of origin: a shared secret header (a real one
-  // verifies an HMAC signature, as Legion's sensor webhook does).
+  // verifies an HMAC signature, as Argust's sensor webhook does).
   app.post("/webhooks/wazuh", identity.guards.externalSystem("wazuh-webhook", { verify: (req) => req.get("x-test-webhook-secret") === WEBHOOK_TEST_SECRET }),
     identity.guards.traced("alert.ingest"), (_req, res) => { res.status(202).json({ ok: true }); });
 

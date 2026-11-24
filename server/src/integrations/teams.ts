@@ -1,7 +1,7 @@
 /**
  * Microsoft Teams — alert notifications to a channel through a Teams Workflows (or legacy incoming) webhook URL.
  * The URL is the secret (it grants posting to one channel): sealed per connection, never returned or logged, and
- * accepted only on Microsoft's webhook hosts, so a connection cannot point Legion at an internal address.
+ * accepted only on Microsoft's webhook hosts, so a connection cannot point Argust at an internal address.
  * Text from alerts is untrusted and sent as plain text in an Adaptive Card (no mentions, no markup).
  */
 import { z } from "zod";
@@ -42,7 +42,7 @@ export const teamsAdapter: OutboundAdapter = {
             { type: "TextBlock", text: msg.summary.slice(0, 600), wrap: true },
             ...(facts.length ? [{ type: "FactSet", facts }] : []),
           ],
-          actions: [{ type: "Action.OpenUrl", title: "Open in Legion", url: msg.link }],
+          actions: [{ type: "Action.OpenUrl", title: "Open in Argust", url: msg.link }],
         } }],
       }),
     });

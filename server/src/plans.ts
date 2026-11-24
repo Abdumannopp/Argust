@@ -1,10 +1,10 @@
 /**
- * Legion's plans, prices and what each plan includes — the single source.
+ * Argust's plans, prices and what each plan includes — the single source.
  *
  * Pure data with no imports, so the dashboard's tests can compare its own copy
  * against this one (a price shown on the website must never differ from what
  * the server enforces). Prices are USD; annual = 10 months (two months free).
- * Source: "Legion — recommended prices and plans" (commercial recommendation,
+ * Source: "Argust — recommended prices and plans" (commercial recommendation,
  * to be validated against real hosting and AI costs before launch).
  *
  * `null` means "by agreement" (Enterprise).
@@ -27,7 +27,7 @@ export interface Entitlements {
   retentionDays: number;
   /** AI explanations: basic (Oracle) or extended (adds the Copilot assistant). */
   aiAnalysis: "basic" | "extended" | "custom";
-  /** The five Legion agents and their skills. */
+  /** The five Argust agents and their skills. */
   aiAgents: boolean;
   /** Identities, permissions and the policy firewall for the customer's own AI agents. */
   agentSecurity: boolean;

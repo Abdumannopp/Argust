@@ -1,7 +1,7 @@
 /**
  * Google Cloud — Security Command Center findings of one organisation (pull, read only).
  *
- * Service account with the role "Security Center Findings Viewer". Legion signs a short JWT (RS256, node:crypto)
+ * Service account with the role "Security Center Findings Viewer". Argust signs a short JWT (RS256, node:crypto)
  * with the key you give it and exchanges it at oauth2.googleapis.com for a one-hour token; the key is sealed per
  * connection and never returned. Hosts: oauth2.googleapis.com and securitycenter.googleapis.com only.
  * Cursor: the newest finding eventTime (epoch ms). A finding is stored once, by its resource name.

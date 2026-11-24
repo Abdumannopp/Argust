@@ -92,7 +92,7 @@ describe("the guarded fetch for customer hosts", () => {
   });
 });
 
-describe("what may leave Legion", () => {
+describe("what may leave Argust", () => {
   it("private and reserved addresses are never sent; malformed values are refused", () => {
     for (const ip of ["10.0.0.1", "192.168.1.10", "127.0.0.1", "169.254.169.254", "::1", "fe80::1"]) expect(vetIndicator({ type: "ip", value: ip }), ip).toEqual({ skip: "private_address" });
     expect(vetIndicator({ type: "url", value: "http://192.168.0.1/admin" })).toEqual({ skip: "private_address" });

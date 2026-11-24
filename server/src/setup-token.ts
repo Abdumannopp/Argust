@@ -9,7 +9,7 @@
  * The answer now is "whoever can read this server's console". At startup, while
  * no workspace exists, the server prints a random one-time token. Creating the
  * first administrator requires it. Reading it requires access to the machine
- * Legion was installed on, which is exactly the person who installed it.
+ * Argust was installed on, which is exactly the person who installed it.
  *
  * Only the SHA-256 of the token is stored, so a leaked database or backup does
  * not reveal it. The token is also written to a file (owner-only permissions)
@@ -22,7 +22,7 @@ import type pg from "pg";
 import { queryOne, transaction } from "./db/pool.js";
 
 /** Advisory-lock key serialising everything about first-run setup, across
- *  every Legion process sharing this database. Arbitrary but fixed. */
+ *  every Argust process sharing this database. Arbitrary but fixed. */
 export const SETUP_LOCK_KEY = 7_347_101;
 
 export const SETUP_TOKEN_FILE = resolve(
@@ -121,7 +121,7 @@ export function setupBanner(state: SetupTokenState, dashboardUrl: string): strin
   if (state.kind === "issued-elsewhere") {
     return [
       "",
-      "  Legion is not set up yet. Another Legion process issued the setup token",
+      "  Argust is not set up yet. Another Argust process issued the setup token",
       `  at ${state.since.toISOString()} — use the token printed in that process's log.`,
       "",
     ].join("\n");
@@ -132,7 +132,7 @@ export function setupBanner(state: SetupTokenState, dashboardUrl: string): strin
     line,
     "  FIRST-RUN SETUP",
     "",
-    "  Nobody can use this Legion yet. To create the first administrator, open",
+    "  Nobody can use this Argust yet. To create the first administrator, open",
     `    ${dashboardUrl}/setup`,
     "  and enter this one-time setup token:",
     "",

@@ -231,7 +231,7 @@ export function firewallAdminRouter(d: Deps): Router {
   return router;
 }
 
-/** Machines: agent-to-agent messages, relayed and checked by Legion. Mounted inside the agent API. */
+/** Machines: agent-to-agent messages, relayed and checked by Argust. Mounted inside the agent API. */
 export function agentMessageRouter(d: Deps): Router {
   const router = Router();
   const body = z.strictObject({

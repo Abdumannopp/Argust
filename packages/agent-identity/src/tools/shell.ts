@@ -1,7 +1,7 @@
 import type { Findings } from "./findings.js";
 
 /*
- * Shell commands are the most dangerous tool an agent can have. Legion only
+ * Shell commands are the most dangerous tool an agent can have. Argust only
  * accepts them as a bare command name plus an argument list, executed without
  * a shell (execFile). On top of the tenant's allowlist, these commands are
  * refused outright — no policy can open them:

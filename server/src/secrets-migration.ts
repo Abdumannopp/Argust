@@ -94,5 +94,5 @@ export async function secretsStatus(db: Queryable = pool) {
 export function describeReport(r: MigrationReport): string {
   const part = (name: string, c: MigrationCounts) =>
     `${name}: ${c.converted} encrypted, ${c.rotated} re-encrypted${c.unreadable ? `, ${c.unreadable} UNREADABLE (key missing — left untouched)` : ""}${c.skipped ? `, ${c.skipped} skipped` : ""}`;
-  return `Legion: secrets at rest (active key "${r.activeKey}") — ${part("two-factor", r.mfa)}; ${part("webhook", r.webhook)}.`;
+  return `Argust: secrets at rest (active key "${r.activeKey}") — ${part("two-factor", r.mfa)}; ${part("webhook", r.webhook)}.`;
 }

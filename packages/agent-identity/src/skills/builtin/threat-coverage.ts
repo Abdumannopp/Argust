@@ -7,7 +7,7 @@ import { eventText, isoMinusHours } from "./common.js";
 /*
  * Guardian: for the seven most dangerous attack types — ransomware, business
  * email compromise, phishing, DDoS, AI deception, espionage, supply chain —
- * what Legion has seen, what it is watching, and where it is blind because
+ * what Argust has seen, what it is watching, and where it is blind because
  * the data never arrives.
  */
 
@@ -40,7 +40,7 @@ export const threatCoverage: SkillDefinition<Input, Output> = {
   name: "threat_coverage",
   agent: "Guardian",
   title: "Threat Coverage",
-  description: "For the seven most dangerous attack types (ransomware, business email compromise, phishing, DDoS, AI deception, cyber espionage, supply chain): what Legion detected, what it is watching, and where it is blind because the data it needs never arrives — with what to connect.",
+  description: "For the seven most dangerous attack types (ransomware, business email compromise, phishing, DDoS, AI deception, cyber espionage, supply chain): what Argust detected, what it is watching, and where it is blind because the data it needs never arrives — with what to connect.",
   version: "1.0.0",
   input,
   output,
@@ -50,13 +50,13 @@ export const threatCoverage: SkillDefinition<Input, Output> = {
   limitations: [
     "It reads at most the 500 most recent events in the window; on a busy workspace an older detection can be outside them.",
     "'Watching' means the right kind of data arrives and no sign was found. It is not a guarantee that nothing happened.",
-    "A deepfake call or video never reaches Legion. It can only see what follows one: a changed payment detail, a new forwarding rule.",
-    "Legion does not stop a DDoS on your own site; an edge service such as Cloudflare does. Legion sees it in the logs and protects itself.",
+    "A deepfake call or video never reaches Argust. It can only see what follows one: a changed payment detail, a new forwarding rule.",
+    "Argust does not stop a DDoS on your own site; an edge service such as Cloudflare does. Argust sees it in the logs and protects itself.",
   ],
   async handler(ctx, q) {
     const to = ctx.now.toISOString();
     const from = isoMinusHours(ctx.now, q.windowDays * 24);
-    // Legion's own alerts (source "legion-…") describe attacks in words like
+    // Argust's own alerts (source "legion-…") describe attacks in words like
     // "mailbox" and "email". They are not evidence of what the sensors send, and
     // must not make a blind spot look watched.
     const events = (await ctx.data.securityEvents({ since: from, until: to, limit: 500 })).filter((e) => !e.source.startsWith("legion-"));

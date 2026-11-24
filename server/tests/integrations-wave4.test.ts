@@ -1,5 +1,5 @@
 /**
- * FortiGate's own webhook (the firewall sends; Legion never calls it), and host isolation through SentinelOne,
+ * FortiGate's own webhook (the firewall sends; Argust never calls it), and host isolation through SentinelOne,
  * Microsoft Defender for Endpoint and Palo Alto Cortex XDR — behind the same approvals as every response action.
  * Vendors are simulated from their documented API shapes.
  */
@@ -168,7 +168,7 @@ describe("isolating a host through SentinelOne, Defender for Endpoint and Cortex
     expect(JSON.parse(acting()[0]!.body)).toEqual({ request_data: { endpoint_id: "ep-12345678" } });
     expect(await isolate({ host: "GHOST" })).toMatchObject({ status: "failed", error: expect.stringMatching(/knows no endpoint/) });
   });
-  it("with two EDRs connected Legion does not choose: the request must say which one, and only that one is called", async () => {
+  it("with two EDRs connected Argust does not choose: the request must say which one, and only that one is called", async () => {
     await create(admin, conns.sentinelone_response); await create(admin, conns.cortex_response);
     expect(await isolate({ host: "LAPTOP-7" })).toMatchObject({ status: "failed", error: expect.stringMatching(/say which one/) });
     expect(calls).toHaveLength(0);

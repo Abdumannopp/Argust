@@ -1,4 +1,4 @@
-# Alert rules for the Legion pilot. Every metric used here is emitted by
+# Alert rules for the Argust pilot. Every metric used here is emitted by
 # server/src/metrics.ts; tests/pilot-monitoring.test.ts fails if one is not.
 groups:
   - name: legion-availability
@@ -8,7 +8,7 @@ groups:
         for: 2m
         labels: { severity: page }
         annotations:
-          summary: The Legion API is not answering /metrics.
+          summary: The Argust API is not answering /metrics.
           runbook: PILOT.md §9 "API down"
 
       - alert: LegionHighErrorRate
@@ -39,7 +39,7 @@ groups:
         for: 30m
         labels: { severity: ticket }
         annotations:
-          summary: Legion's database is larger than 20 GiB. Check free disk space and that retention is on.
+          summary: Argust's database is larger than 20 GiB. Check free disk space and that retention is on.
 
       - alert: LegionDbPoolWaiting
         expr: legion_db_pool_waiting > 5
@@ -57,7 +57,7 @@ groups:
         for: 0m
         labels: { severity: page }
         annotations:
-          summary: An action exists in live mode although no workspace allowed Legion to act on its own. Stop the pilot (PILOT.md §10 kill switch).
+          summary: An action exists in live mode although no workspace allowed Argust to act on its own. Stop the pilot (PILOT.md §10 kill switch).
           runbook: PILOT.md §10
 
       # A wrong or accidentally changed SOC_AUDIT_KEY: the audit chain refuses to grow (fail closed)
@@ -196,4 +196,4 @@ groups:
         for: 15m
         labels: { severity: info }
         annotations:
-          summary: The AI provider circuit breaker has been open for 15 minutes. Explanations use Legion's own text.
+          summary: The AI provider circuit breaker has been open for 15 minutes. Explanations use Argust's own text.

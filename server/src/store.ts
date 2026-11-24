@@ -1,5 +1,5 @@
 /**
- * Data access for Legion.
+ * Data access for Argust.
  *
  * Postgres is the single source of truth — nothing is cached in process
  * memory. That is deliberate and is the whole reason for the migration: with

@@ -41,7 +41,7 @@ export const securityReporting: SkillDefinition<Input, Output> = {
   name: "security_reporting",
   agent: "Oracle",
   title: "Security Reporting",
-  description: "Writes a security report from Legion findings: what happened, when, affected assets, risk, evidence, actions already taken and recommended next steps.",
+  description: "Writes a security report from Argust findings: what happened, when, affected assets, risk, evidence, actions already taken and recommended next steps.",
   version: "1.0.0",
   input,
   output,
@@ -50,7 +50,7 @@ export const securityReporting: SkillDefinition<Input, Output> = {
   usesModel: true,
   example: { alertIds: ["SEC-1A2B3C4D5E6F7A8B"], audience: "technical" },
   limitations: [
-    "Facts come from Legion's alerts and asset inventory only; 'actions taken' are the requester's claims and are labelled unverified.",
+    "Facts come from Argust's alerts and asset inventory only; 'actions taken' are the requester's claims and are labelled unverified.",
     "Alert text is untrusted: in the Markdown it is escaped and links are defanged (hxxp://) so it cannot render as links or images.",
   ],
   async handler(ctx, q) {
@@ -93,7 +93,7 @@ export const securityReporting: SkillDefinition<Input, Output> = {
 
     const md: string[] = [
       `# ${mdSafe(title)}`, "",
-      `Generated ${report.generatedAt} by Legion. Audience: ${q.audience}.`, "",
+      `Generated ${report.generatedAt} by Argust. Audience: ${q.audience}.`, "",
       "## What happened", mdSafe(whatHappened), "",
       "## When", `First event: ${first}  `, `Last event: ${last}`, "",
       "## Affected assets", ...(affectedAssets.length ? affectedAssets.map((a) => `- ${mdSafe(a.name)} (exposure: ${a.exposure})`) : ["- None recorded"]), "",
@@ -103,7 +103,7 @@ export const securityReporting: SkillDefinition<Input, Output> = {
       md.push("## Evidence", "| Time | Event | Severity | Asset | Source IP |", "|---|---|---|---|---|",
         ...report.evidence.map((e) => `| ${e.time} | ${mdSafe(e.eventId)}: ${mdSafe(e.title)} | ${e.severity} | ${mdSafe(e.asset ?? "")} | ${mdSafe(e.sourceIp ?? "")} |`), "");
     }
-    md.push("## Actions already taken (reported, not verified by Legion)",
+    md.push("## Actions already taken (reported, not verified by Argust)",
       ...(actionsTaken.length ? actionsTaken.map((a) => `- ${mdSafe(a.text)}${a.flagged ? " _(flagged: contains instruction-like text)_" : ""}`) : ["- None reported"]), "",
       "## Recommended next steps", ...nextSteps.map((s, i) => `${i + 1}. ${mdSafe(s)}`), "");
 

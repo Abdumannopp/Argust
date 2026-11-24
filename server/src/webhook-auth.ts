@@ -197,7 +197,7 @@ export function parseWebhookHeaders(input: {
 export const WEBHOOK_REJECTION_DETAIL: Record<RejectionReason, string> = {
   legacy:
     "This integration script is out of date: it identifies the organisation instead of using a per-organisation credential. " +
-    "Create a webhook credential (Legion administrator) and install the current integrations/custom-legion.py on the Wazuh manager.",
+    "Create a webhook credential (Argust administrator) and install the current integrations/custom-legion.py on the Wazuh manager.",
   missing: "Missing x-legion-key-id, x-legion-timestamp, x-legion-nonce or x-legion-signature header",
   malformed: "Malformed webhook authentication headers",
   "no-body": "Webhook body must be JSON (Content-Type: application/json)",

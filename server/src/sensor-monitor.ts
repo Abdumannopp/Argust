@@ -1,8 +1,8 @@
 /**
  * "Wazuh is down" is otherwise invisible.
  *
- * Legion is pushed to: when a Wazuh manager stops (crash, network cut, a full
- * disk, a broken integration), Legion receives nothing — and nothing looks
+ * Argust is pushed to: when a Wazuh manager stops (crash, network cut, a full
+ * disk, a broken integration), Argust receives nothing — and nothing looks
  * wrong on the dashboard. An empty alert list reads as "all quiet".
  *
  * So a sensor credential that was sending and has gone silent for
@@ -61,8 +61,8 @@ export async function checkSensors(opts: {
       id: silenceAlertId(s.key_id, new Date(s.last_used_at)), tenant_id: s.tenant_id,
       title: `Sensor silent: no events from ${label} for ${s.minutes} minutes`,
       severity: "high", agent: "Guardian", status: "open",
-      summary: `Legion has received nothing from the sensor using ${label} since ${new Date(s.last_used_at).toISOString()}. `
-        + "The Wazuh manager may be down, unable to reach Legion, or its integration may be failing. Events it could not deliver "
+      summary: `Argust has received nothing from the sensor using ${label} since ${new Date(s.last_used_at).toISOString()}. `
+        + "The Wazuh manager may be down, unable to reach Argust, or its integration may be failing. Events it could not deliver "
         + "are kept in its spool and will arrive when it reconnects. This alert resolves itself when the sensor sends again.",
       confidence: 90, ai_explanation: null, explained_at: null, source_ip: null, target: null, mitre_technique: null,
       source: "legion-monitor",
@@ -100,7 +100,7 @@ export function startSensorMonitor(intervalMs: number, realtimeFrame?: (alert: A
     // One instance checks at a time (the result is idempotent either way; this
     // just stops N instances doing the same scan every five minutes).
     withLeaderLock(SENSOR_CHECK_LOCK, () => checkSensors({ realtimeFrame })).catch((error) => {
-      console.error("Legion: sensor check failed:", error instanceof Error ? error.message : "unknown error");
+      console.error("Argust: sensor check failed:", error instanceof Error ? error.message : "unknown error");
     });
   }, intervalMs);
   timer.unref();

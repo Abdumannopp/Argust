@@ -1,4 +1,4 @@
-# Prometheus for the Legion pilot. Scrapes the API's /metrics (counts only, no
+# Prometheus for the Argust pilot. Scrapes the API's /metrics (counts only, no
 # tenant data) with the bearer token from a mounted file, and probes /health.
 global:
   scrape_interval: 15s

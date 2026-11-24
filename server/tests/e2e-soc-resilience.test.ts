@@ -250,7 +250,7 @@ describe("LLM provider failures", () => {
   ];
 
   for (const [name, impl] of PROVIDER_FAILURES) {
-    it(`provider ${name}: explanations fall back to Legion's own text, and the SOC pipeline is unaffected`, async () => {
+    it(`provider ${name}: explanations fall back to Argust's own text, and the SOC pipeline is unaffected`, async () => {
       await setPolicy(E.tenantA, E.admin, { default_autonomy: "ASSIST" });
       await attack(E.credA);
       const alertId = (await worstAlert(E.tenantA)).id;
@@ -269,7 +269,7 @@ describe("LLM provider failures", () => {
     });
   }
 
-  it("repeated provider failures open the circuit breaker: Legion stops calling the provider and keeps answering locally", async () => {
+  it("repeated provider failures open the circuit breaker: Argust stops calling the provider and keeps answering locally", async () => {
     await attack(E.credA);
     const alertId = (await worstAlert(E.tenantA)).id;
     config.openrouterApiKey = "sk-or-test";
@@ -309,7 +309,7 @@ describe("malicious prompt injection", () => {
     expect(JSON.stringify(actions)).not.toMatch(/8\.8\.8\.8|payment|ceo@corp/);
     expect(inv.action!.status).toBe("awaiting_approval"); // still needs a person
     expect(await realSide(E.tenantA)).toBe(before);
-    // Legion noticed the manipulation attempt.
+    // Argust noticed the manipulation attempt.
     expect((await query("SELECT count(*)::int AS n FROM attack_campaigns WHERE tenant_id = $1 AND rule = 'ai_manipulation'", [E.tenantA])).rows[0].n).toBeGreaterThan(0);
   });
 

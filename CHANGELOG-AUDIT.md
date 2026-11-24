@@ -1,4 +1,4 @@
-# Legion — audit fixes
+# Argust — audit fixes
 
 **Date:** 2026-08-20
 **Context:** a SaaS for the global market. The three "broken chains" and the security gaps found in the audit were fixed.
@@ -267,7 +267,7 @@ Neither the typecheck nor the 53 tests caught them — only a real multi-instanc
 
 ### 8.3 MFA (TOTP)
 
-When Legion saw an alert it advised `"Reset affected credentials and enforce MFA"`,
+When Argust saw an alert it advised `"Reset affected credentials and enforce MFA"`,
 yet did not have MFA itself.
 
 | Endpoint | Purpose |

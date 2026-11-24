@@ -20,7 +20,7 @@ const UZ_INTERVAL: Record<BillingInterval, string> = {
 export const billing = defineMessages({
   en: {
     title: "Billing",
-    subtitle: "Manage your Legion subscription",
+    subtitle: "Manage your Argust subscription",
     loadError: "Couldn't load billing info.",
     notConfirmed:
       "Payment received by Paddle, but not confirmed here yet. Refresh in a minute; if it persists, contact support.",
@@ -37,12 +37,12 @@ export const billing = defineMessages({
       "Paddle isn't configured yet — set NEXT_PUBLIC_PADDLE_CLIENT_TOKEN in frontend/.env.local.",
     currentPlan: "Current plan",
     trialActive: (date: string, days: number) => `Free trial — ${days === 1 ? "1 day" : `${days} days`} left (ends on ${date}). Everything works until then.`,
-    trialEnded: (date: string) => `The free trial ended on ${date}. Your data is safe; choose a plan to keep using Legion.`,
+    trialEnded: (date: string) => `The free trial ended on ${date}. Your data is safe; choose a plan to keep using Argust.`,
     adminOnlyNote: "Only workspace admins can change the plan or payment details.",
     accessEnds: (date: string) => `Access ends on ${date}`,
     renews: (date: string) => `Renews on ${date}`,
     manage: "Manage subscription",
-    notSubscribed: "You're not subscribed yet — upgrade to unlock the full Legion platform.",
+    notSubscribed: "You're not subscribed yet — upgrade to unlock the full Argust platform.",
     subscribeTitle: "Choose a plan",
     subscribeNow: "Subscribe now",
     choosePlan: (name: string) => `Choose ${name}`,
@@ -62,7 +62,7 @@ export const billing = defineMessages({
       admins: "Administrators (including invited)",
       unlimited: "no fixed limit",
       of: (used: number, limit: number | null) => (limit === null ? `${used}` : `${used} of ${limit}`),
-      overEndpoints: "You are over your endpoint limit. Legion keeps recording every event, but please move to a bigger plan or add endpoints.",
+      overEndpoints: "You are over your endpoint limit. Argust keeps recording every event, but please move to a bigger plan or add endpoints.",
       overAdmins: "You have more administrators than your plan includes. Remove one or upgrade to add more.",
     },
     addonsTitle: "Add-ons (monthly plans only)",

@@ -1,5 +1,5 @@
 /**
- * Legion is English only. The server must answer in English whatever the
+ * Argust is English only. The server must answer in English whatever the
  * browser asks for, and its own texts (emails, no-AI explanation, Copilot
  * fallback) must be English.
  */

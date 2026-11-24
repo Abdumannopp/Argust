@@ -9,8 +9,8 @@ import { translations } from "@/lib/i18n/translations";
 import { palette } from "@/lib/theme";
 
 // Michroma (SIL Open Font License, app/fonts/Michroma-OFL.txt) — the wide
-// geometric face of the Legion logo. Bundled rather than fetched from Google
-// at build time, so an offline or firewalled server can still build Legion.
+// geometric face of the Argust logo. Bundled rather than fetched from Google
+// at build time, so an offline or firewalled server can still build Argust.
 const display = localFont({
   src: "./fonts/Michroma-latin.woff2",
   variable: "--font-display",
@@ -42,7 +42,7 @@ export async function generateMetadata(): Promise<Metadata> {
   return {
     title: m.title,
     description: m.description,
-    applicationName: "Legion Cybersecurity Intelligence", // i18n-ignore: product name
+    applicationName: "Argust Cybersecurity Intelligence", // i18n-ignore: product name
   };
 }
 

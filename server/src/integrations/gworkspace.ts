@@ -4,10 +4,10 @@
  * blocked risky actions.
  *
  * A service account with domain-wide delegation for the single scope
- * https://www.googleapis.com/auth/admin.reports.audit.readonly, acting as one administrator (admin_email). Legion
+ * https://www.googleapis.com/auth/admin.reports.audit.readonly, acting as one administrator (admin_email). Argust
  * signs a short JWT (RS256, node:crypto) with the key you give it; the key is sealed per connection. Hosts:
  * oauth2.googleapis.com and admin.googleapis.com only. Cursor: the newest event time. An event is stored once, by
- * its time + uniqueQualifier + name. Legion never changes users or settings in Workspace.
+ * its time + uniqueQualifier + name. Argust never changes users or settings in Workspace.
  */
 import { z } from "zod";
 import { adapterFetch } from "./fetch.js";

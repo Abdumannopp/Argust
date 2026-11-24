@@ -4,7 +4,7 @@ import { DATA_LOCATION } from "@/lib/site";
 
 /**
  * Legal pages for the HOSTED service (NEXT_PUBLIC_DEPLOYMENT_MODE=saas), where
- * {operator} is the seller — the company or sole proprietor who runs Legion
+ * {operator} is the seller — the company or sole proprietor who runs Argust
  * for paying customers — and Paddle.com is the Merchant of Record.
  *
  * These are a starting point written to match what the software actually
@@ -25,12 +25,12 @@ export const saasTerms: Record<Locale, LegalDoc> = {
     title: "Terms of Service",
     effectiveDate: EFFECTIVE,
     intro:
-      "These terms are an agreement between you (the organisation that signs up, and the person accepting on its behalf) and {operator} (\"we\", \"us\"), who provides the Legion security operations service at this website. By creating an account or using the service you accept them.",
+      "These terms are an agreement between you (the organisation that signs up, and the person accepting on its behalf) and {operator} (\"we\", \"us\"), who provides the Argust security operations service at this website. By creating an account or using the service you accept them.",
     sections: [
       {
         heading: "1. The Service",
         body: [
-          "Legion is a hosted security operations console. It receives security alerts from systems you connect (such as a Wazuh manager), stores them in your workspace, explains them, and helps your team track them to resolution.",
+          "Argust is a hosted security operations console. It receives security alerts from systems you connect (such as a Wazuh manager), stores them in your workspace, explains them, and helps your team track them to resolution.",
           "The service is intended for businesses and professionals, not consumers. You must be at least 18 and able to bind the organisation you sign up for.",
         ],
       },
@@ -115,7 +115,7 @@ export const saasPrivacy: Record<Locale, LegalDoc> = {
     title: "Privacy Policy",
     effectiveDate: EFFECTIVE,
     intro:
-      "This policy explains what personal data {operator} (\"we\") processes when you use the Legion service, why, who helps us, and the choices you have. For the security data your systems send into your workspace, your organisation decides what is collected; we process it on your organisation's behalf.",
+      "This policy explains what personal data {operator} (\"we\") processes when you use the Argust service, why, who helps us, and the choices you have. For the security data your systems send into your workspace, your organisation decides what is collected; we process it on your organisation's behalf.",
     sections: [
       {
         heading: "1. What We Store",
@@ -189,7 +189,7 @@ export const saasRefunds: Record<Locale, LegalDoc> = {
     title: "Refund Policy",
     effectiveDate: EFFECTIVE,
     intro:
-      "Legion starts with a free trial so you can decide before paying anything. If you subscribe and it still isn't right for you, this policy explains how to get your money back.",
+      "Argust starts with a free trial so you can decide before paying anything. If you subscribe and it still isn't right for you, this policy explains how to get your money back.",
     sections: [
       {
         heading: "1. 14-Day Refund on Your First Payment",

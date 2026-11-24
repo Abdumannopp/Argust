@@ -2,7 +2,7 @@
  * Demonstration: an attack investigated end to end through the connectors (simulated providers).
  *
  *   Microsoft Defender XDR (pull) + firewall CEF (push) + Elastic alert (generic webhook) — one attacker
- *   → Legion correlates them into one campaign
+ *   → Argust correlates them into one campaign
  *   → Slack is told and a Jira ticket is opened (the ticket is visible on the alert)
  *   → the five agents investigate; Vanguard proposes blocking the address; a PERSON approves
  *   → the action is simulated, nothing real changes; the audit chain verifies.
@@ -79,7 +79,7 @@ describe("attack investigation through the connectors", () => {
     const alerts = (await query<{ id: string; source: string }>("SELECT id, source FROM alerts WHERE tenant_id = $1 AND source_ip = $2 AND source <> 'legion-correlation' ORDER BY created_at", [tenant, ATTACKER])).rows;
     expect(alerts.map((a) => a.source).sort()).toEqual(["cef", "generic_webhook", "m365"]);
 
-    // 2. Legion correlates them: one address, three techniques in minutes.
+    // 2. Argust correlates them: one address, three techniques in minutes.
     const campaigns = (await request(app).get("/security/campaigns").set(...as(admin)).expect(200)).body.campaigns as Array<{ rule: string; subject: string }>;
     // …and announces it as an alert of its own.
     expect((await query("SELECT 1 FROM alerts WHERE tenant_id = $1 AND source = 'legion-correlation'", [tenant])).rowCount).toBeGreaterThanOrEqual(1);
@@ -106,7 +106,7 @@ describe("attack investigation through the connectors", () => {
     const v = await verify(inv.trace, tenant, inv.action!.id, ATTACKER);
     expect(v).toMatchObject({ status: "simulated", blocks: 0, chain: { ok: true } });
     expect((await request(app).get("/soc/audit/verify").set(...as(admin)).expect(200)).body.ok).toBe(true);
-    // None of the connectors acted on anything: only notify/ticket calls and read calls left Legion.
+    // None of the connectors acted on anything: only notify/ticket calls and read calls left Argust.
     expect(calls.every((c) => /hooks\.slack\.com|atlassian\.net\/rest\/api\/3\/(issue|search\/jql)|login\.microsoftonline\.com|graph\.microsoft\.com\/v1\.0\/security\/alerts_v2/.test(c.url))).toBe(true);
   });
 });

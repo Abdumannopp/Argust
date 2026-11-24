@@ -1,7 +1,7 @@
 import { useId } from "react";
 
 /**
- * The Legion emblem: the purple Spartan helmet inside a shield (public/brand/legion-mark.svg, from the premium
+ * The Argust emblem: the purple Spartan helmet inside a shield (public/brand/legion-mark.svg, from the premium
  * brand pack). In colour it is the brand file itself, so every screen shows exactly the approved artwork with a
  * transparent background; `variant="mono"` is a one-colour silhouette in currentColor for embossing and print.
  */
@@ -9,13 +9,13 @@ export default function LegionMark({
   size = 32,
   variant = "color",
   className,
-  title = "Legion",
+  title = "Argust",
 }: {
   /** Width in px; the height follows the emblem's proportions. */
   size?: number;
   variant?: "color" | "mono";
   className?: string;
-  /** Accessible name; pass "" when the mark sits next to the word "Legion". */
+  /** Accessible name; pass "" when the mark sits next to the word "Argust". */
   title?: string;
 }) {
   // Gradient and filter ids must be unique per instance, or two marks on one page would share them.

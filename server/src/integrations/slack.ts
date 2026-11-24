@@ -2,7 +2,7 @@
  * Slack — alert notifications to a channel, through a Slack incoming webhook.
  *
  * The webhook URL is the secret (it grants posting to one channel); it is sealed per connection, never
- * returned, never logged. The only host Legion will call is hooks.slack.com, and the URL must be a
+ * returned, never logged. The only host Argust will call is hooks.slack.com, and the URL must be a
  * hooks.slack.com/services/… path, so a connection cannot be pointed at an internal address.
  * Delivery goes through the notification outbox: retries with backoff, a dead letter after the last attempt.
  */
@@ -43,7 +43,7 @@ export const slackAdapter: OutboundAdapter = {
             ...(msg.target ? [{ title: "Host", value: plain(msg.target, 100), short: true }] : []),
             ...(msg.sourceIp ? [{ title: "Source address", value: plain(msg.sourceIp, 45), short: true }] : []),
           ],
-          footer: `Legion · ${msg.alertId}`, title: "Open in Legion", title_link: msg.link,
+          footer: `Argust · ${msg.alertId}`, title: "Open in Argust", title_link: msg.link,
         }],
       }),
     });

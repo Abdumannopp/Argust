@@ -2,7 +2,7 @@
  * AI agent security, end to end through the server: the policy engine's
  * CONFIRM / QUARANTINE / KILL answers take effect before the action and
  * before the agent hears back, a person — never the agent — approves, the
- * SOC hears about it as ordinary Legion alerts, and the registry shows it.
+ * SOC hears about it as ordinary Argust alerts, and the registry shows it.
  */
 import { afterAll, beforeAll, beforeEach, describe, expect, it } from "vitest";
 import request from "supertest";
@@ -127,7 +127,7 @@ describe("containment happens before the agent hears back, and the SOC is told",
     expect(await alertsOf(tenantA, "AGENT-SEC-")).toEqual([]);
   });
 
-  it("sending Legion's own token out kills the agent: credentials revoked, critical alert", async () => {
+  it("sending Argust's own token out kills the agent: credentials revoked, critical alert", async () => {
     await policy(adminA, { egress: { allowedHosts: ["api.partner.example"] } });
     const a = await agent(adminA, ["tool.http:write"]);
     const res = await request(app).post("/agent/v1/tools/authorize").set(...bearer(a.token))

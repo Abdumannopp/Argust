@@ -1,7 +1,7 @@
 "use client";
 
 /**
- * Legion's five agents and the skills each one has. Read-only: skills are
+ * Argust's five agents and the skills each one has. Read-only: skills are
  * tools an administrator can give to the organisation's own AI agents; this
  * page shows what exists and what each one is for.
  */

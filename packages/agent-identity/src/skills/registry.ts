@@ -16,13 +16,13 @@ const SEMVER = /^\d+\.\d+\.\d+$/;
 /** A skill as discovery shows it: everything but the handler. */
 export interface SkillDescriptor {
   name: string;
-  /** Which of Legion's five agents this skill belongs to. */
+  /** Which of Argust's five agents this skill belongs to. */
   agent: LegionAgent;
   title: string;
   description: string;
   version: string;
   capabilities: { name: string; permission: string; description: string }[];
-  /** The Legion permissions an agent must already hold to run it. */
+  /** The Argust permissions an agent must already hold to run it. */
   requiredPermissions: string[];
   usesModel: boolean;
   auditEvents: string[];
@@ -33,7 +33,7 @@ export interface SkillDescriptor {
 }
 
 /**
- * The fixed set of skills this Legion build offers. Skills are registered in
+ * The fixed set of skills this Argust build offers. Skills are registered in
  * code, not at runtime by callers, and a definition is refused if it could
  * do more than read: a capability that maps to a state-changing permission
  * (tier 2+) is rejected here, whatever the skill says it does.

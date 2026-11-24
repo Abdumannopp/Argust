@@ -16,7 +16,7 @@
 | `packages/agent-identity` | 917 | pass |
 | Typecheck, build, CI-gate script | — | pass |
 
-Harness: `tests/helpers/soc-conductor.ts` (plays the five agents through Legion's **real** interfaces) and `tests/helpers/soc-env.ts`. Wazuh events go through the real signed webhook; agents use their own least-privilege tokens and assigned skills; the policy, approval, action, runtime and audit engines are the production code. Mocked: connectors (previews only) and the LLM provider (stubbed `fetch`).
+Harness: `tests/helpers/soc-conductor.ts` (plays the five agents through Argust's **real** interfaces) and `tests/helpers/soc-env.ts`. Wazuh events go through the real signed webhook; agents use their own least-privilege tokens and assigned skills; the policy, approval, action, runtime and audit engines are the production code. Mocked: connectors (previews only) and the LLM provider (stubbed `fetch`).
 
 ## 2. Workflow execution trace (ASSIST mode, one run)
 
@@ -24,7 +24,7 @@ Raw data: `e2e-results/trace-main-assist.json`. Attack: scan → 4× brute force
 
 | # | Actor | Step | ms | Result |
 |---|---|---|---|---|
-| 1 | Legion | wazuh event stored as alert | 0.6 | SEC-B8E746222DFC3B2D [critical] Suspicious command execution after login |
+| 1 | Argust | wazuh event stored as alert | 0.6 | SEC-B8E746222DFC3B2D [critical] Suspicious command execution after login |
 | 2 | Sentinel | threat_detection | 122.3 | 1 finding(s); top patterns ["privilege_use","mitre:T1059"] |
 | 3 | Hunter | attack_investigation | 70.4 | 7 event(s), 1 chain(s) |
 | 4 | Guardian | vulnerability_analysis | 69.6 | 1 vulnerability finding(s); evidence findings |
@@ -33,7 +33,7 @@ Raw data: `e2e-results/trace-main-assist.json`. Attack: scan → 4× brute force
 | 7 | Vanguard | containment_candidates | 50.4 | 1 candidate(s); cannot-block 0 |
 | 8 | Vanguard | propose ip.block | 15.3 | awaiting_approval (policy REQUIRE_APPROVAL, simulation) |
 | 9 | Human | approve (digest-bound) | 51.7 | approved by admin@a.io; action now simulated |
-| 10 | Legion | verify result | 3.9 | status simulated; real blocks 0; transitions awaiting_approval>queued>running>simulated; audit  |
+| 10 | Argust | verify result | 3.9 | status simulated; real blocks 0; transitions awaiting_approval>queued>running>simulated; audit  |
 
 Evidence each agent produced: Sentinel score 100, patterns `privilege_use`, `mitre:T1059`. Hunter: 7 events, 1 chain (reconnaissance → credential_access → execution). Guardian: 1 vulnerability finding. Oracle: critical. Vanguard: candidate with 4 attack stages. Agents disagreed slightly (`oracle=critical hunter=high sentinel=high`); the harness took the highest. The policy engine returned `REQUIRE_APPROVAL` (R3 block proposed by an agent); a person approved the exact digest; the action was simulated (`side_effects: none`). Audit trail: `policy.activated → approval.requested → action.awaiting_approval → approval.approve → action.queued → action.running → action.simulated`, chain valid; 24 agent-side skill-call audit rows.
 
@@ -48,7 +48,7 @@ Evidence each agent produced: Sentinel score 100, patterns `privilege_use`, `mit
 | Approval expiry and replay | expired → 410 and action `expired`; approved-but-unused-then-expired → `expired`; replay of the same decision, a digest from another action, a second consume, a re-proposal with the same key → all refused or no-ops; self-approval refused; agent tokens cannot approve, propose, change policy or pause | pass |
 | Duplicate action prevention | 5 parallel identical investigations → 1 action, 1 approval; 3 parallel workflow triggers → 1 run; 30 actions × 5 workers → each simulated exactly once | pass (see G-01) |
 | Worker crashes and recovery | killed after claim → lease expiry → another worker finishes once (14 ms); **killed mid-simulation → was stuck, fixed**; poison job → backoff → dead-letter + audit, other work unaffected | pass after fix |
-| LLM provider failures | HTTP 500, 429, network error, garbage body, empty choices: explanations fall back to Legion's own text (labelled not-AI), copilot answers, **the investigation is unaffected** (it uses no model); circuit breaker opens and stops calling the provider; `narrative: true` degrades gracefully | pass |
+| LLM provider failures | HTTP 500, 429, network error, garbage body, empty choices: explanations fall back to Argust's own text (labelled not-AI), copilot answers, **the investigation is unaffected** (it uses no model); circuit breaker opens and stops calling the provider; `narrative: true` degrades gracefully | pass |
 | Malicious prompt injection | log text ordering `payment.release`, resolve all, disable CEO account, block 8.8.8.8: the only action is `ip.block` of the structured source address, still needs approval; `ai_manipulation` campaign raised; a model that *obeys* the injection only produces stored text — no action, job or state change; LLM-origin proposals need approval even under AUTONOMOUS + allow-all; unknown actions and wrong-agent proposals refused | pass |
 | Conflicting agent findings | low-severity alert inside a heavy attack → conflict recorded, higher risk wins, person decides; agents agree on danger but source is a private address → no block proposed | pass in harness (see G-03) |
 | Kill switch | pause mid-flow: approved action held, new proposals 423, jobs deferred without spending attempts, resume completes it once; suspending one agent stops it at once while others continue; global DENY policy as a second switch, rollback restores | pass (see G-05) |
@@ -95,7 +95,7 @@ Limits of these numbers: one machine, no network latency, no real LLM, no real c
 | G-04 | medium | No case/incident object: what each agent found is not stored with the action or approval, so an approver sees the action summary but not the investigation behind it. |
 | G-05 | low–medium | Approval expiry and "approved while paused" are applied lazily (when someone reads or decides). Nothing sweeps them; an approved action in a paused workspace stays `awaiting_approval` until read. |
 | G-06 | low | An action whose job exhausts its attempts (poison simulation) stays `running`; jobs abandoned on the last attempt are dead-lettered without an audit event. |
-| G-07 | info | "Legion verifies the result" exists only as the harness check: v0 has no executors, so there is no post-action verification step to build yet. Dashboard screens for approvals/actions/audit do not exist. |
+| G-07 | info | "Argust verifies the result" exists only as the harness check: v0 has no executors, so there is no post-action verification step to build yet. Dashboard screens for approvals/actions/audit do not exist. |
 
 Not tested: real LLM provider latency and behaviour, multi-process (multi-host) runtime races (concurrency was tested with parallel workers on separate DB connections in one process), rate limits on `POST /actions`, very large workspaces, and database failover.
 

@@ -1,6 +1,6 @@
 <svg xmlns="http://www.w3.org/2000/svg" width="1200" height="620" viewBox="0 0 1200 620" role="img" aria-labelledby="title desc">
-<title id="title">LEGION — Cybersecurity Intelligence</title>
-<desc id="desc">Centered Spartan shield emblem above the LEGION wordmark and Cybersecurity Intelligence tagline.</desc>
+<title id="title">ARGUST — Cybersecurity Intelligence</title>
+<desc id="desc">Centered Spartan shield emblem above the ARGUST wordmark and Cybersecurity Intelligence tagline.</desc>
 
 <defs>
   <linearGradient id="shieldStroke" x1="0" y1="0" x2="1" y2="1">
@@ -82,7 +82,7 @@
   <use href="#legion-emblem"/>
 </g>
 <g font-family="Arial, Helvetica, sans-serif" text-anchor="middle">
-  <text x="600" y="520" fill="url(#word)" font-size="88" font-weight="700" letter-spacing="17">LEGION</text>
+  <text x="600" y="520" fill="url(#word)" font-size="88" font-weight="700" letter-spacing="17">ARGUST</text>
   <text x="600" y="570" fill="#D8D2E2" font-size="21" font-weight="500" letter-spacing="5">CYBERSECURITY INTELLIGENCE</text>
 </g>
 

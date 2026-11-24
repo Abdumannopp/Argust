@@ -40,7 +40,7 @@ export const BUILTIN_SKILLS = [
   paymentFraudReview,
 ] as const;
 
-/** The skills this Legion build ships. Each registration is validated (read-only capabilities, strict input). */
+/** The skills this Argust build ships. Each registration is validated (read-only capabilities, strict input). */
 export function createBuiltinRegistry(): SkillRegistry {
   const r = new SkillRegistry();
   for (const s of BUILTIN_SKILLS) r.register(s as SkillDefinition<any, any>);

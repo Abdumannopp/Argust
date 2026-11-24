@@ -1,14 +1,14 @@
 import { defineMessages } from "../core";
 
 /**
- * Connect: bringing a sensor's events into Legion. Wazuh is one integration
- * among others here — the page is organised around "what do you want Legion
+ * Connect: bringing a sensor's events into Argust. Wazuh is one integration
+ * among others here — the page is organised around "what do you want Argust
  * to watch", and the Wazuh specifics sit inside its own card.
  */
 export const connect = defineMessages({
   en: {
     title: "Connect",
-    intro: "Connect the tools that watch your computers and systems. Legion collects their events, explains them in plain language, and tells you what to do.",
+    intro: "Connect the tools that watch your computers and systems. Argust collects their events, explains them in plain language, and tells you what to do.",
     adminOnly: "Only workspace admins can connect integrations. Ask an admin to set this up — you'll see alerts here as soon as it's done.",
     available: "Available",
     soon: "Coming soon",
@@ -22,17 +22,17 @@ export const connect = defineMessages({
       action: "Go to AI agents",
     },
     wazuh: {
-      summary: "Open-source security monitoring for servers and laptops. If you run Wazuh, Legion receives its alerts as they happen.",
+      summary: "Open-source security monitoring for servers and laptops. If you run Wazuh, Argust receives its alerts as they happen.",
       step1: {
         title: "Create a connection key",
-        body: "Legion gives your Wazuh server its own key, so only it can send events to this workspace.",
+        body: "Argust gives your Wazuh server its own key, so only it can send events to this workspace.",
         label: "Name for this connection",
         labelPlaceholder: "e.g. Production Wazuh",
         action: "Create key",
       },
       step2: {
-        title: "Add Legion to your Wazuh server",
-        files: "Copy Legion's two integration files (custom-legion and custom-legion.py, in the integrations folder of the Legion package) to /var/ossec/integrations/ on the Wazuh server.",
+        title: "Add Argust to your Wazuh server",
+        files: "Copy Argust's two integration files (custom-legion and custom-legion.py, in the integrations folder of the Argust package) to /var/ossec/integrations/ on the Wazuh server.",
         conf: "Add this block inside <ossec_config> in /var/ossec/etc/ossec.conf, then restart Wazuh.",
         keyOnce: "The key inside this block is shown only once. Copy it now — if it's lost, create a new key.",
         keyHidden: "The key was shown when it was created. If you don't have it, create a new key.",
@@ -40,15 +40,15 @@ export const connect = defineMessages({
       step3: {
         title: "Check the connection",
         waiting: "Waiting for the first event from Wazuh…",
-        connected: "Connected — Legion received an event from Wazuh.",
+        connected: "Connected — Argust received an event from Wazuh.",
         hint: "Wazuh forwards only alerts of level 7 and above, so the first one can take a while. Meanwhile, send a test alert to see how alerts look and check that notifications reach you.",
       },
       technical: "Technical details",
       technicalItems: {
         commands: "Commands on the Wazuh server",
-        endpoint: "Legion receives events at",
+        endpoint: "Argust receives events at",
         level: "Minimum alert level forwarded: 7 (change <level> to forward more or fewer).",
-        docs: "Full guide, including key rotation and troubleshooting: WAZUH.md in the Legion package.",
+        docs: "Full guide, including key rotation and troubleshooting: WAZUH.md in the Argust package.",
       },
     },
     test: {

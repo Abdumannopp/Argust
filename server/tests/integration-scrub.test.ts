@@ -27,7 +27,7 @@ describe("scrubError", () => {
     expect(out).not.toMatch(/T1\/B2|SECRETSIG|zzz/);
     expect(out).toContain("https://example.com/a?[redacted]");
   });
-  it("catches credentials Legion never stored (JWT, AWS key, password field, Bearer header, URL credentials)", () => {
+  it("catches credentials Argust never stored (JWT, AWS key, password field, Bearer header, URL credentials)", () => {
     const out = scrubError("Bearer abcdefghijklmnop1234 AKIAABCDEFGHIJKLMNOP password=hunter2xyz https://user:pa55w0rd@host.io/x eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiIxMjM0NTY3ODkwIn0.abcdefghijk", {});
     expect(out).not.toMatch(/abcdefghijklmnop1234|AKIAABCDEFGHIJKLMNOP|hunter2xyz|pa55w0rd|eyJhbGci/);
   });

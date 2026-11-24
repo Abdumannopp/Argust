@@ -13,7 +13,7 @@ const VIAS: Via[] = ["crowdstrike_response", "sentinelone_response", "defender_r
 const HOST = /^[A-Za-z0-9][A-Za-z0-9._-]{0,199}$/;
 
 /**
- * Asking Legion to act in a connected system for this alert's host or account. It only ASKS: the server decides
+ * Asking Argust to act in a connected system for this alert's host or account. It only ASKS: the server decides
  * (administrators only, protection on, a response connection present) and a critical action waits for two other
  * administrators. Nothing here runs anything by itself.
  */

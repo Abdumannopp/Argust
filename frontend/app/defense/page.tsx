@@ -145,7 +145,7 @@ export default function DefensePage() {
             <div className="flex justify-center py-16"><Loader2 size={18} className="animate-spin text-ink-faint" /></div>
           ) : (
             <>
-              {/* Protection mode: how much Legion may do on its own, chosen by an administrator */}
+              {/* Protection mode: how much Argust may do on its own, chosen by an administrator */}
               <ProtectionSection isAdmin={isAdmin} />
               <ResponseUndo isAdmin={isAdmin} />
 

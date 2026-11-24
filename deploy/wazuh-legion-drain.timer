@@ -1,5 +1,5 @@
 [Unit]
-Description=Re-send spooled Wazuh alerts to Legion every minute
+Description=Re-send spooled Wazuh alerts to Argust every minute
 
 [Timer]
 OnBootSec=2min

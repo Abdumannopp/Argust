@@ -5,11 +5,11 @@
  * An Elastic API key with read access to the security alerts index (the built-in "viewer" role is enough); it is
  * sealed per connection and sent as "Authorization: ApiKey …". Only Elastic Cloud Kibana hosts are reachable
  * (…kb.<region>.<provider>.elastic-cloud.com / .cloud.es.io / .elastic.cloud): a self-managed Kibana is not polled,
- * because Legion never calls an address a customer typed — self-managed Elastic sends alerts to the generic JSON
+ * because Argust never calls an address a customer typed — self-managed Elastic sends alerts to the generic JSON
  * webhook instead (a Kibana webhook connector), which needs no inbound access to the customer.
  *
  * Cursor: the newest @timestamp. Only alerts whose workflow status is "open" are read. An alert is stored once, by
- * its document id. Legion never acknowledges, closes or changes alerts in Elastic.
+ * its document id. Argust never acknowledges, closes or changes alerts in Elastic.
  */
 import { z } from "zod";
 import { adapterFetch, hostAllowed } from "./fetch.js";

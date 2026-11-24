@@ -1,6 +1,6 @@
 # AI providers: OpenRouter and Groq
 
-Legion's Oracle explanations and Copilot assistant can use an AI model. This is
+Argust's Oracle explanations and Copilot assistant can use an AI model. This is
 **optional**: with no key, both use local, deterministic analysis and **nothing
 leaves the server**.
 
@@ -23,7 +23,7 @@ Steps:
 
 1. Sign up at [openrouter.ai](https://openrouter.ai/) and get a key.
 2. Put it after `OPENROUTER_API_KEY=` in `server/.env`.
-3. Restart Legion.
+3. Restart Argust.
 4. Open an alert and click "Oracle".
 
 If it does not work, the server log says why (for example "no credit" or
@@ -41,22 +41,22 @@ model where they can see its price.
 
 **2. A wrong setting switches AI off — it never falls back to another provider.**
 If `AI_PROVIDER=openrouter` is set without an OpenRouter key but a Groq key is
-present, many programs would quietly switch to Groq. Legion does not: AI is
+present, many programs would quietly switch to Groq. Argust does not: AI is
 switched off and the log says why. The customer **chooses** which company sees
 their security data; naming one and sending to another is the worst kind of
 mistake. This case is covered by a test.
 
-Also: OpenRouter accepts an `HTTP-Referer` header, but Legion does **not** send
+Also: OpenRouter accepts an `HTTP-Referer` header, but Argust does **not** send
 it — it would reveal the customer's internal server address. Only the name
-"Legion" is sent.
+"Argust" is sent.
 
 ## AI safety
 
 **AI only advises.** Requests to the provider contain no `tools`/`functions`, so
 the model cannot *do* anything: its answer is text a person reads. In the
 dashboard, incident page and Copilot, every model answer is labelled
-**"AI suggestion"**; text written by Legion's own rules is labelled
-**"Legion analysis"**.
+**"AI suggestion"**; text written by Argust's own rules is labelled
+**"Argust analysis"**.
 
 | Protection | How |
 |---|---|

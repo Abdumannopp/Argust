@@ -4,7 +4,7 @@ import { defineMessages } from "../core";
 
 export const pricing = defineMessages({
   en: {
-    metaTitle: "Pricing | Legion Cybersecurity Intelligence",
+    metaTitle: "Pricing | Argust Cybersecurity Intelligence",
     eyebrow: "Pricing",
     title: "Plans for every size of team",
     subtitle: (days: number) => `Start free for ${days} days, no card needed. Pay only if you keep it.`,
@@ -41,7 +41,7 @@ export const pricing = defineMessages({
         admins: "Administrators",
         retention: "Alert history",
         aiAnalysis: "AI analysis",
-        aiAgents: "The five Legion agents",
+        aiAgents: "The five Argust agents",
         agentSecurity: "AI Agent Security",
         paymentCheck: "Payment fraud check",
         ipBlocking: "Blocking attacker addresses",
@@ -73,7 +73,7 @@ export const pricing = defineMessages({
       },
       help: {
         agent_security: "Identities, permissions and the policy firewall for your own AI agents. Included from Professional.",
-        payment_fraud: "Your payment software asks Legion before paying; a payment that looks like fraud is held for a phone check. Included from Professional.",
+        payment_fraud: "Your payment software asks Argust before paying; a payment that looks like fraud is held for a phone check. Included from Professional.",
         threat_intel: "Extra threat-intelligence sources.",
         endpoints_100: "Raises your endpoint limit by 100.",
         ai_credits_5000: "More AI requests for explanations and the assistant.",
@@ -81,7 +81,7 @@ export const pricing = defineMessages({
     },
     selfHosted: {
       title: "Self-hosted",
-      intro: "Run Legion on your own infrastructure. The yearly licence includes updates and your plan's support. You run the server and Wazuh.",
+      intro: "Run Argust on your own infrastructure. The yearly licence includes updates and your plan's support. You run the server and Wazuh.",
       plan: "Plan",
       endpoints: "Endpoints",
       licence: "Yearly licence",
@@ -89,7 +89,7 @@ export const pricing = defineMessages({
     },
     setup: {
       title: "Setup and integration",
-      intro: "We can set Legion up with you.",
+      intro: "We can set Argust up with you.",
       names: { basic: "Basic Setup", professional: "Professional Setup", enterprise: "Enterprise Integration" },
       help: {
         basic: "Workspace, first sensor and first alerts.",
@@ -102,11 +102,11 @@ export const pricing = defineMessages({
       afterTrial: {
         q: "What happens after the trial?",
         a: (days: number) =>
-          `For ${days} days everything in the Professional plan is free and no card is needed. To keep using Legion, choose a plan from Billing inside the app. If you don't, the workspace is locked — your data is kept, and subscribing later unlocks it.`,
+          `For ${days} days everything in the Professional plan is free and no card is needed. To keep using Argust, choose a plan from Billing inside the app. If you don't, the workspace is locked — your data is kept, and subscribing later unlocks it.`,
       },
       limits: {
         q: "What happens if I go over my endpoint limit?",
-        a: "Nothing is dropped. Legion keeps recording every event and shows you that you are over the limit, so you can move to a bigger plan or add endpoints. We would rather you see an alert than miss one.",
+        a: "Nothing is dropped. Argust keeps recording every event and shows you that you are over the limit, so you can move to a bigger plan or add endpoints. We would rather you see an alert than miss one.",
       },
       cancel: {
         q: "Can I cancel or change plan?",
@@ -114,7 +114,7 @@ export const pricing = defineMessages({
       },
       refunds: {
         q: "Refunds?",
-        a: "If Legion isn't right for you, ask for a refund of your first payment within 14 days. See the Refund Policy.",
+        a: "If Argust isn't right for you, ask for a refund of your first payment within 14 days. See the Refund Policy.",
       },
       payment: {
         q: "Who handles payment and invoices?",

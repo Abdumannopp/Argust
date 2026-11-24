@@ -9,7 +9,7 @@ export const login = defineMessages({
       line1: "Stop Chasing Alerts.",
       line2: "Start Stopping Threats.",
     },
-    intro: "Turn thousands of security alerts into clear, actionable decisions with Legion AI.",
+    intro: "Turn thousands of security alerts into clear, actionable decisions with Argust AI.",
     forgotPassword: "Forgot password?",
     startTrial: "Start a free trial",
     resendConfirmation: "Send the confirmation link again",

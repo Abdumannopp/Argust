@@ -231,8 +231,8 @@ export class KillSwitch {
 
       if (events.length) {
         const subject = events.length === 1
-          ? `[Legion] ${kind === "agent_revoked" ? "Revoked" : "Suspended"} ${events[0]!.identityKind === "ai_agent" ? "AI agent" : "service account"} "${events[0]!.identityName}"${input.compromise !== "none" ? ` — ${input.compromise} compromise` : ""}`
-          : `[Legion] Kill switch: ${events.length} identities suspended${input.compromise !== "none" ? ` — ${input.compromise} compromise` : ""}`;
+          ? `[Argust] ${kind === "agent_revoked" ? "Revoked" : "Suspended"} ${events[0]!.identityKind === "ai_agent" ? "AI agent" : "service account"} "${events[0]!.identityName}"${input.compromise !== "none" ? ` — ${input.compromise} compromise` : ""}`
+          : `[Argust] Kill switch: ${events.length} identities suspended${input.compromise !== "none" ? ` — ${input.compromise} compromise` : ""}`;
         const n = await c.query(
           `INSERT INTO security_notifications (tenant_id, event_ids, subject, body) VALUES ($1, $2, $3, $4) RETURNING id`,
           [input.tenantId, events.map((e) => e.eventId), subject, JSON.stringify({ severity, activatedAt, events })],

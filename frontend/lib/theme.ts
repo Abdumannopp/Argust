@@ -1,5 +1,5 @@
 /**
- * Legion's colour palette, taken from the logo: a near-black with a violet
+ * Argust's colour palette, taken from the logo: a near-black with a violet
  * cast, and the violet gradient of the helmet mark.
  *
  * One source of truth: tailwind.config.ts builds its colour tokens from this

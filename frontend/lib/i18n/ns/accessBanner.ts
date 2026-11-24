@@ -5,7 +5,7 @@ export const accessBanner = defineMessages({
     blocked:
       "This workspace doesn't have an active subscription. Your data is safe and alerts are still being collected, but the console is locked.",
     readonly:
-      "A subscription payment is past due. Legion is read-only until it's settled — alerts keep arriving in the background.",
+      "A subscription payment is past due. Argust is read-only until it's settled — alerts keep arriving in the background.",
     trialEnds: (n: number) =>
       plural("en", n, { one: `Your trial ends in ${n} day.`, other: `Your trial ends in ${n} days.` }),
     manageBilling: "Manage billing",

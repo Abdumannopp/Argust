@@ -10,7 +10,7 @@ import { defineMessages } from "../core";
 export const site = defineMessages({
   en: {
     header: {
-      homeAria: "Legion home",
+      homeAria: "Argust home",
       features: "Features",
       pricing: "Pricing",
       startTrial: (days: number) => `Start ${days}-day trial`,
@@ -18,7 +18,7 @@ export const site = defineMessages({
     },
     footer: {
       merchantNotice: (seller: string) =>
-        `Legion is provided by ${seller}. Orders are processed by our online reseller Paddle.com, which is the Merchant of Record for all orders and handles billing, invoices and payment-related customer service.`,
+        `Argust is provided by ${seller}. Orders are processed by our online reseller Paddle.com, which is the Merchant of Record for all orders and handles billing, invoices and payment-related customer service.`,
       pricing: "Pricing",
       terms: "Terms",
       freeTrial: "Free trial",
@@ -30,7 +30,7 @@ export const site = defineMessages({
       heroTitle: "Stop chasing alerts.",
       heroTitleAccent: "Start stopping threats.",
       heroText:
-        "Legion watches your computers and your AI agents, explains every threat in plain language, and stops risky AI actions before they happen — so a small team can respond like a big one.",
+        "Argust watches your computers and your AI agents, explains every threat in plain language, and stops risky AI actions before they happen — so a small team can respond like a big one.",
       ctaTrial: (days: number) => `Start ${days}-day free trial`,
       ctaPricing: "See pricing",
       noCard: "No credit card required.",
@@ -71,7 +71,7 @@ export const site = defineMessages({
         },
         connect: {
           title: "Connect your sensors",
-          text: "Create a key, paste one block into your sensor's settings, and Legion tells you when the first event arrives.",
+          text: "Create a key, paste one block into your sensor's settings, and Argust tells you when the first event arrives.",
         },
         act: {
           title: "Act on what matters",

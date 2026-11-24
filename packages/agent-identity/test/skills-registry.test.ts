@@ -41,7 +41,7 @@ describe("registry", () => {
     expect(validateDefinition({ ...valid(), agent: undefined } as unknown as SkillDefinition).join("; ")).toMatch(/agent must be one of/);
   });
 
-  it("the dashboard's Legion team page describes every built-in skill (so a new skill is not shown without text)", () => {
+  it("the dashboard's Argust team page describes every built-in skill (so a new skill is not shown without text)", () => {
     const page = readFileSync(join(fileURLToPath(import.meta.url), "..", "..", "..", "..", "frontend", "lib", "i18n", "ns", "team.ts"), "utf8");
     for (const s of BUILTIN_SKILLS) {
       expect(page.split(`      ${s.name}: "`).length - 1, s.name).toBe(1);

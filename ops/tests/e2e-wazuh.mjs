@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 /**
- * End to end, on the hardened database role Legion supports:
+ * End to end, on the hardened database role Argust supports:
  *
  *   1. a fresh database; provision-cli.js (server/dist/db/provision-cli.js)
  *      creates the API's own role — the API never gets the superuser

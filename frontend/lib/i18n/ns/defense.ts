@@ -3,14 +3,14 @@ import { defineMessages } from "../core";
 export const defense = defineMessages({
   en: {
     title: "Defense",
-    intro: "Automated and AI-driven attacks move faster than a person can read an alert. Legion links related alerts into attack campaigns and can block the attacker on your Wazuh manager within about a minute.",
+    intro: "Automated and AI-driven attacks move faster than a person can read an alert. Argust links related alerts into attack campaigns and can block the attacker on your Wazuh manager within about a minute.",
     auto: {
       title: "Automatic response",
       off: "Off — detect and report only",
       on: "On — block attacking addresses automatically",
       offHelp: "Campaigns are reported; an administrator decides whether to block.",
-      onHelp: "When a campaign comes from ONE public address (password guessing, a broken-into account, a fast multi-step attack, a sweep of hosts, a burst), Legion blocks it for the time below. Never private addresses, never the allowlist, at most 50 automatic blocks an hour. Every block is recorded and can be undone here.",
-      ackNotice: "Automatic blocking acts without a person approving each block. Legion may block an address that is not really the attacker (for example a forged or shared address), which can interrupt legitimate users or partners. You are responsible for the allowlist and for reviewing blocks, and every block can be undone on this page.",
+      onHelp: "When a campaign comes from ONE public address (password guessing, a broken-into account, a fast multi-step attack, a sweep of hosts, a burst), Argust blocks it for the time below. Never private addresses, never the allowlist, at most 50 automatic blocks an hour. Every block is recorded and can be undone here.",
+      ackNotice: "Automatic blocking acts without a person approving each block. Argust may block an address that is not really the attacker (for example a forged or shared address), which can interrupt legitimate users or partners. You are responsible for the allowlist and for reviewing blocks, and every block can be undone on this page.",
       ackLabel: "I have read this notice and I turn on automatic blocking for my workspace.",
       ackRequired: "Confirm the notice to turn on automatic blocking.",
       minutes: "Block for",
@@ -24,7 +24,7 @@ export const defense = defineMessages({
     },
     campaigns: {
       title: "Attack campaigns",
-      empty: "No attack campaigns detected. Legion watches for several attack techniques from one address within minutes, sweeps of many hosts, many addresses converging on one host, bursts, text planted to manipulate AI, and signs of ransomware, mailbox takeover, phishing payloads, supply-chain compromise and long-running espionage.",
+      empty: "No attack campaigns detected. Argust watches for several attack techniques from one address within minutes, sweeps of many hosts, many addresses converging on one host, bursts, text planted to manipulate AI, and signs of ransomware, mailbox takeover, phishing payloads, supply-chain compromise and long-running espionage.",
       active: "Active",
       ended: "Ended",
       alerts: (n: number) => `${n} alert${n === 1 ? "" : "s"}`,
@@ -50,7 +50,7 @@ export const defense = defineMessages({
     },
     coverage: {
       title: "The seven most dangerous attack types",
-      intro: (days: number) => `What Legion saw in the last ${days} days. “Blind” means the data Legion would need never arrives — connect it to be protected.`,
+      intro: (days: number) => `What Argust saw in the last ${days} days. “Blind” means the data Argust would need never arrives — connect it to be protected.`,
       status: { detected: "Detected", watching: "Watching", blind: "Blind", partial: "Partly visible" } as Record<string, string>,
       detections: (n: number) => (n === 1 ? "1 sign" : `${n} signs`),
       connect: "To see it, connect:",
@@ -62,8 +62,8 @@ export const defense = defineMessages({
         ransomware: "Raises a critical alert on deleted shadow copies, disabled recovery, a ransom note or a mass of file changes, and says to isolate the host.",
         bec: "Flags forwarding and hiding rules, apps given mailbox access, a removed second factor and changed payment details.",
         phishing: "Flags an Office document starting a script, a macro, or a malicious link being clicked.",
-        ddos: "Sees floods in web and firewall logs, and protects Legion itself. Stopping a DDoS on your site needs an edge service such as Cloudflare.",
-        ai_deception: "Catches text written to steer AI, and what follows a deepfake call (payment change, forwarding). The call itself never reaches Legion.",
+        ddos: "Sees floods in web and firewall logs, and protects Argust itself. Stopping a DDoS on your site needs an edge service such as Cloudflare.",
+        ai_deception: "Catches text written to steer AI, and what follows a deepfake call (payment change, forwarding). The call itself never reaches Argust.",
         espionage: "Links persistence, credential dumping and a control channel on one host over days.",
         supply_chain: "Flags failed signatures, malicious packages, and an install followed by attacker activity.",
       } as Record<string, string>,
@@ -79,10 +79,10 @@ export const defense = defineMessages({
     },
     payments: {
       title: "Payments on hold",
-      intro: "Your payment software asks Legion before it pays. A payment that looks like fraud waits here until someone confirms it by phone. Setup: PAYMENT-CHECK.md.",
+      intro: "Your payment software asks Argust before it pays. A payment that looks like fraud waits here until someone confirms it by phone. Setup: PAYMENT-CHECK.md.",
       consent: {
         title: "Confirm how the payment check works",
-        notice: "The payment check answers “allow” or “hold” when your payment software asks. Legion never moves money and never sees your bank. A payment is stopped only if your payment software honours a “hold”. A held payment stays held until a person in your organisation confirms it by calling a phone number you already had, and then releases it here. Legion's answers are not financial, legal or fraud-prevention advice and can be wrong in both directions: a genuine payment can be held, and a fraudulent one can be allowed. You are responsible for the payments you make, and the check does not replace your bank's controls.",
+        notice: "The payment check answers “allow” or “hold” when your payment software asks. Argust never moves money and never sees your bank. A payment is stopped only if your payment software honours a “hold”. A held payment stays held until a person in your organisation confirms it by calling a phone number you already had, and then releases it here. Argust's answers are not financial, legal or fraud-prevention advice and can be wrong in both directions: a genuine payment can be held, and a fraudulent one can be allowed. You are responsible for the payments you make, and the check does not replace your bank's controls.",
         label: "I have read this notice and I want my payment software to use the payment check.",
         confirm: "Confirm",
         confirmed: "Confirmed.",

@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-// Legion pilot preflight: the deployment checklist, as code.
+// Argust pilot preflight: the deployment checklist, as code.
 //
 //   node ops/pilot-preflight.mjs --env .env.pilot --compose docker-compose.pilot.yml
 //   node ops/pilot-preflight.mjs --env .env.pilot --db --database-url postgresql://legion_app:…@127.0.0.1:5432/legion
@@ -100,7 +100,7 @@ async function rest(env) {
   }
   if (env.DEPLOYMENT_MODE && env.DEPLOYMENT_MODE !== "self-hosted") fail(A, "mode", `DEPLOYMENT_MODE=${env.DEPLOYMENT_MODE}: the pilot is one workspace, self-hosted (no public sign-up, no billing)`);
   if (env.AI_PROVIDER || env.OPENROUTER_API_KEY || env.GROQ_API_KEY) warn(A, "ai-provider", "an AI provider is configured: alert text would leave your infrastructure. Confirm the data-processing terms and keep the workspace in strict data mode (PILOT.md §4)");
-  else pass(A, "ai-provider", "no external AI provider configured (explanations use Legion's own text)");
+  else pass(A, "ai-provider", "no external AI provider configured (explanations use Argust's own text)");
 }
 
 // ---------------------------------------------------------------------------

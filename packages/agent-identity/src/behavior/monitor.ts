@@ -53,7 +53,7 @@ const COLUMNS: [Exclude<keyof BehaviorEventRow, "seq">, string][] = [
 ];
 
 const PROFILE_MAX_AGE_MS = 60 * 60_000;
-const MONITOR: ExternalPrincipal = { type: "external_system", id: "legion-behavior-monitor", tenantId: null, displayName: "Legion behaviour monitor" };
+const MONITOR: ExternalPrincipal = { type: "external_system", id: "legion-behavior-monitor", tenantId: null, displayName: "Argust behaviour monitor" };
 
 export class BehaviorMonitor {
   private readonly cache = new Map<string, { at: number; state: BehaviorState }>();

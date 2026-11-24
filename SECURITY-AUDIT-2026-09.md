@@ -1,14 +1,14 @@
-# Legion — production premortem audit (2026-09)
+# Argust — production premortem audit (2026-09)
 
 **Branch:** `claude/legion-security-audit-44rtuh`
-**Method:** assume Legion has already failed in production; find the realistic
+**Method:** assume Argust has already failed in production; find the realistic
 causes, prove them from files where possible, fix what can be fixed safely.
 
 ---
 
 ## 0. What was actually audited — read this first
 
-The request referred to `Legion.zip`. The repository contains **only the 23
+The request referred to `Argust.zip`. The repository contains **only the 23
 top-level files** of that project (one commit, "Add files via upload"). No
 zip file exists in the repository, in the account's Google Drive, or in any
 other repository the account can reach.
@@ -78,9 +78,9 @@ to happen in a real deployment.
 | R1 | Next.js 16.3.0: unauthenticated RCE on Windows hosts + AVIF image-optimizer RCE | **Critical** | High (public advisories; Windows is a supported host) | Full server takeover | Verified (`npm audit`) | **Fixed** | Lockfile → 16.3.6 |
 | R2 | Webhook credential is a static `HMAC(global_secret, tenant_id)`: covers no body, no timestamp, one secret for all tenants | **Critical** | Medium | Forged/replayed alerts for any tenant; alert flooding; attacker text reaching the AI | Documented (INSTALL §5, WAZUH.md, ADR-003) | **Open — needs server code** | §5.1 |
 | R3 | Alert stored but operator never notified: e-mail/realtime run in-request with no retry; a redelivery is "duplicate" and skipped | **Critical** | Medium | Silent missed incident | Documented (ADR-002, CHANGELOG §6, WAZUH.md) | **Open — needs server code** | §5.2 |
-| R4 | Wazuh `integratord` does not retry; alerts that fire while Legion is down (upgrade, restart, DB outage) never arrive | **High** | High (every upgrade is an outage window) | Permanent gaps in security history | Potential (script not uploaded) | **Open** | Spool + retry in `custom-legion.py`; §5.2 |
+| R4 | Wazuh `integratord` does not retry; alerts that fire while Argust is down (upgrade, restart, DB outage) never arrive | **High** | High (every upgrade is an outage window) | Permanent gaps in security history | Potential (script not uploaded) | **Open** | Spool + retry in `custom-legion.py`; §5.2 |
 | R5 | Dashboard/API ports published on `0.0.0.0`; Docker bypasses ufw/firewalld; fresh install lets the first visitor become admin | **High** | High on any public VPS | Stranger claims admin of a new install; unauthenticated Prometheus | Verified (compose) | **Fixed** | Loopback by default, explicit opt-in |
-| R6 | Re-running `install.sh` with `JWT_SECRET` missing from `.env` regenerates the DB password and overwrites all settings | **High** | Medium (hand-edited `.env`) | Legion locked out of its own database; SMTP/URL settings wiped | **Reproduced** | **Fixed** | Never rewrite `.env`; refuse |
+| R6 | Re-running `install.sh` with `JWT_SECRET` missing from `.env` regenerates the DB password and overwrites all settings | **High** | Medium (hand-edited `.env`) | Argust locked out of its own database; SMTP/URL settings wiped | **Reproduced** | **Fixed** | Never rewrite `.env`; refuse |
 | R7 | `.env` lost while the DB volume exists → new random password → lockout | **High** | Medium | Same as R6 | Verified (logic + real-volume test) | **Fixed** | Refuse, explain restore |
 | R8 | Documented backup (`ops/backup.sh` via `DATABASE_URL`) cannot reach Postgres in the Docker install (port not published) | **High** | High for Docker installs | "Backups" that never ran | Potential (script not uploaded; compose verified) | **Mitigated** | `ops/docker-backup.sh` + restore, tested |
 | R9 | Upgrades apply schema changes automatically with no backup first | **High** | Medium | Unrecoverable failed migration | Verified (`install.sh`) | **Fixed** | Pre-upgrade backup; abort if it fails |
@@ -102,7 +102,7 @@ to happen in a real deployment.
 | R25 | `WAZUH.md` tells operators to read the tenant ID from a JSON file removed in 2.0; restart with `npm run dev` | **Medium** | High | Wazuh integration cannot be completed as written | Verified | **Fixed** | Docs |
 | R26 | `WINDOWS-NODE.md` advertises `admin@legion.demo / legion123` and JSON storage | **Medium** | Medium | Operators expect/create a known credential | Verified | **Fixed** | Docs |
 | R27 | Backups unencrypted and not copied off-server automatically; RPO 24 h | **Medium** | Medium | Data loss with the server; leaked dumps expose everything (see R10) | Documented (BACKUP.md) | **Open** | Encrypt + ship off-site |
-| R28 | Legion has never been tested against a real Wazuh manager | **High** | — | The core product path is unproven | Documented (AUDIT-2, SINOV, MIJOZGA) | **Open — process** | §6 |
+| R28 | Argust has never been tested against a real Wazuh manager | **High** | — | The core product path is unproven | Documented (AUDIT-2, SINOV, MIJOZGA) | **Open — process** | §6 |
 | R29 | `docker-compose.monitoring.yml` mounts `monitoring/prometheus.yml`, which is not in the repository | **Low** | High if used | Monitoring stack will not start | Verified (for this repo) | **Open** | Commit the file |
 | R30 | Frontend started before the API was healthy | **Low** | Medium | Error pages on first load after restart | Verified | **Fixed** | `service_healthy` |
 | R31 | Installer's readiness check ignored `API_PORT` | **Low** | Low | False "did not become ready" | Verified | **Fixed** | Uses Docker's healthcheck |
@@ -118,7 +118,7 @@ to happen in a real deployment.
   Windows-hosted servers) and GHSA-2xp9-vwfh-vxw4 (RCE via the image-optimization API
   with AVIF files).
 - **Plain English:** someone on the internet could run their own programs on
-  the Legion server without logging in. Legion ships a Windows launcher
+  the Argust server without logging in. Argust ships a Windows launcher
   (`start-legion.ps1`), so the Windows variant applies.
 - **Impact:** total compromise of the security console and every tenant's data.
 - **Action (done):** lockfile updated to `next@16.3.6` along with the other
@@ -133,7 +133,7 @@ to happen in a real deployment.
   and every tenant's value comes from one server-wide secret. The sample
   `hook_url` is plain `http://`.
 - **Plain English:** it's a fixed password sent with every message, often
-  unencrypted. Anyone who sees it once can send Legion fake alerts, or resend
+  unencrypted. Anyone who sees it once can send Argust fake alerts, or resend
   old ones, whenever they like. Whoever knows the one master secret can do
   this for every customer.
 - **Impact:** attackers can bury a real intrusion under fake alarms, or feed
@@ -149,7 +149,7 @@ to happen in a real deployment.
   of the same event returns `202 skipped, duplicate`, so side effects that
   failed the first time are never retried. Wazuh's integratord runs the
   script once per alert and does not retry.
-- **Plain English:** if the mail server hiccups, Redis restarts, or Legion
+- **Plain English:** if the mail server hiccups, Redis restarts, or Argust
   is mid-upgrade at the wrong moment, an alert can be saved with nobody told,
   or not saved at all, and nothing tries again.
 - **Impact:** the exact failure a security product exists to prevent.
@@ -180,7 +180,7 @@ to happen in a real deployment.
   `http://localhost:3000`, and an empty SMTP host. Upgrades ran migrations with
   no backup. The documented backup script connects from the host, but Docker
   doesn't publish Postgres.
-- **Plain English:** a small mistake in one settings file could lock Legion
+- **Plain English:** a small mistake in one settings file could lock Argust
   out of all its data, and the backup you thought was running probably
   wasn't.
 - **Action (done):** the installer never rewrites an existing `.env` and
@@ -325,7 +325,7 @@ short timeout so the deterministic path always answers. Offer a per-tenant
 | Full `./install.sh` build and boot | **Blocked:** no Dockerfiles (`./server`, `./frontend`) |
 | Real Wazuh end-to-end | **Blocked:** no Wazuh manager here, and `integrations/` is missing |
 | Windows install with the new lockfile | **Not tested:** Linux sandbox; the lockfile now contains the win32 binaries |
-| Behaviour of `next` 16.3.6 / `nodemailer` 9.1.1 with Legion's code | **Not tested:** in-range updates, but no build was possible |
+| Behaviour of `next` 16.3.6 / `nodemailer` 9.1.1 with Argust's code | **Not tested:** in-range updates, but no build was possible |
 
 ---
 
@@ -343,7 +343,7 @@ short timeout so the deterministic path always answers. Offer a per-tenant
 **Not ready:**
 1. **Alert delivery reliability (R3, R4, R14, R19).** Nothing guarantees that
    a stored alert reaches a person, or that an alert fired during an upgrade
-   reaches Legion. This is the product's core promise.
+   reaches Argust. This is the product's core promise.
 2. **Webhook authentication (R2).** Forgeable and replayable events.
 3. **Secrets at rest (R10, R17), edge settings (R15, R16), bootstrap (R18)**
    are unverified or weak by the project's own description.
@@ -355,7 +355,7 @@ short timeout so the deterministic path always answers. Offer a per-tenant
 1. Commit the complete project (all directories) to this repository.
 2. Implement §5.2 (outbox + spool) and §5.1 (webhook v2), with tests.
 3. Verify or fix R10, R16, R17, R15, R18 in code.
-4. Run an end-to-end test with a real Wazuh manager: normal delivery, Legion
+4. Run an end-to-end test with a real Wazuh manager: normal delivery, Argust
    stopped during an alert, SMTP down, Redis down, duplicate delivery.
 5. Schedule `ops/docker-backup.sh` with failure alerts, encrypt, copy off-site;
    do one timed restore drill on the production host.

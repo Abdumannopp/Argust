@@ -3,7 +3,7 @@ import { proposedActionSchema, riskLevel, untrustedSummarySchema, type PaymentRe
 import { assemblyOf, clip, HOUR_MS, isoMinusHours, propose } from "./common.js";
 
 /*
- * Vanguard: what Legion's payment check has held, what is still waiting for
+ * Vanguard: what Argust's payment check has held, what is still waiting for
  * a person, and which patterns look like an attacker working through a
  * payment process. Reads the checks only; releasing or rejecting a payment is
  * a person's decision (Defense → Payments on hold).
@@ -67,7 +67,7 @@ export const paymentFraudReview: SkillDefinition<Input, Output> = {
   name: "payment_fraud_review",
   agent: "Vanguard",
   title: "Payment Fraud Review",
-  description: "Reviews Legion's payment checks: how many payments were allowed or held, which are still waiting for a person to confirm by phone (and for how long), and patterns that look like fraud: repeated attempts to one account, one requester asking for several new accounts, a payment retried after a rejection, a large release to a new account. Never shows an account number.",
+  description: "Reviews Argust's payment checks: how many payments were allowed or held, which are still waiting for a person to confirm by phone (and for how long), and patterns that look like fraud: repeated attempts to one account, one requester asking for several new accounts, a payment retried after a rejection, a large release to a new account. Never shows an account number.",
   version: "1.0.0",
   input,
   output,
@@ -75,10 +75,10 @@ export const paymentFraudReview: SkillDefinition<Input, Output> = {
   auditEvents: ["skill.invoke"],
   example: { windowDays: 30 },
   limitations: [
-    "It sees only payments your payment software asked Legion about. A payment made without asking is invisible.",
+    "It sees only payments your payment software asked Argust about. A payment made without asking is invisible.",
     "Accounts are shown by their last four characters only, so two different accounts can look alike. Names are typed by whoever raised the payment and can be wrong or false.",
     "It never releases, rejects or stops a payment. A person confirms by calling a number they already had, then decides in Defense → Payments on hold.",
-    "Legion does not check the bank, the supplier's identity or the amount against an invoice.",
+    "Argust does not check the bank, the supplier's identity or the amount against an invoice.",
   ],
   async handler(ctx, q) {
     const to = ctx.now.toISOString();

@@ -1,8 +1,8 @@
-THIRD-PARTY NOTICES FOR LEGION 1.0.0
+THIRD-PARTY NOTICES FOR ARGUST 1.0.0
 
-Legion is built on open-source software. Each component below is the
+Argust is built on open-source software. Each component below is the
 copyright of its own authors and is licensed under its own terms, which
-are unaffected by the Legion licence in the LICENSE file. Full licence
+are unaffected by the Argust licence in the LICENSE file. Full licence
 texts ship inside each package's directory under node_modules/.
 
 Generated from the dependency tree on 2026-08-25 (327 packages).
@@ -26,7 +26,7 @@ SUMMARY BY LICENCE
 WORTH KNOWING
 
   The tree is overwhelmingly permissive (MIT / ISC / Apache-2.0), which
-  places no obligation on a Legion customer. Five packages are not, and
+  places no obligation on a Argust customer. Five packages are not, and
   a lawyer reviewing the LICENSE file should be told about them:
 
     @img/sharp-libvips-*     LGPL-3.0-or-later
@@ -38,13 +38,13 @@ WORTH KNOWING
     lightningcss (+ platform builds)   MPL-2.0
         CSS toolchain used at build time by Tailwind. MPL-2.0 is
         file-level copyleft and applies only to modifications of those
-        files; Legion does not modify them.
+        files; Argust does not modify them.
 
     caniuse-lite             CC-BY-4.0
         A browser-support dataset consumed at build time. The licence
         asks for attribution, which this file provides.
 
-  None of these are believed to restrict selling Legion under a
+  None of these are believed to restrict selling Argust under a
   proprietary licence. That belief is an engineering assessment, not
   legal advice.
 

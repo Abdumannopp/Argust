@@ -4,7 +4,7 @@
  * Authentication stays where it was: the per-credential HMAC scheme of
  * webhook-auth.ts / webhook-credentials.ts, checked on the raw bytes before
  * anything is parsed. This module only maps an authenticated Wazuh alert to a
- * Finding. The mapping is the one Legion has always used, and the external id
+ * Finding. The mapping is the one Argust has always used, and the external id
  * is the same, so alert ids are unchanged by the move (no duplicates on upgrade).
  */
 import { clip, isIp } from "../ai-safety.js";
@@ -13,7 +13,7 @@ import type { NormalizeResult, PushAdapter } from "./types.js";
 
 /**
  * The sensor's own time for an event (Wazuh: "2026-09-30T01:02:03.456+0000"),
- * or null. Kept apart from created_at (when Legion stored it) because they
+ * or null. Kept apart from created_at (when Argust stored it) because they
  * differ when a sensor re-sends from its spool after an outage — an analyst
  * needs to know an alert that arrived now happened an hour ago. Anything
  * unparseable, before 2000 or more than five minutes in the future (a wrong
@@ -50,7 +50,7 @@ export const wazuhAdapter: PushAdapter = {
   manifest: {
     kind: "wazuh", displayName: "Wazuh", vendor: "Wazuh", status: "available", plane: "data",
     inbound: "push", outbound: [], egressHosts: [],
-    summary: "Alerts from Wazuh managers (and compatible senders) through the Legion integration script, with an on-disk spool for outages.",
+    summary: "Alerts from Wazuh managers (and compatible senders) through the Argust integration script, with an on-disk spool for outages.",
     auth: "Per-credential HMAC-SHA256 over timestamp, nonce and raw body (Settings → Sensor credentials); replay-protected.",
   },
   normalize(body: unknown): NormalizeResult {
@@ -59,11 +59,11 @@ export const wazuhAdapter: PushAdapter = {
     const event: any = b.event || b;
     const description = String(event?.rule?.description || "");
     if (!description) return { skipped: true, reason: "no rule description" };
-    // Legion's own automatic response, as Wazuh records it (rule group
+    // Argust's own automatic response, as Wazuh records it (rule group
     // "legion_response", integrations/wazuh/legion_rules.xml). Ingesting it
     // would make every block look like more activity from the blocked address.
     const groups: unknown[] = Array.isArray(event?.rule?.groups) ? event.rule.groups : [];
-    if (groups.some((g) => String(g) === "legion_response")) return { skipped: true, reason: "Legion's own response" };
+    if (groups.some((g) => String(g) === "legion_response")) return { skipped: true, reason: "Argust's own response" };
     const level = Number(event.rule?.level || 0);
     // Whatever the sensor sends is bounded and shaped before it is stored: these
     // fields feed prompts and analyst-facing suggestions, and are attacker-

@@ -21,7 +21,7 @@ export interface IngestResult {
 }
 
 /**
- * The one place external content enters Legion's AI paths. It classifies,
+ * The one place external content enters Argust's AI paths. It classifies,
  * records flagged content against the principal it reached (which is what
  * raises that principal's risk in the agent firewall), and builds prompts
  * that keep the content in the data channel.

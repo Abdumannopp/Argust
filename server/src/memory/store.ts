@@ -1,5 +1,5 @@
 /**
- * SOC memory: what people (or Legion's deterministic code) recorded about an
+ * SOC memory: what people (or Argust's deterministic code) recorded about an
  * address, host, account or alert title. Facts for context — never
  * instructions, never permissions.
  *
@@ -9,7 +9,7 @@
  *    subject keys are validated per type (an ip must be an IP address).
  *  - Every entry expires (at most a year); a workspace holds at most
  *    MAX_PER_TENANT live entries.
- *  - Memory can only make Legion MORE careful: e.g. a person marking an
+ *  - Memory can only make Argust MORE careful: e.g. a person marking an
  *    address as a false positive makes the orchestrator skip containment for
  *    it; nothing in memory can make an action more likely to run.
  */

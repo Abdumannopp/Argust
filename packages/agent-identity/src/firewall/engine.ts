@@ -64,7 +64,7 @@ export interface FirewallOptions {
   /** Optional second opinions (e.g. an LLM classifier). They can only make a decision stricter. */
   advisors?: Advisor[];
   advisorTimeoutMs?: number;
-  /** Called after every WARN or BLOCK is logged — e.g. to raise a Legion alert. Errors are ignored. */
+  /** Called after every WARN or BLOCK is logged — e.g. to raise a Argust alert. Errors are ignored. */
   onDecision?: (ctx: FirewallContext, req: ActionRequest, d: FirewallDecision) => void | Promise<void>;
   /** DNS resolver used by guardedRequest; every address it returns is checked. */
   dnsLookup?: (host: string) => Promise<{ address: string; family: number }[]>;
@@ -375,7 +375,7 @@ export class AgentFirewall {
       d.hits = d.hits.map((h) => (h.effect === "CONFIRM" ? { ...h, effect: "WARN" as const, reason: `${h.reason} ${note}` } : h));
       this.compose(d);
     };
-    // Inside an execution a consumed approval already covers (set by Legion's
+    // Inside an execution a consumed approval already covers (set by Argust's
     // own executors, never from a request): the nested checks of the same action.
     if (ctx.confirmed) {
       satisfy(`Covered by approval ${ctx.confirmed.approvalId}.`);

@@ -75,7 +75,7 @@ export const accountActivityWatch: SkillDefinition<Input, Output> = {
   auditEvents: ["skill.invoke"],
   example: { windowHours: 24 },
   limitations: [
-    "It only sees sign-ins that reach Legion as events with a user and an address; an application that does not log sign-ins is invisible to it.",
+    "It only sees sign-ins that reach Argust as events with a user and an address; an application that does not log sign-ins is invisible to it.",
     "A VPN, a mobile network or shared office address makes one person look like several sources. Treat patterns as leads, not proof.",
     "Event timestamps are in the sensor's time; it does not judge 'unusual hours' because it does not know the user's time zone.",
     "Addresses in logs can be forged by a sender who controls the log text. Check before acting on one.",

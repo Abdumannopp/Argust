@@ -42,7 +42,7 @@ describe("the same attacking address in two platforms", () => {
     await ingestFindings(tA, "okta", [f()]);
     expect((await query("SELECT count(*)::int AS n FROM alerts WHERE tenant_id = $1 AND source = $2 AND title LIKE 'One attack seen%'", [tA, CORRELATION_SOURCE])).rows[0].n).toBe(1);
   });
-  it("one platform alone, however many alerts, is not it; nor is Legion's own alert a platform", async () => {
+  it("one platform alone, however many alerts, is not it; nor is Argust's own alert a platform", async () => {
     await ingestFindings(tA, "okta", [f(), f(), f()]);
     await ingestFindings(tA, "legion-payments", [f()]);
     expect(await multi(tA)).toHaveLength(0);

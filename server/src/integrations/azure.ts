@@ -3,7 +3,7 @@
  *
  * Entra ID app registration with the Reader role (or Security Reader) on the subscription; client credentials.
  * Hosts: login.microsoftonline.com and management.azure.com only (a paging link to any other host is refused).
- * The list API has no server-side time filter, so Legion keeps alerts newer than the cursor (timeGeneratedUtc);
+ * The list API has no server-side time filter, so Argust keeps alerts newer than the cursor (timeGeneratedUtc);
  * an alert is stored once by its name (id).
  */
 import { z } from "zod";

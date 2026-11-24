@@ -61,7 +61,7 @@ export default function Sidebar() {
   return (
     <>
     <aside className="hidden md:flex flex-col w-60 shrink-0 border-r border-white/[0.06] bg-[#1c1c1e]/60 backdrop-blur-2xl backdrop-saturate-150 min-h-screen py-5 px-3 sticky top-0 h-screen overflow-y-auto">
-      <Link href="/" className="px-2 mb-7 block" aria-label={`Legion — ${t.nav.dashboard}`}>
+      <Link href="/" className="px-2 mb-7 block" aria-label={`Argust — ${t.nav.dashboard}`}>
         <LegionLogo layout="horizontal" size={38} tagline={false} />
       </Link>
 

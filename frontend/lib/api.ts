@@ -49,9 +49,9 @@ export interface Alert {
   source_ip: string | null;
   target: string | null;
   mitre_technique: string | null;
-  /** Where the alert came from: "wazuh", an integration kind, or Legion itself ("legion-test", "legion-monitor", …). */
+  /** Where the alert came from: "wazuh", an integration kind, or Argust itself ("legion-test", "legion-monitor", …). */
   source?: string | null;
-  /** When the event happened at its source (the sensor's own timestamp); created_at is when Legion stored it. */
+  /** When the event happened at its source (the sensor's own timestamp); created_at is when Argust stored it. */
   occurred_at?: string | null;
   /** English text of the suggested next steps (kept for API clients). */
   suggested_actions: string[];
@@ -60,7 +60,7 @@ export interface Alert {
   suggested_action_codes: SuggestedAction[];
   /** Language the stored ai_explanation was written in. */
   ai_explanation_locale: Locale | null;
-  /** Who wrote ai_explanation: a model ("ai") or Legion's built-in rules ("local"). */
+  /** Who wrote ai_explanation: a model ("ai") or Argust's built-in rules ("local"). */
   ai_explanation_source?: "ai" | "local" | null;
   /** True only when a model wrote the stored explanation — show it as a suggestion. */
   ai_generated?: boolean;
@@ -489,7 +489,7 @@ export interface InvitePreview {
   email: string;
   role: "admin" | "analyst" | "viewer";
   tenant_name: string | null;
-  /** The address already has a Legion account: accept by signing in, not by choosing a password. */
+  /** The address already has a Argust account: accept by signing in, not by choosing a password. */
   existing_account?: boolean;
 }
 
@@ -582,7 +582,7 @@ export interface ChatMessage {
 
 export interface CopilotReply {
   reply: string;
-  /** "ai" when a model answered, "local" when Legion's built-in analysis did. */
+  /** "ai" when a model answered, "local" when Argust's built-in analysis did. */
   source: "ai" | "local";
   ai_generated: boolean;
   /** Always true: nothing in a reply is acted on. */
@@ -962,7 +962,7 @@ export interface IntegrationHealth {
 export function getIntegrationHealth(): Promise<IntegrationHealth> {
   return request("/integrations/health");
 }
-/** Ask Legion to poll a working pull connection at once instead of waiting for its interval. */
+/** Ask Argust to poll a working pull connection at once instead of waiting for its interval. */
 export function checkConnectionNow(id: string): Promise<ConnectionInfo> {
   return request(`/integrations/${encodeURIComponent(id)}/check`, { method: "POST" });
 }
@@ -1117,7 +1117,7 @@ export function updateAutoResponse(patch: Partial<Omit<AutoResponseSettings, "ac
 }
 
 
-// ---- Legion's five agents and their skills ---------------------------------
+// ---- Argust's five agents and their skills ---------------------------------
 export type LegionAgentName = "Sentinel" | "Hunter" | "Guardian" | "Oracle" | "Vanguard";
 export interface SkillInfo {
   name: string;
@@ -1140,7 +1140,7 @@ export function unassignSkill(identityId: string, skill: string): Promise<unknow
   return request(`/skills/assignments/${encodeURIComponent(identityId)}/${encodeURIComponent(skill)}`, { method: "DELETE" });
 }
 
-// ---- The seven most dangerous attack types: what Legion sees -----------------
+// ---- The seven most dangerous attack types: what Argust sees -----------------
 export type ThreatName = "ransomware" | "bec" | "phishing" | "ddos" | "ai_deception" | "espionage" | "supply_chain";
 export interface ThreatCoverage {
   threat: ThreatName;
@@ -1198,7 +1198,7 @@ export function rejectPayment(id: string): Promise<{ payment: PaymentCheck }> {
   return request(`/security/payments/${encodeURIComponent(id)}/reject`, { method: "POST" });
 }
 
-// --- Protection modes: how much Legion may do on its own, because a person said so (SOC core) ---
+// --- Protection modes: how much Argust may do on its own, because a person said so (SOC core) ---
 
 export type ProtectionMode = "manual" | "hybrid" | "automatic";
 export interface ProtectionSettings {
@@ -1237,13 +1237,13 @@ export const setActionsPaused = (paused: boolean, reason?: string) =>
 export interface ResponseActionResult {
   action: { id: string; action_id: string; status: "denied" | "recorded" | "awaiting_approval" | "queued" | "running" | "executed" | "failed" | "cancelled" | "rejected" | "expired" | "simulated"; error: string | null; target: string | null };
 }
-/** Ask Legion to act in a connected system for real. Critical actions wait for two other administrators. */
+/** Ask Argust to act in a connected system for real. Critical actions wait for two other administrators. */
 export function proposeResponse(action_id: "host.isolate" | "host.release" | "account.disable" | "account.enable", input: Record<string, unknown>, reason: string): Promise<ResponseActionResult> {
   const idempotency_key = `ui-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 12)}`;
   return request("/actions", { method: "POST", body: JSON.stringify({ action_id, input, mode: "live", idempotency_key, reason }) });
 }
 export interface ExecutedAction { id: string; action_id: string; input: Record<string, unknown>; target: string | null; status: string; created_at: string; result: Record<string, unknown> | null }
-/** Actions Legion really carried out, newest first (the list the undo view is built from). */
+/** Actions Argust really carried out, newest first (the list the undo view is built from). */
 export const getExecutedActions = () => request<{ actions: ExecutedAction[] }>("/actions?status=executed&limit=200");
 export const getSocApprovals = () => request<{ approvals: SocApproval[] }>("/approvals?status=pending");
 export function decideSocApproval(a: SocApproval, decision: "approve" | "reject", opts: { reason?: string; mfa_code?: string } = {}) {

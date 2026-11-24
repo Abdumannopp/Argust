@@ -1,10 +1,10 @@
 # Plans and prices
 
-The price list below is what Legion shows on the website and enforces in the
+The price list below is what Argust shows on the website and enforces in the
 product. It lives in one place, `server/src/plans.ts` (the website has an exact
 copy, `frontend/lib/plans.ts`, and a test fails if they differ).
 
-Source: "Legion — recommended prices and plans". These are a **commercial
+Source: "Argust — recommended prices and plans". These are a **commercial
 recommendation**, not a guaranteed market price: validate them against your real
 hosting and AI costs on pilot customers before you launch.
 
@@ -25,7 +25,7 @@ Currency: USD. Annual = 10 months' price (two months free, 16.7% off).
 | Administrators | 2 | 5 | 20 | by agreement |
 | Alert history | 30 days | 90 days | 180 days | 365+ days |
 | AI analysis | basic | extended | extended | custom |
-| The five Legion agents | — | yes | yes | yes |
+| The five Argust agents | — | yes | yes | yes |
 | AI Agent Security | — (add-on) | yes | yes | yes |
 | Payment fraud check | add-on | yes | yes | yes |
 | Blocking attacker addresses | — | with your approval | by policy | custom policy |
@@ -67,9 +67,9 @@ Basic Setup $300–500 · Professional Setup $750–1,500 · Enterprise Integrat
 |---|---|
 | **Administrators** | Inviting or promoting an administrator beyond the plan's number is refused (403 `plan_limit`). Invited-but-not-joined admins count. Analysts and viewers are not limited. |
 | **Alert history** | Resolved alerts older than the plan keeps them are deleted (hosted only). Open and investigating alerts are never deleted. |
-| **Endpoints** | **Reported, never enforced.** Usage is shown in Billing with a warning when over the limit. Legion keeps recording every event: dropping telemetry over a billing limit would leave a hole in a customer's security history that can never be filled. Machines seen in the last 30 days count. |
+| **Endpoints** | **Reported, never enforced.** Usage is shown in Billing with a warning when over the limit. Argust keeps recording every event: dropping telemetry over a billing limit would leave a hole in a customer's security history that can never be filled. Machines seen in the last 30 days count. |
 | **Copilot assistant** | Part of extended AI analysis: refused on Starter. |
-| **The five Legion agents** (skills) | Refused on Starter. |
+| **The five Argust agents** (skills) | Refused on Starter. |
 | **AI Agent Security** (agent identities, firewall, tokens) | Refused on Starter unless the add-on is bought. Stopping an agent (kill switch, suspend, revoke) is always allowed. |
 | **Payment check** | The signed check is refused (403) on Starter without the add-on; the payment software then does not pay automatically. Holds already made can still be released or rejected. |
 | **Blocking addresses** | None on Starter. Professional: a person blocks (automatic blocking cannot be turned on). Business and up: automatic blocking by policy. The Wazuh manager gets an empty list on a plan without blocking. Turning blocking off never needs a plan. |
@@ -95,9 +95,9 @@ prices. A subscription whose price is not in these lists grants no access.
 ## From choosing a plan to working under it
 
 1. **Choose and pay.** On the Billing page an administrator picks a plan, a period and add-ons; Paddle's checkout takes the payment.
-2. **The plan applies.** Paddle's signed webhook tells Legion which prices were bought; the workspace's plan and add-ons are set from that (never from what the browser asked for), and the page shows the new limits within seconds.
+2. **The plan applies.** Paddle's signed webhook tells Argust which prices were bought; the workspace's plan and add-ons are set from that (never from what the browser asked for), and the page shows the new limits within seconds.
 3. **The limits are enforced** from that moment (see "What each limit does in the product").
-4. **Changing plan later.** A workspace that already pays never opens a second subscription (`POST /billing/checkout-context` answers 409 `already_subscribed`, so nobody is billed twice). The administrator presses *Switch to …*; Legion changes the items of the existing Paddle subscription (`POST /billing/change-plan`):
+4. **Changing plan later.** A workspace that already pays never opens a second subscription (`POST /billing/checkout-context` answers 409 `already_subscribed`, so nobody is billed twice). The administrator presses *Switch to …*; Argust changes the items of the existing Paddle subscription (`POST /billing/change-plan`):
    - a more expensive plan: the difference for the rest of the period is charged at once to the payment method on file;
    - a cheaper plan: the difference is credited against the next bill;
    - the new plan applies immediately, and it is the plan **Paddle confirms**, not the one requested. If Paddle refuses (a declined card) or cannot be reached, nothing changes.

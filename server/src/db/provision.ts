@@ -2,7 +2,7 @@ import { randomBytes } from "node:crypto";
 import type pg from "pg";
 
 /*
- * Legion's API should not talk to Postgres as the superuser.
+ * Argust's API should not talk to Postgres as the superuser.
  *
  * The official Postgres image makes POSTGRES_USER the bootstrap superuser,
  * and until now the API connected as that user. A superuser can read and
@@ -10,7 +10,7 @@ import type pg from "pg";
  * create roles, change server settings and reach every database — so one
  * SQL injection or one leaked DATABASE_URL was the whole machine.
  *
- * provisionAppRole() gives the API its own role instead: it owns Legion's
+ * provisionAppRole() gives the API its own role instead: it owns Argust's
  * tables (so boot-time migrations keep working) and nothing more. It is run
  * by a one-shot step that holds the superuser password — `node
  * dist/db/provision-cli.js`, run once by hand or from a deploy script; the

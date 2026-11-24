@@ -1,5 +1,5 @@
 /**
- * Legion ships in English only (it is built for the global market).
+ * Argust ships in English only (it is built for the global market).
  *
  * Every piece of interface text lives in a namespace file under ./ns, written
  * once per language with `defineMessages`. The English object defines the

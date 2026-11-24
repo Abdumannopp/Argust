@@ -1,4 +1,4 @@
--- F-04 (PR-3a): row-level security for the tables Legion only ever reaches workspace-first
+-- F-04 (PR-3a): row-level security for the tables Argust only ever reaches workspace-first
 -- (db/rls.ts RLS_TABLES — the MUST_SCOPE set of the tenant-query guard).
 --
 -- The policy shows and accepts a row only when its tenant_id is the workspace the session

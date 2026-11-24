@@ -204,7 +204,7 @@ describe("stopping dangerous tool execution", () => {
     expect(outcome).toMatchObject({ principal_id: agent.id, tool_kind: "shell", outcome: "aborted" });
   });
 
-  it("on another Legion instance too, within its status check interval", async () => {
+  it("on another Argust instance too, within its status check interval", async () => {
     const { agent, token } = await agentWithToken(t, "alice", { permissions: PERMS });
     const ctx = { principal: await principalOf(token) };
     const second = await makeApp({ pool: new pg.Pool({ connectionString: DATABASE_URL, max: 5 }), extra: { killSwitchPollMs: 100 } });
@@ -334,7 +334,7 @@ describe("notifying administrators", () => {
     const res = await kill(agent.id);
     expect(res.body.notification).toMatchObject({ status: "sent" });
     expect(notices).toEqual([expect.objectContaining({
-      tenantId: TENANT_A, severity: "high", subject: '[Legion] Suspended AI agent "triage-bot" — suspected compromise',
+      tenantId: TENANT_A, severity: "high", subject: '[Argust] Suspended AI agent "triage-bot" — suspected compromise',
       events: [expect.objectContaining({ identityId: agent.id, reason: "Exfiltration to an unknown host seen in egress logs", actorId: "alice" })],
     })]);
     const list = (await request(t.app).get("/kill-switch/notifications").set(as("alice"))).body.notifications;
@@ -404,7 +404,7 @@ describe("tenant-wide emergency stop", () => {
     expect((await request(t.app).get("/agent/v1/whoami").set(bearer(sa.token))).status).toBe(200);
     expect((await request(t.app).get("/agent/v1/alerts").set(bearer(other.token))).status).toBe(200);
     // One notice for the whole stop.
-    expect(notices.at(-1)).toMatchObject({ subject: "[Legion] Kill switch: 2 identities suspended — suspected compromise" });
+    expect(notices.at(-1)).toMatchObject({ subject: "[Argust] Kill switch: 2 identities suspended — suspected compromise" });
     expect(notices.at(-1)!.events).toHaveLength(2);
   });
 

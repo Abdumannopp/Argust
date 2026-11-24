@@ -38,7 +38,7 @@ export const incident = defineMessages({
     },
     respond: {
       title: "Respond in your systems",
-      intro: "Act where the attack is, through a response connection. Isolating a host or suspending an account is critical: after you ask, two other administrators must approve it with their two-factor code. Legion never does this on its own.",
+      intro: "Act where the attack is, through a response connection. Isolating a host or suspending an account is critical: after you ask, two other administrators must approve it with their two-factor code. Argust never does this on its own.",
       isolate: (host: string) => `Isolate ${host} from the network`,
       suspend: (account: string) => `Suspend the account ${account}`,
       via: "Through which EDR",
@@ -49,7 +49,7 @@ export const incident = defineMessages({
       confirmIsolate: (host: string) => `Ask to isolate ${host}? It will be cut off from the network once two other administrators approve.`,
       confirmSuspend: (account: string) => `Ask to suspend ${account}? The person will not be able to sign in once two other administrators approve.`,
       reason: (alertId: string) => `From alert ${alertId}`,
-      nothing: "This alert names no host or account Legion could act on.",
+      nothing: "This alert names no host or account Argust could act on.",
       waiting: "Request recorded. It is waiting for two other administrators to approve it on the Defense page.",
       executed: "Done.",
       failed: (why: string) => `Not done: ${why}`,

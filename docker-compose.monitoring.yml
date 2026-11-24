@@ -1,4 +1,4 @@
-# Monitoring for the Legion pilot: Prometheus + Alertmanager + Grafana, all
+# Monitoring for the Argust pilot: Prometheus + Alertmanager + Grafana, all
 # bound to 127.0.0.1 (reach them through an SSH tunnel; never publish them).
 # Replaces an earlier version that mounted a file that did not exist.
 #

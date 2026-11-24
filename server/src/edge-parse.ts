@@ -1,5 +1,5 @@
 /**
- * Parsing of the settings that decide who Legion believes on the network:
+ * Parsing of the settings that decide who Argust believes on the network:
  * which proxies may speak for a client's address, and which web origins may
  * talk to the API. No imports, so config.ts can refuse to boot on a bad value
  * without a circular dependency on the runtime code in edge.ts.
@@ -38,7 +38,7 @@ function validCidrOrIp(entry: string): boolean {
 
 /**
  * TRUSTED_PROXIES:
- *   (unset)             loopback only — nginx/Caddy on the same host, which is how Legion
+ *   (unset)             loopback only — nginx/Caddy on the same host, which is how Argust
  *                       is deployed (it listens on 127.0.0.1 by default)
  *   none                trust nobody: the client is whoever opened the TCP connection
  *   2                   trust the last N hops BY POSITION (cloud load balancers whose

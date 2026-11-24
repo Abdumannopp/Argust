@@ -42,7 +42,7 @@
   },
   {
     "section": "Wazuh manager (container)",
-    "name": "manager restarted with the Legion integration configured",
+    "name": "manager restarted with the Argust integration configured",
     "pass": true,
     "detail": ""
   },
@@ -54,7 +54,7 @@
   },
   {
     "section": "chain: log → manager → webhook → Postgres → outbox → email + realtime → API",
-    "name": "the manager's brute-force alert reached Legion's API",
+    "name": "the manager's brute-force alert reached Argust's API",
     "pass": true,
     "detail": ""
   },
@@ -116,31 +116,31 @@
     "detail": ""
   },
   {
-    "section": "Legion down: the manager keeps firing, the integration spools, nothing is lost",
-    "name": "the manager fired its alert while Legion was down",
+    "section": "Argust down: the manager keeps firing, the integration spools, nothing is lost",
+    "name": "the manager fired its alert while Argust was down",
     "pass": true,
     "detail": ""
   },
   {
-    "section": "Legion down: the manager keeps firing, the integration spools, nothing is lost",
-    "name": "while Legion is down, the integration spools the event on the manager",
+    "section": "Argust down: the manager keeps firing, the integration spools, nothing is lost",
+    "name": "while Argust is down, the integration spools the event on the manager",
     "pass": true,
     "detail": ""
   },
   {
-    "section": "Legion down: the manager keeps firing, the integration spools, nothing is lost",
-    "name": "Legion restarted",
+    "section": "Argust down: the manager keeps firing, the integration spools, nothing is lost",
+    "name": "Argust restarted",
     "pass": true,
     "detail": ""
   },
   {
-    "section": "Legion down: the manager keeps firing, the integration spools, nothing is lost",
+    "section": "Argust down: the manager keeps firing, the integration spools, nothing is lost",
     "name": "after restart the spooled event and the new one both arrive",
     "pass": true,
     "detail": ""
   },
   {
-    "section": "Legion down: the manager keeps firing, the integration spools, nothing is lost",
+    "section": "Argust down: the manager keeps firing, the integration spools, nothing is lost",
     "name": "alerts by address",
     "note": [
       {
@@ -396,19 +396,19 @@
     ]
   },
   {
-    "section": "Legion down: the manager keeps firing, the integration spools, nothing is lost",
+    "section": "Argust down: the manager keeps firing, the integration spools, nothing is lost",
     "name": "…exactly once each (no duplicate from the re-send)",
     "pass": true,
     "detail": ""
   },
   {
-    "section": "Legion down: the manager keeps firing, the integration spools, nothing is lost",
+    "section": "Argust down: the manager keeps firing, the integration spools, nothing is lost",
     "name": "the spool is empty again",
     "pass": true,
     "detail": ""
   },
   {
-    "section": "Legion down: the manager keeps firing, the integration spools, nothing is lost",
+    "section": "Argust down: the manager keeps firing, the integration spools, nothing is lost",
     "name": "alert count",
     "note": {
       "before_outage": 48,

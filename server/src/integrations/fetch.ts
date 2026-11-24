@@ -5,7 +5,7 @@
  * label: "securityhub.*.amazonaws.com" allows securityhub.eu-west-1.amazonaws.com),
  * with a timeout and a response-size cap. An adapter never fetches a URL a
  * customer typed: a connection's configuration chooses among the vendor's
- * hosts, it cannot point Legion at an internal address.
+ * hosts, it cannot point Argust at an internal address.
  */
 import type { IntegrationManifest } from "./types.js";
 

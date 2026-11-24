@@ -6,8 +6,8 @@
  *   poll 2+ asks whether it is ready; when it is, reads its chunks         → findings, cursor moves forward
  * An export that fails, or is not ready after two hours, is dropped and asked for again.
  * API keys of a user with the Basic role and "Can View" on the assets (X-ApiKeys header), sealed per connection;
- * cloud.tenable.com only. One Legion alert per (asset, plugin): re-scans do not repeat it.
- * Legion never starts a scan and never changes anything in Tenable.
+ * cloud.tenable.com only. One Argust alert per (asset, plugin): re-scans do not repeat it.
+ * Argust never starts a scan and never changes anything in Tenable.
  */
 import { z } from "zod";
 import { adapterFetch } from "./fetch.js";

@@ -1,5 +1,5 @@
 /*
- * The seven attack types Legion watches for, and what each one looks like in
+ * The seven attack types Argust watches for, and what each one looks like in
  * the logs a sensor sends. Shared by the server (real-time campaign
  * detection) and by the skills (coverage and analysis), so both read the
  * same evidence the same way.
@@ -103,7 +103,7 @@ export function strongThreats(text: string): Threat[] {
 export const ACTIVITY_AFTER_INSTALL = /\b(?:reverse shell|bash -i|powershell(?:\.exe)? -enc|outbound connection|command[- ]and[- ]control|\bc2\b|beacon\w*|new (?:service|scheduled task)|suspicious process)\b/i;
 
 /**
- * What data a sensor must send for Legion to see each threat. Legion can only
+ * What data a sensor must send for Argust to see each threat. Argust can only
  * detect what reaches it; this says what to look for in the events to know a
  * source is connected.
  */
@@ -117,7 +117,7 @@ export const THREAT_SOURCES: Record<Threat, { re: RegExp; connect: string }> = {
   ddos: { re: /\b(?:web server|nginx|apache|iis|http|firewall|waf|cloudflare|load balancer)\b/i,
     connect: "Web server, firewall or WAF logs; for protection, an edge service such as Cloudflare in front of the site." },
   ai_deception: { re: /\b(?:office ?365|exchange|mailbox|teams|zoom|call|voice)\b/i,
-    connect: "Mailbox audit logs catch what follows a deepfake (payment change, forwarding). The call or video itself never reaches Legion." },
+    connect: "Mailbox audit logs catch what follows a deepfake (payment change, forwarding). The call or video itself never reaches Argust." },
   espionage: { re: /\b(?:process (?:created|started)|sysmon|auditd|powershell|outbound connection|dns)\b/i,
     connect: "Process, PowerShell and outbound-connection (DNS/firewall) events from servers and workstations." },
   supply_chain: { re: /\b(?:dpkg|rpm|yum|apt(?:-get)?|msiexec|npm|pip|package (?:installed|updated|upgraded|removed)|software (?:installed|updated)|code[- ]signing|signature verification)\b/i,

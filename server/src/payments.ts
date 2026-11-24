@@ -2,16 +2,16 @@
  * Payment check: stopping financial fraud before the money leaves.
  *
  * Business email compromise, deepfake "CEO" calls and stolen accounts all end
- * the same way: a payment to an account the attacker controls. Legion is not
+ * the same way: a payment to an account the attacker controls. Argust is not
  * in the payment path, so the customer's payment software (ERP, bank
- * connector, treasury tool) asks Legion first, with the sensor credential it
+ * connector, treasury tool) asks Argust first, with the sensor credential it
  * already has:
  *
  *   POST /security-events/payment-check   (signed, like the blocklist)
  *   { "action": "payment-check", "beneficiary": { "account": "...", "name": "..." },
  *     "amount": 12500, "currency": "USD", "requestedBy": "dana@acme.example" }
  *
- * Legion answers "allow" or "hold", with reasons. A hold stays until a person
+ * Argust answers "allow" or "hold", with reasons. A hold stays until a person
  * confirms the payment by calling a number they already had (never one from
  * the email or the call) and releases it in the dashboard; the payment
  * software asks again and gets "allow".
@@ -69,7 +69,7 @@ const REASON_TEXT: Record<HoldReason, string> = {
   rejected_before: "A person in your organisation rejected this same payment.",
 };
 
-export const VERIFY_ADVICE = "Confirm the payment by calling the supplier or colleague on a phone number you already had — never one from the email, the invoice or the call itself; a familiar voice or video can be synthetic. Then release it in Legion (Defense → Payments on hold).";
+export const VERIFY_ADVICE = "Confirm the payment by calling the supplier or colleague on a phone number you already had — never one from the email, the invoice or the call itself; a familiar voice or video can be synthetic. Then release it in Argust (Defense → Payments on hold).";
 
 export function normaliseAccount(account: string): string {
   return account.replace(/[\s.-]/g, "").toUpperCase();
@@ -88,7 +88,7 @@ export function paymentHashKeys(): string[] {
     current = Buffer.from(hkdfSync("sha256", config.jwtSecret, "legion-payment-hash", "payment hash dev key v1", 32)).toString("hex");
     if (!warnedDerived && process.env.NODE_ENV !== "test") {
       warnedDerived = true;
-      console.warn("Legion: WARNING — PAYMENT_HASH_KEY is not set; payment hashes use a key derived from JWT_SECRET (development only; production refuses to start).");
+      console.warn("Argust: WARNING — PAYMENT_HASH_KEY is not set; payment hashes use a key derived from JWT_SECRET (development only; production refuses to start).");
     }
   }
   return [current, ...config.paymentHashPreviousKeys.filter((k) => k !== current)];

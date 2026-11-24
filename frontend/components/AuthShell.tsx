@@ -26,7 +26,7 @@ export default function AuthShell({ title, children, footer }: { title: string; 
     <main className="relative min-h-screen lg-app-bg lg-auth-bg flex flex-col items-center justify-center gap-8 p-6">
       <AuthLanguageSwitcher />
       {/* i18n-ignore: brand name */}
-      <Link href="/" aria-label="Legion">
+      <Link href="/" aria-label="Argust">
         <LegionLogo layout="stacked" size={84} tagline={false} />
       </Link>
       <div className="w-full max-w-sm rounded-2xl border border-line bg-surface p-6">

@@ -3,7 +3,7 @@
  * an indicator. Used by Hunter's `threat_intelligence` skill and by the "Check reputation" button on an alert.
  *
  * Rules that hold whatever the source:
- *  - Only on demand. Legion never sends indicators to a third party by itself; a person or an agent asks.
+ *  - Only on demand. Argust never sends indicators to a third party by itself; a person or an agent asks.
  *  - Only what may leave: a private or reserved address is never sent anywhere (it means nothing outside and
  *    would tell a third party about the inside of the network); a source is sent only the types it supports.
  *  - No source, no opinion. An indicator nobody has information on is absent from the result — never guessed.

@@ -1,6 +1,6 @@
 # Setting up email (SMTP) and Paddle Billing
 
-Both are **optional** in self-hosted mode. Without them Legion works normally —
+Both are **optional** in self-hosted mode. Without them Argust works normally —
 no emails are sent, and the billing page says "not configured".
 (In SaaS mode email is required — see [SAAS.md](SAAS.md).)
 
@@ -26,7 +26,7 @@ SMTP_PORT=587
 SMTP_USER=you@gmail.com
 SMTP_PASSWORD=your-app-password
 SMTP_SECURE=false
-SMTP_FROM=Legion <you@gmail.com>
+SMTP_FROM=Argust <you@gmail.com>
 ALERT_EMAIL_MIN_SEVERITY=high
 ```
 
@@ -56,7 +56,7 @@ create an **App Password** and put it in `SMTP_PASSWORD`.
 
 Dashboard → **Settings** → notification email. If empty, nothing is sent.
 
-Restart Legion, then click **Settings → Send test**.
+Restart Argust, then click **Settings → Send test**.
 
 ## Checking
 
@@ -135,10 +135,10 @@ Paddle → Notifications → **New destination**:
 
 ```
 The user clicks "Upgrade"
-  → Legion creates a checkout_token (a signed JWT containing the tenant_id)
+  → Argust creates a checkout_token (a signed JWT containing the tenant_id)
   → Paddle.js passes it to the checkout in custom_data
   → Paddle returns it in the webhook
-  → Legion verifies the token and links the subscription to the right tenant
+  → Argust verifies the token and links the subscription to the right tenant
 ```
 
 So a browser cannot steal another tenant's subscription — the tenant ID comes

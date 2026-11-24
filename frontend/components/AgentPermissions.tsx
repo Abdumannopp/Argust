@@ -11,7 +11,7 @@ const TIER_STYLE: Record<number, string> = {
   2: "text-warning bg-warning/10",
 };
 
-/** In Legion (alerts, devices…) first, then tools and outside services. */
+/** In Argust (alerts, devices…) first, then tools and outside services. */
 const isTool = (id: string) => id.startsWith("tool.");
 
 export function TierBadge({ tier }: { tier: number }) {

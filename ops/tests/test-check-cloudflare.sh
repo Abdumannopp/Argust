@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Tests for ops/check-cloudflare-setup.sh against a local stand-in for "Legion
+# Tests for ops/check-cloudflare-setup.sh against a local stand-in for "Argust
 # behind Cloudflare", whose answers can be switched between a correct setup and
 # each misconfiguration the script is meant to catch.
 #
@@ -72,7 +72,7 @@ run --ranges-dir "$WORK/cf" --server-ip 127.0.0.1 --origin-ports "$CLOSED"
 t "exits 0" '[[ $(code) == 0 ]]'
 t "DNS points at Cloudflare" 'says "Cloudflare addresses"'
 t "the answer came through Cloudflare" 'says "came through Cloudflare"'
-t "the webhook reaches Legion (refused unsigned, as it should)" 'says "the webhook reaches Legion"'
+t "the webhook reaches Argust (refused unsigned, as it should)" 'says "the webhook reaches Argust"'
 t "the origin port is closed" "says \"127.0.0.1:$CLOSED does not answer directly\""
 [[ $(code) == 0 ]] || cat "$WORK/out"
 

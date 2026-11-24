@@ -14,7 +14,7 @@ import type { MachinePrincipal } from "../types.js";
 // ---- Capabilities ------------------------------------------------------------
 
 /**
- * What a skill may read, and the existing Legion permission each one needs.
+ * What a skill may read, and the existing Argust permission each one needs.
  * A capability is only a name for a permission the agent must already hold:
  * assigning a skill grants nothing.
  */
@@ -24,7 +24,7 @@ export const SKILL_CAPABILITIES = {
   "read:threat_intel": { permission: "intel:read", description: "Look up indicators with the configured threat-intelligence provider." },
   "read:vulnerabilities": { permission: "vulnerabilities:read", description: "Read vulnerability findings for the tenant's assets." },
   "read:payments": { permission: "payments:read", description: "Read the tenant's payment checks: amount, currency, who asked, why a payment was held. Never an account number." },
-  "run:security_self_test": { permission: "security:self_test", description: "Run synthetic attacks against Legion's own in-process defences." },
+  "run:security_self_test": { permission: "security:self_test", description: "Run synthetic attacks against Argust's own in-process defences." },
 } as const satisfies Record<string, { permission: Permission; description: string }>;
 
 export type SkillCapability = keyof typeof SKILL_CAPABILITIES;
@@ -35,9 +35,9 @@ export function capabilityPermission(c: SkillCapability): Permission {
 }
 
 /**
- * Legion's five agents. Every skill belongs to the agent whose job it serves.
+ * Argust's five agents. Every skill belongs to the agent whose job it serves.
  * Skills only read and recommend, so even Vanguard's skills propose actions:
- * what Legion actually changes (a block, a credential reset) goes through the
+ * what Argust actually changes (a block, a credential reset) goes through the
  * normal guarded routes and a person's approval.
  */
 export const LEGION_AGENTS = ["Sentinel", "Hunter", "Guardian", "Oracle", "Vanguard"] as const;
@@ -59,7 +59,7 @@ export const SEVERITY_RANK: Record<Severity, number> = { low: 1, medium: 2, high
 const isoTime = z.iso.datetime({ offset: true });
 const shortText = (max: number) => z.string().max(max);
 
-/** One security event (a Legion alert). Host data is validated; unknown fields are dropped. */
+/** One security event (a Argust alert). Host data is validated; unknown fields are dropped. */
 export const securityEventSchema = z.object({
   id: z.string().min(1).max(200),
   tenantId: z.string().min(1).max(100),
@@ -162,7 +162,7 @@ export interface SecurityEventQuery {
  * The host's data, read on behalf of a skill. Every method receives the
  * tenant id from the authenticated agent — never from skill input — and
  * every record it returns is validated and checked against that tenant.
- * A provider that reaches outside Legion (threat intelligence) should do so
+ * A provider that reaches outside Argust (threat intelligence) should do so
  * through the firewall's egress executor (`identity.firewall.request`).
  */
 export interface SkillDataSource {
@@ -229,7 +229,7 @@ export interface SkillContext {
 export interface SkillDefinition<I = unknown, O = unknown> {
   /** Unique, lowercase snake_case. */
   name: string;
-  /** The Legion agent this skill belongs to. */
+  /** The Argust agent this skill belongs to. */
   agent: LegionAgent;
   title: string;
   description: string;
@@ -312,9 +312,9 @@ export const narrativeSchema = z.strictObject({ trust: z.literal("model_output")
 export const proposedActionSchema = z.strictObject({
   action: z.string().max(100),
   description: z.string().max(1_000),
-  /** The Legion permission this action would need, or null when Legion has no such action for machines. */
+  /** The Argust permission this action would need, or null when Argust has no such action for machines. */
   permission: z.string().max(100).nullable(),
-  /** Only a person may do this (suspension, containment, deletion, anything outside Legion's grantable permissions). */
+  /** Only a person may do this (suspension, containment, deletion, anything outside Argust's grantable permissions). */
   humanOnly: z.boolean(),
   destructive: z.boolean(),
   /** From reviewProposedAction(): allow | confirm | block, given the external content this plan was built from. */

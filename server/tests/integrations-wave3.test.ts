@@ -176,7 +176,7 @@ describe("Palo Alto Cortex XDR", () => {
 });
 
 describe("vulnerability findings from scanners", () => {
-  it("are written the way Legion's vulnerability skills read them (CVE-… affects <component>)", async () => {
+  it("are written the way Argust's vulnerability skills read them (CVE-… affects <component>)", async () => {
     expect(componentOf("Apache Log4j < 2.15.0 RCE (Log4Shell)")).toBe("Apache-Log4j-2.15.0-RCE-Log4Shell");
     const f = findingFromScannerVuln({ scanner: "Tenable", id: "a:1", name: "Apache Log4j < 2.15.0 RCE", cves: ["cve-2021-44228", "not-a-cve", "CVE-2021-45046"], severity: "critical", host: "web-1", ip: "10.0.0.5", os: "Linux", firstFound: null, solution: "Upgrade to 2.17.1", detail: null, hasFix: true })!;
     expect(f.title).toBe("CVE-2021-44228 affects Apache-Log4j-2.15.0-RCE on web-1");
@@ -268,7 +268,7 @@ describe("Qualys", () => {
     expect(out.findings[0]!.title).toBe("CVE-2021-44228 affects Apache-Log4j-Remote-Code-Execution-Log4Shell on web-1.acme.io");
     expect(hosts()).toEqual(["qualysapi.qualys.eu"]);
     expect(calls[0]!.headers.authorization).toBe(`Basic ${Buffer.from("reader:pw-SECRET").toString("base64")}`);
-    expect(calls[0]!.headers["x-requested-with"]).toBe("Legion");
+    expect(calls[0]!.headers["x-requested-with"]).toBe("Argust");
     expect(new URLSearchParams(calls[0]!.body).get("severities")).toBe("4-5");
     expect(new URLSearchParams(calls[1]!.body).get("ids")).toBe("376157");
     expect(Date.parse((out.cursor as { since: string }).since)).toBeGreaterThan(Date.now() - 60_000);

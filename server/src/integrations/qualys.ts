@@ -5,10 +5,10 @@
  * is in the account's URL; never a free address):
  *   host detection list   which QIDs are open on which hosts, changed since the cursor
  *   knowledge base        the name, CVEs and fix of those QIDs
- * Qualys answers in XML. Only the handful of documented tags Legion needs are read, from a size-capped response,
+ * Qualys answers in XML. Only the handful of documented tags Argust needs are read, from a size-capped response,
  * with no general XML parser: no entities are expanded and no external reference is ever followed.
  * A read-only API user (Reader role, API access), sent as HTTP Basic; sealed per connection.
- * One Legion alert per (host, QID). Legion never launches a scan and never changes anything in Qualys.
+ * One Argust alert per (host, QID). Argust never launches a scan and never changes anything in Qualys.
  */
 import { z } from "zod";
 import { adapterFetch } from "./fetch.js";
@@ -90,7 +90,7 @@ export const qualysAdapter: PullAdapter = {
   async poll(conn, cursor, signal) {
     const host = QUALYS_PLATFORMS[String(conn.config.platform ?? "us1") as keyof typeof QUALYS_PLATFORMS] ?? QUALYS_PLATFORMS.us1;
     const m = qualysAdapter.manifest;
-    const headers = { authorization: `Basic ${Buffer.from(`${conn.secrets.username ?? ""}:${conn.secrets.password ?? ""}`).toString("base64")}`, "x-requested-with": "Legion", "content-type": "application/x-www-form-urlencoded" };
+    const headers = { authorization: `Basic ${Buffer.from(`${conn.secrets.username ?? ""}:${conn.secrets.password ?? ""}`).toString("base64")}`, "x-requested-with": "Argust", "content-type": "application/x-www-form-urlencoded" };
     const post = async (path: string, form: Record<string, string>, what: string) => {
       const res = await adapterFetch(m, `https://${host}${path}`, { method: "POST", signal, timeoutMs: 60_000, maxBytes: 32 * 1024 * 1024, headers, body: new URLSearchParams(form).toString() });
       if (res.status === 409 || res.status === 429 || res.status >= 500) throw new Error(`Qualys answered ${res.status} (${what}); will retry`);

@@ -1,18 +1,18 @@
-# Wazuh → Legion integration
+# Wazuh → Argust integration
 
-When the Wazuh manager detects a security event, it sends it to Legion.
-Legion turns it into an alert and streams it live to the dashboard over WebSocket.
+When the Wazuh manager detects a security event, it sends it to Argust.
+Argust turns it into an alert and streams it live to the dashboard over WebSocket.
 
 ```
-Wazuh agent → Wazuh manager → custom-legion → POST /security-events/webhook → Legion → dashboard
+Wazuh agent → Wazuh manager → custom-legion → POST /security-events/webhook → Argust → dashboard
 ```
 
 ---
 
-## 1. Create a webhook credential in Legion
+## 1. Create a webhook credential in Argust
 
 Every organisation has **its own random credential**: `KEY_ID:SECRET`
-(`whk_…:whs_…`). There is no shared secret. A Legion administrator creates the
+(`whk_…:whs_…`). There is no shared secret. A Argust administrator creates the
 credential, and **the secret is shown only once**. The server encryption key
 (`WEBHOOK_ENCRYPTION_KEY`, created by `npm run setup`) encrypts the secrets in
 the database.
@@ -26,7 +26,7 @@ npm run webhook:credential -w server -- create --tenant TENANT_ID --label "wazuh
 or, as an administrator, through the API: `POST /security-events/credentials`.
 
 **Important:** without a credential, nothing is accepted on the organisation's
-behalf (401). Legion does not need a restart.
+behalf (401). Argust does not need a restart.
 
 ---
 
@@ -75,7 +75,7 @@ In `/var/ossec/etc/ossec.conf`, inside `<ossec_config>`:
 
 | Field | Notes |
 |---|---|
-| `hook_url` | Legion API address — **`https://`** in production. If installed following [DEPLOY-ONLINE.md](DEPLOY-ONLINE.md): `https://YOUR_DOMAIN/api/security-events/webhook`. If Wazuh runs on the same server as Legion: `http://127.0.0.1:8000/security-events/webhook` |
+| `hook_url` | Argust API address — **`https://`** in production. If installed following [DEPLOY-ONLINE.md](DEPLOY-ONLINE.md): `https://YOUR_DOMAIN/api/security-events/webhook`. If Wazuh runs on the same server as Argust: `http://127.0.0.1:8000/security-events/webhook` |
 | `api_key` | The `KEY_ID:SECRET` from step 1, separated by a colon |
 | `level` | Alerts at this level and above are sent. `7` is a sensible start |
 | `alert_format` | **Must be `json`** |
@@ -113,9 +113,9 @@ python3 /var/ossec/integrations/custom-legion.py \
 
 ---
 
-## Wazuh level → Legion severity
+## Wazuh level → Argust severity
 
-| Wazuh level | Legion severity |
+| Wazuh level | Argust severity |
 |---|---|
 | 12+ | critical |
 | 9–11 | high |
@@ -141,8 +141,8 @@ python3 /var/ossec/integrations/custom-legion.py \
 
 ## Security notes
 
-In production, put Legion behind **HTTPS** — there is an example in
-`deploy/nginx.conf`. By default the Legion API listens only on `127.0.0.1`
+In production, put Argust behind **HTTPS** — there is an example in
+`deploy/nginx.conf`. By default the Argust API listens only on `127.0.0.1`
 (`LEGION_BIND_ADDRESS`), so Wazuh on another server can reach it only through
 the HTTPS proxy — this is deliberate.
 
@@ -186,13 +186,13 @@ API: `GET/POST /security-events/credentials`, `POST …/:id/rotate`, `DELETE …
 
 ---
 
-## Legion unreachable: nothing is lost (spool)
+## Argust unreachable: nothing is lost (spool)
 
-When Legion cannot be reached (restart, outage, network) or answers 5xx/429,
+When Argust cannot be reached (restart, outage, network) or answers 5xx/429,
 `custom-legion.py` retries a few times and then **keeps the event on disk**
 in `/var/ossec/tmp/legion-spool/<key id>/` (owner-only permissions; the secret
 is never written). The next alert re-sends the backlog first, oldest first,
-signed afresh. Legion de-duplicates by event id, so a re-send is never a
+signed afresh. Argust de-duplicates by event id, so a re-send is never a
 second alert, and the original Wazuh `timestamp` is kept as the alert's
 `occurred_at`.
 
@@ -201,7 +201,7 @@ For quiet periods, run the drain every minute on the manager:
 
 - Each credential has its own spool: one organisation's backlog is never sent
   with another organisation's credential.
-- An event Legion **refuses** (401/403 — e.g. a revoked credential — or 400)
+- An event Argust **refuses** (401/403 — e.g. a revoked credential — or 400)
   is kept in `<key id>/dead/`, not retried. After rotating a credential,
   re-send what the old one could not deliver:
   `custom-legion.py --drain <new KEY_ID:SECRET> <hook_url> --from <old key id>`
@@ -226,12 +226,12 @@ The failure counts are kept in `failures.state` in the spool folder.
 
 ## Automatic response: blocking the attacker through Wazuh
 
-Automated and AI-assisted attacks make dozens of attempts in seconds. Legion
+Automated and AI-assisted attacks make dozens of attempts in seconds. Argust
 groups related alerts into **attack campaigns** (Dashboard → **Defense**) and,
 if you choose, blocks the attacker's address through your Wazuh manager in
 **about a minute**.
 
-### What Legion treats as a campaign
+### What Argust treats as a campaign
 
 | Rule | Condition | Auto-blocked |
 |---|---|---|
@@ -250,12 +250,12 @@ if you choose, blocks the attacker's address through your Wazuh manager in
 | Slow intrusion (`slow_intrusion`) | ≥ 3 attack stages from one source spread over days (up to 7) | no |
 
 Each new campaign is **one** alert (the "Hunter" agent), not one per attempt.
-See [THREATS.md](THREATS.md) for what Legion can and cannot do against each
+See [THREATS.md](THREATS.md) for what Argust can and cannot do against each
 attack type.
 
 ### Safety limits (cannot be switched off)
 
-- **Off** by default — Legion only detects and reports. An administrator turns
+- **Off** by default — Argust only detects and reports. An administrator turns
   it on in the Defense page (recorded in the audit log).
 - **Public** IP addresses only: private (10.x, 192.168.x, 172.16–31.x), CGNAT,
   loopback and documentation addresses are never blocked automatically.
@@ -293,18 +293,18 @@ Check: `/var/ossec/logs/integrations.log` shows a line
 ### How it works
 
 1. Every minute Wazuh runs `custom-legion.py --sync-blocklist`; it fetches the
-   list from Legion with a **signed** request (only this organisation's list).
+   list from Argust with a **signed** request (only this organisation's list).
 2. For a new address it writes one JSON line to `legion-blocklist.log`.
 3. Wazuh rule 100950 sees the line and runs the `firewall-drop` active response
    **on every agent**.
-4. Wazuh removes the block itself after `<timeout>` (600 s). While Legion still
+4. Wazuh removes the block itself after `<timeout>` (600 s). While Argust still
    wants the block, the script re-announces the address every 5 minutes, so the
    block does not lapse.
-5. If you unblock in Legion, the script stops announcing it and Wazuh removes
+5. If you unblock in Argust, the script stops announcing it and Wazuh removes
    it within **10 minutes** at most.
 
-Legion's own blocking events (group `legion_response`) never come back to
-Legion as new alerts — this is checked on both sides.
+Argust's own blocking events (group `legion_response`) never come back to
+Argust as new alerts — this is checked on both sides.
 
 ### Honest limits
 

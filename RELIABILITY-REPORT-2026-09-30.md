@@ -1,4 +1,4 @@
-# Legion — Alert Pipeline Reliability Report (2026-09-30)
+# Argust — Alert Pipeline Reliability Report (2026-09-30)
 
 Phase 3 of the production-readiness work (after `PRODUCTION-READINESS-AUDIT-2026-09-29.md` and
 `SECURITY-HARDENING-2026-09-29.md`). It covers what is durable, what can still be lost or duplicated, how
@@ -27,11 +27,11 @@ any of them delays the dashboard by seconds; it never loses an alert.
 
 | Stage | Guarantee | Mechanism | Evidence |
 |---|---|---|---|
-| Wazuh → Legion | **At-least-once**, bounded by the spool size | Retries (4, backoff). Then a durable on-disk spool (fsync + atomic rename), per credential, drained oldest-first by the next alert or a 1-minute timer. Every re-send is signed afresh with a new nonce. | `test_custom_legion.py` (23), failover "database restart…", "total outage…" |
+| Wazuh → Argust | **At-least-once**, bounded by the spool size | Retries (4, backoff). Then a durable on-disk spool (fsync + atomic rename), per credential, drained oldest-first by the next alert or a 1-minute timer. Every re-send is signed afresh with a new nonce. | `test_custom_legion.py` (23), failover "database restart…", "total outage…" |
 | Webhook | **202 means committed.** Answers are 202 (stored or duplicate), 401 (refused), or 503 + `Retry-After` (DB down) | Signature verified over raw bytes, then one transaction. A DB error yields 503, never a half-stored alert. | `reliability-ingestion` "database outage…", failover "database restart…" |
 | Idempotency | **Exactly-once storage per event** | Alert id = HMAC(tenant, provider, event id or content). `INSERT … WHERE NOT EXISTS … ON CONFLICT DO NOTHING`. Duplicates burn no version and queue no jobs. | `alert-delivery-durability` "duplicate…", failover "same Wazuh event hitting two instances" |
 | Alert + follow-ups | **Atomic**: the alert, its asset upsert, its email job and its realtime job commit together or not at all | `outbox.insertAlertAndNotify` in a single transaction | `alert-delivery-durability` "database rollback…", failover "SIGKILL mid-burst: no partial alert" |
-| Ordering | Per-tenant gapless version `seq`, visible in commit order. `created_at` is when Legion stored the event; **new**: `occurred_at` is when it happened at the source. | `alerts_assign_seq` trigger; `eventTime()` | `alert-cursor` (27), `reliability-ingestion` "event time" |
+| Ordering | Per-tenant gapless version `seq`, visible in commit order. `created_at` is when Argust stored the event; **new**: `occurred_at` is when it happened at the source. | `alerts_assign_seq` trigger; `eventTime()` | `alert-cursor` (27), `reliability-ingestion` "event time" |
 | Email | **At-least-once**, retried with backoff (30 s × 2ⁿ, capped at 1 h, 8 attempts), then dead-lettered, visible, requeueable | Transactional outbox; claims use `SKIP LOCKED` with a lease fenced by the attempt number. Every retry carries the same `Message-ID`. | `notification-outbox`, `alert-delivery-durability`, failover "retry exhaustion…" |
 | Dashboard frames | Best effort (6 attempts, then dead). **The dashboard view is exactly-once**, because it converges on Postgres. | Frames carry `seq`; `hello`/`ping` carry the Postgres cursor every 5–20 s; `/alerts/sync` fills gaps; the client drops duplicates and stale versions | `realtime-recovery` (40), failover "several instances, Redis restart…" |
 | Worker crash | Queued work survives, and is delivered by any instance | Rows stay `pending`, or `sending` with a lease that expires and is reclaimed. A job that crashed the worker on its last attempt is dead-lettered, not looped. | failover "SIGKILL…" (3 scenarios) |
@@ -63,8 +63,8 @@ default, so it is metadata-only with no table rewrite, and old rows stay null.
 |---|---|---|
 | The Wazuh manager's disk is lost, or the spool write fails (disk full) | Events not yet delivered are lost. The integration log says `could not be spooled … lost`. | Monitor the manager's disk. Keep the spool on persistent storage. |
 | The spool exceeds `LEGION_SPOOL_MAX_FILES` (50 000) during a very long outage | The **oldest** events are dropped, loudly (`spool full … dropped`) | Size it for your outage budget (≈ events/min × minutes). |
-| Events Wazuh never hands to the integration (below the `<level>` filter, or integratord overload) | Never reach Legion | Wazuh-side configuration |
-| Legion's database volume is destroyed | Alerts committed since the last backup are lost. **RPO ≤ 24 h** (nightly `pg_dump`, no PITR — audit P1-13) | Managed Postgres with PITR, or WAL archiving. This is the largest remaining loss window. |
+| Events Wazuh never hands to the integration (below the `<level>` filter, or integratord overload) | Never reach Argust | Wazuh-side configuration |
+| Argust's database volume is destroyed | Alerts committed since the last backup are lost. **RPO ≤ 24 h** (nightly `pg_dump`, no PITR — audit P1-13) | Managed Postgres with PITR, or WAL archiving. This is the largest remaining loss window. |
 | Process crash between "SMTP accepted" and "marked sent" | **Duplicate email** after the lease (120 s), with the same `Message-ID` so a mail system can drop it | Inherent to SMTP. A DB-side failure no longer causes it (§2); only a process crash can. |
 | An email dead-lettered after 8 attempts (~1 h of retries) | Not sent until an admin requeues it (`POST /notifications/deliveries/retry-dead`) | Watch `dead` in `/notifications/health` or `/health/outbox` |
 | More than `ALERT_EMAIL_HOURLY_CAP` (100) alert emails per tenant per hour | Emails beyond the cap are **deliberately not queued** (the alert itself is stored and shown). This is an abuse cap, not a fault. | Raise the cap per deployment |
@@ -79,7 +79,7 @@ default, so it is metadata-only with no table rewrite, and old rows stay null.
 | Failure | Behaviour | Recovery | Time to recover |
 |---|---|---|---|
 | **Wazuh unavailable** | No events. After `SENSOR_SILENCE_MINUTES` (120), a **"Sensor silent"** alert is raised once per silence (idempotent across instances). | Automatic. The alert resolves itself when the sensor sends again, and the manager drains its own spool. | Detection ≤ threshold + 5 min |
-| **Legion API down / restarting** | The sensor retries, then spools | The next alert or the drain timer re-sends, oldest first, with a fresh signature. Duplicates collapse. | ≤ 1 min after Legion is back (timer) |
+| **Argust API down / restarting** | The sensor retries, then spools | The next alert or the drain timer re-sends, oldest first, with a fresh signature. Duplicates collapse. | ≤ 1 min after Argust is back (timer) |
 | **DB restart / failover** | Webhook answers 503 + `Retry-After`; `/health` 503; the API **stays up** | The pool reconnects on demand. The sensor spools, then drains. The outbox settles held outcomes on its first pass. | Seconds after the DB accepts connections |
 | **Redis outage** | Rate limits count per instance. Frames cannot fan out, so their jobs stay `pending`. | Tabs converge from Postgres via the heartbeat cursor. When Redis returns: `resync` to sockets, queued frames published, client dedupes. | Dashboard: ≤ one heartbeat; frames: on reconnect |
 | **Worker / app crash** | Queued jobs stay in Postgres | Any instance's worker reclaims `sending` rows after the lease (120 s). A crash on the final attempt is dead-lettered, not looped. | ≤ 120 s |

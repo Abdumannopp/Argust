@@ -4,8 +4,8 @@ import LegionWordmark from "./LegionWordmark";
 /**
  * The two lock-ups from the brand sheet.
  *
- *  - "stacked":    emblem above, LEGION, CYBERSECURITY INTELLIGENCE — sign-in, setup.
- *  - "horizontal": mark | divider | LEGION over the tagline — headers.
+ *  - "stacked":    emblem above, ARGUST, CYBERSECURITY INTELLIGENCE — sign-in, setup.
+ *  - "horizontal": mark | divider | ARGUST over the tagline — headers.
  */
 export default function LegionLogo({
   layout = "horizontal",
@@ -46,7 +46,7 @@ export default function LegionLogo({
           style={{ width: size * 1.2, marginTop: size * 0.14 }}
         />
         {/* i18n-ignore: brand name */}
-      <span className="sr-only">Legion Cybersecurity Intelligence</span>
+      <span className="sr-only">Argust Cybersecurity Intelligence</span>
       </div>
     );
   }
@@ -69,13 +69,13 @@ export default function LegionLogo({
         )}
       </span>
       {/* i18n-ignore: brand name */}
-      <span className="sr-only">Legion Cybersecurity Intelligence</span>
+      <span className="sr-only">Argust Cybersecurity Intelligence</span>
     </div>
   );
 }
 
 /**
- * The official logo file itself (emblem, LEGION, CYBERSECURITY INTELLIGENCE), for places with room for it.
+ * The official logo file itself (emblem, ARGUST, CYBERSECURITY INTELLIGENCE), for places with room for it.
  * It keeps its proportions (1200 × 420) and a transparent background; the tagline is legible from about 360 px wide.
  */
 export function LegionLockup({ width = 420, className = "" }: { width?: number; className?: string }) {
@@ -84,7 +84,7 @@ export function LegionLockup({ width = 420, className = "" }: { width?: number; 
     <img
       src="/brand/legion-horizontal.svg"
       // i18n-ignore: brand name
-      alt="Legion — Cybersecurity Intelligence"
+      alt="Argust — Cybersecurity Intelligence"
       width={width}
       height={Math.round((width * 420) / 1200)}
       className={`max-w-full h-auto ${className}`}

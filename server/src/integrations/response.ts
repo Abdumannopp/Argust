@@ -1,5 +1,5 @@
 /**
- * Response connectors: the systems Legion can ACT in — isolate a host through the EDR, suspend an account in the
+ * Response connectors: the systems Argust can ACT in — isolate a host through the EDR, suspend an account in the
  * identity provider. This is the only place an adapter changes something in a customer's environment.
  *
  * What keeps that safe:
@@ -10,7 +10,7 @@
  *    in a workspace whose administrator turned protection on. These actions can never be pre-authorised.
  *  - Every action has its opposite (isolate ↔ release, suspend ↔ restore), and each connection has a list of
  *    hosts or accounts that must never be touched.
- *  - The target is matched exactly. A host name that matches no device, or more than one, is refused: Legion
+ *  - The target is matched exactly. A host name that matches no device, or more than one, is refused: Argust
  *    does not guess which machine to cut off.
  *  - Hosts are fixed per vendor (adapterFetch); a customer cannot point a response at another address.
  */
@@ -77,7 +77,7 @@ export const crowdstrikeResponseAdapter: ResponseAdapter = {
   async respond(conn, action, target, signal) {
     if (action !== "host.isolate" && action !== "host.release") throw new ResponseRefused("CrowdStrike cannot do that");
     // The name goes into Falcon's filter language: only a plain host name is ever put there.
-    if (!HOSTNAME.test(target)) throw new ResponseRefused("Not a host name Legion can look up exactly");
+    if (!HOSTNAME.test(target)) throw new ResponseRefused("Not a host name Argust can look up exactly");
     if (isProtected(conn, target)) throw new ResponseRefused("This host is on the connection's never-touch list");
     const host = CROWDSTRIKE_CLOUDS[String(conn.config.cloud ?? "us-1") as keyof typeof CROWDSTRIKE_CLOUDS] ?? CROWDSTRIKE_CLOUDS["us-1"];
     const m = crowdstrikeResponseAdapter.manifest;
@@ -88,7 +88,7 @@ export const crowdstrikeResponseAdapter: ResponseAdapter = {
     let ids: string[] = [];
     try { const r = (JSON.parse(found.body) as { resources?: unknown }).resources; ids = (Array.isArray(r) ? r : []).filter((x): x is string => typeof x === "string" && /^[a-f0-9]{32}$/i.test(x)); } catch { throw new Error("CrowdStrike returned invalid JSON"); }
     if (ids.length === 0) throw new ResponseRefused(`CrowdStrike knows no device named ${target}`);
-    if (ids.length > 1) throw new ResponseRefused(`${ids.length} devices are named ${target}; Legion does not guess which one`);
+    if (ids.length > 1) throw new ResponseRefused(`${ids.length} devices are named ${target}; Argust does not guess which one`);
     const name = action === "host.isolate" ? "contain" : "lift_containment";
     const res = await adapterFetch(m, `https://${host}/devices/entities/devices-actions/v2?action_name=${name}`, {
       method: "POST", signal, timeoutMs: 30_000, maxBytes: 256 * 1024, headers: { ...auth, "content-type": "application/json" }, body: JSON.stringify({ ids }),
@@ -177,7 +177,7 @@ export const sentineloneResponseAdapter: ResponseAdapter = {
   actions: ["host.isolate", "host.release"],
   async respond(conn, action, target, signal) {
     if (action !== "host.isolate" && action !== "host.release") throw new ResponseRefused("SentinelOne cannot do that");
-    if (!HOSTNAME.test(target)) throw new ResponseRefused("Not a host name Legion can look up exactly");
+    if (!HOSTNAME.test(target)) throw new ResponseRefused("Not a host name Argust can look up exactly");
     if (isProtected(conn, target)) throw new ResponseRefused("This host is on the connection's never-touch list");
     const m = sentineloneResponseAdapter.manifest;
     const base = `https://${String(conn.config.console)}.sentinelone.net/web/api/v2.1`;
@@ -192,7 +192,7 @@ export const sentineloneResponseAdapter: ResponseAdapter = {
       ids = (Array.isArray(d) ? d : []).filter((a): a is { id: string; computerName: string } => !!a && typeof a === "object" && typeof (a as { id?: unknown }).id === "string" && /^\d{5,25}$/.test((a as { id: string }).id) && String((a as { computerName?: unknown }).computerName ?? "").toLowerCase() === target.toLowerCase()).map((a) => a.id);
     } catch { throw new Error("SentinelOne returned invalid JSON"); }
     if (ids.length === 0) throw new ResponseRefused(`SentinelOne knows no endpoint named ${target}`);
-    if (ids.length > 1) throw new ResponseRefused(`${ids.length} endpoints are named ${target}; Legion does not guess which one`);
+    if (ids.length > 1) throw new ResponseRefused(`${ids.length} endpoints are named ${target}; Argust does not guess which one`);
     const step = action === "host.isolate" ? "disconnect" : "connect";
     const res = await adapterFetch(m, `${base}/agents/actions/${step}`, { method: "POST", signal, timeoutMs: 30_000, maxBytes: 256 * 1024, headers, body: JSON.stringify({ filter: { ids } }) });
     if (res.status === 401 || res.status === 403) throw new Error(`SentinelOne refused the action (${res.status}); the token's role may not ${step} endpoints`);
@@ -221,7 +221,7 @@ export const defenderResponseAdapter: ResponseAdapter = {
   async respond(conn, action, target, signal) {
     if (action !== "host.isolate" && action !== "host.release") throw new ResponseRefused("Defender for Endpoint cannot do that");
     // The name goes into an OData filter: only a plain host name is ever put there.
-    if (!HOSTNAME.test(target)) throw new ResponseRefused("Not a host name Legion can look up exactly");
+    if (!HOSTNAME.test(target)) throw new ResponseRefused("Not a host name Argust can look up exactly");
     if (isProtected(conn, target)) throw new ResponseRefused("This host is on the connection's never-touch list");
     const m = defenderResponseAdapter.manifest;
     const tokenRes = await adapterFetch(m, `https://login.microsoftonline.com/${encodeURIComponent(String(conn.config.directory_id))}/oauth2/v2.0/token`, {
@@ -242,11 +242,11 @@ export const defenderResponseAdapter: ResponseAdapter = {
       ids = (Array.isArray(v) ? v : []).filter((d): d is { id: string } => !!d && typeof d === "object" && /^[a-f0-9]{40}$/i.test(String((d as { id?: unknown }).id ?? "")) && String((d as { computerDnsName?: unknown }).computerDnsName ?? "").toLowerCase() === target.toLowerCase()).map((d) => d.id);
     } catch { throw new Error("Defender returned invalid JSON"); }
     if (ids.length === 0) throw new ResponseRefused(`Defender knows no device named ${target} (it matches the full DNS name)`);
-    if (ids.length > 1) throw new ResponseRefused(`${ids.length} devices are named ${target}; Legion does not guess which one`);
+    if (ids.length > 1) throw new ResponseRefused(`${ids.length} devices are named ${target}; Argust does not guess which one`);
     const step = action === "host.isolate" ? "isolate" : "unisolate";
     const res = await adapterFetch(m, `https://${MDE}/api/machines/${ids[0]}/${step}`, {
       method: "POST", signal, timeoutMs: 30_000, maxBytes: 256 * 1024, headers,
-      body: JSON.stringify(action === "host.isolate" ? { Comment: "Legion: approved response action", IsolationType: "Full" } : { Comment: "Legion: approved release" }),
+      body: JSON.stringify(action === "host.isolate" ? { Comment: "Argust: approved response action", IsolationType: "Full" } : { Comment: "Argust: approved release" }),
     });
     if (res.status === 401 || res.status === 403) throw new Error(`Defender refused the action (${res.status}); the app needs Machine.Isolate with admin consent`);
     if (res.status === 400) throw new ResponseRefused(`Defender did not ${step} ${target}: the device is not in a state that allows it (already done, or an action is pending)`);
@@ -274,7 +274,7 @@ export const cortexResponseAdapter: ResponseAdapter = {
   actions: ["host.isolate", "host.release"],
   async respond(conn, action, target, signal) {
     if (action !== "host.isolate" && action !== "host.release") throw new ResponseRefused("Cortex XDR cannot do that");
-    if (!HOSTNAME.test(target)) throw new ResponseRefused("Not a host name Legion can look up exactly");
+    if (!HOSTNAME.test(target)) throw new ResponseRefused("Not a host name Argust can look up exactly");
     if (isProtected(conn, target)) throw new ResponseRefused("This host is on the connection's never-touch list");
     const m = cortexResponseAdapter.manifest;
     const base = `https://${String(conn.config.api_host)}/public_api/v1/endpoints`;
@@ -291,7 +291,7 @@ export const cortexResponseAdapter: ResponseAdapter = {
       ids = (Array.isArray(e) ? e : []).filter((x): x is { endpoint_id: string } => !!x && typeof x === "object" && /^[A-Za-z0-9-]{8,64}$/.test(String((x as { endpoint_id?: unknown }).endpoint_id ?? "")) && String((x as { endpoint_name?: unknown }).endpoint_name ?? "").toLowerCase() === target.toLowerCase()).map((x) => x.endpoint_id);
     } catch { throw new Error("Cortex XDR returned invalid JSON"); }
     if (ids.length === 0) throw new ResponseRefused(`Cortex XDR knows no endpoint named ${target}`);
-    if (ids.length > 1) throw new ResponseRefused(`${ids.length} endpoints are named ${target}; Legion does not guess which one`);
+    if (ids.length > 1) throw new ResponseRefused(`${ids.length} endpoints are named ${target}; Argust does not guess which one`);
     const step = action === "host.isolate" ? "isolate" : "unisolate";
     const res = await call(step, { endpoint_id: ids[0] });
     if (res.status === 401 || res.status === 403) throw new Error(`Cortex XDR refused the action (${res.status}); the key's role may not ${step} endpoints`);

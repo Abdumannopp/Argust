@@ -1,5 +1,5 @@
-# On the WAZUH MANAGER (not the Legion server): re-sends alerts that
-# custom-legion.py spooled while Legion was unreachable. Normally the next
+# On the WAZUH MANAGER (not the Argust server): re-sends alerts that
+# custom-legion.py spooled while Argust was unreachable. Normally the next
 # alert drains the spool on its own; this timer covers quiet periods.
 #
 #   sudo cp deploy/wazuh-legion-drain.{service,timer} /etc/systemd/system/
@@ -8,7 +8,7 @@
 #   sudo systemctl enable --now wazuh-legion-drain.timer
 
 [Unit]
-Description=Re-send spooled Wazuh alerts to Legion
+Description=Re-send spooled Wazuh alerts to Argust
 After=network-online.target wazuh-manager.service
 
 [Service]

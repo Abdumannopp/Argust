@@ -1,4 +1,4 @@
-"""Tests for the Wazuh -> Legion integration's delivery retries.
+"""Tests for the Wazuh -> Argust integration's delivery retries.
 
     python3 -m unittest integrations/test_custom_legion.py
 """
@@ -176,7 +176,7 @@ class RetryTests(unittest.TestCase):
         server.close()  # nothing listening any more
         code = self.mod.main(["custom-legion", self.alert_file, API_KEY, url])
         self.assertEqual(code, 1)
-        self.assertEqual(self.logged().count("could not reach Legion"), self.mod.MAX_ATTEMPTS)
+        self.assertEqual(self.logged().count("could not reach Argust"), self.mod.MAX_ATTEMPTS)
 
     def test_never_logs_secret_signature_or_alert_body(self):
         _, reqs = self.run_with([503])
@@ -214,7 +214,7 @@ def write_alert(path, alert_id, description="brute force"):
 
 
 class SpoolTests(unittest.TestCase):
-    """Legion unreachable must never mean the event is gone."""
+    """Argust unreachable must never mean the event is gone."""
 
     def setUp(self):
         self.dir = tempfile.TemporaryDirectory()
@@ -316,7 +316,7 @@ class SpoolTests(unittest.TestCase):
         down = self.down_url()
         for i in range(4):
             self.send(down, f"e-{i}")                       # e-0 is the oldest: it drains first
-        server = Server([500], default=202)                 # 500 for the oldest, then Legion accepts the rest
+        server = Server([500], default=202)                 # 500 for the oldest, then Argust accepts the rest
         try:
             self.assertEqual(self.mod.main(["custom-legion", "--drain", API_KEY, server.url]), 1)
         finally:
@@ -457,7 +457,7 @@ class SpoolTests(unittest.TestCase):
 
 
 class BlocklistTests(unittest.TestCase):
-    """--sync-blocklist: Legion's list becomes Wazuh active-response lines."""
+    """--sync-blocklist: Argust's list becomes Wazuh active-response lines."""
 
     def setUp(self):
         self.dir = tempfile.TemporaryDirectory()
@@ -581,7 +581,7 @@ if __name__ == "__main__":
 
 
 class PaymentCheckTests(unittest.TestCase):
-    """--payment-check: payment software asks Legion before paying."""
+    """--payment-check: payment software asks Argust before paying."""
 
     def setUp(self):
         self.dir = tempfile.TemporaryDirectory()
@@ -618,7 +618,7 @@ class PaymentCheckTests(unittest.TestCase):
         self.assertEqual(json.loads(out)["reasons"][0]["code"], "new_beneficiary")
 
     def test_any_failure_means_do_not_pay(self):
-        # Legion refuses, is unreachable, or answers nonsense: never exit 0.
+        # Argust refuses, is unreachable, or answers nonsense: never exit 0.
         self.assertEqual(self.ask({"detail": "x"}, status=401)[0], 1)
         self.assertEqual(self.ask({"decision": "maybe"})[0], 1)
         self.assertEqual(self.mod.payment_check("http://127.0.0.1:9/security-events/webhook", KEY_ID, SECRET, self.payment, out=io.StringIO()), 1)

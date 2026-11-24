@@ -138,13 +138,13 @@ describe("every tool call is verified: agent, tenant, tool, target, permission, 
     expect(ok.status).toBe(200);
   });
 
-  it("a viewer-owned agent cannot reach outside Legion even if granted a read tool", async () => {
+  it("a viewer-owned agent cannot reach outside Argust even if granted a read tool", async () => {
     const res = await request(t.app).post("/agents").set(as("alice")).send({ name: "v", ownerUserId: "vic", permissions: ["tool.http:read"] });
     expect(res.body.error.code).toBe("exceeds_owner_role");
   });
 });
 
-describe("tickets: a tool server can refuse anything Legion did not approve", () => {
+describe("tickets: a tool server can refuse anything Argust did not approve", () => {
   async function setup() {
     const agent = await agentWithToken(t, "alice", { permissions: ["tool.slack:write"] });
     const sa = await request(t.app).post("/service-accounts").set(as("alice")).send({ name: "slack-proxy" });
@@ -183,7 +183,7 @@ describe("tickets: a tool server can refuse anything Legion did not approve", ()
   });
 });
 
-describe("executing tools through Legion", () => {
+describe("executing tools through Argust", () => {
   it("shell: an allowlisted command runs without a shell; arguments are never interpreted", async () => {
     const { token } = await agentWithToken(t, "alice", { permissions: ["tool.shell:execute"] });
     const ctx = { principal: await principalOf(token) };

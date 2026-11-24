@@ -1,7 +1,7 @@
 /**
  * VirusTotal — reputation of addresses, domains, URLs and file hashes (API v3, read only).
  *
- * Legion asks about one indicator at a time with the customer's own API key (sealed per connection), on
+ * Argust asks about one indicator at a time with the customer's own API key (sealed per connection), on
  * www.virustotal.com only. The verdict is the count of security vendors: malicious when several flag it,
  * suspicious when one or two do, benign when many looked and none did. Nothing is uploaded: a hash is looked
  * up, a file is never sent; a URL is looked up by its identifier, it is not submitted for scanning.

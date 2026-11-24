@@ -1,8 +1,8 @@
-# Legion — Windows
+# Argust — Windows
 
 > **Updated (2026-09).** The previous version was out of date: it mentioned a
 > demo account `admin@legion.demo` / `legion123` and a `server/data/legion.json`
-> file. Both were removed in Legion 2.0 — no demo account is created on a
+> file. Both were removed in Argust 2.0 — no demo account is created on a
 > customer's server, and data is stored in PostgreSQL.
 > Never create an account with a publicly known password.
 
@@ -14,7 +14,7 @@ Set-ExecutionPolicy -Scope Process Bypass
 ```
 
 The script checks Node.js and PostgreSQL, installs the packages, runs
-`npm run setup` the first time (secrets and database), builds and starts Legion.
+`npm run setup` the first time (secrets and database), builds and starts Argust.
 
 - Dashboard: http://localhost:3000 — the first time you open it, you create
   **your own** administrator account; after that, sign-up closes.

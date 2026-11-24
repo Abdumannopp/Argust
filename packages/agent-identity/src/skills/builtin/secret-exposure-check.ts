@@ -6,7 +6,7 @@ import { assemblyOf, clip, eventText, isoMinusHours, propose } from "./common.js
 /*
  * Guardian: credentials, card numbers and bank account numbers that ended up
  * in logs. Whoever can read the logs can use them, and logs are copied to
- * many places (the sensor, Legion, backups, a ticket). Reports WHAT kind and
+ * many places (the sensor, Argust, backups, a ticket). Reports WHAT kind and
  * WHERE; never the value itself.
  */
 
@@ -42,8 +42,8 @@ const LABEL: Record<string, string> = {
   slack_token: "Chat token",
   llm_api_key: "AI service key",
   jwt: "Sign-in token (JWT)",
-  legion_credential: "Legion credential",
-  legion_access_token: "Legion access token",
+  legion_credential: "Argust credential",
+  legion_access_token: "Argust access token",
   plaintext_password: "Password or secret written in plain text",
   card_number: "Payment card number",
   iban: "Bank account number (IBAN)",
@@ -55,8 +55,8 @@ const ADVICE: Record<string, string> = {
   slack_token: "Revoke the token in the chat workspace settings.",
   llm_api_key: "Revoke the key with the AI provider and issue a new one.",
   jwt: "Sign the user out everywhere and shorten token lifetimes; the token works until it expires.",
-  legion_credential: "Rotate the credential in Legion (Connect).",
-  legion_access_token: "Suspend or revoke the agent in Legion (AI agents).",
+  legion_credential: "Rotate the credential in Argust (Connect).",
+  legion_access_token: "Suspend or revoke the agent in Argust (AI agents).",
   plaintext_password: "Change that password, then stop the application from logging it.",
   card_number: "Card numbers must not be in logs (card-industry rules). Remove them from the log source and the stored copies; tell whoever handles your card compliance.",
   iban: "Bank account numbers are personal data. Limit who can read these logs and stop the source from logging them.",
@@ -121,7 +121,7 @@ export const secretExposureCheck: SkillDefinition<Input, Output> = {
   auditEvents: ["skill.invoke"],
   example: { windowHours: 168 },
   limitations: [
-    "It reads only the events Legion received (the 500 most recent in the window). A secret in a log Legion never receives is not seen.",
+    "It reads only the events Argust received (the 500 most recent in the window). A secret in a log Argust never receives is not seen.",
     "It recognises well-known formats and checksummed numbers (card numbers, IBANs). A homemade secret or an unusual format is missed, and a plain password is guessed from words like 'password=' and can be wrong.",
     "It reports the kind and the place, never the value, and it cannot tell whether the secret is still valid.",
     "It does not remove anything. Cleaning the log source and rotating the secret are for a person.",

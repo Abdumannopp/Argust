@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 #
-# Restore Legion's database IN PLACE from a backup made by ops/backup.sh.
+# Restore Argust's database IN PLACE from a backup made by ops/backup.sh.
 # DESTRUCTIVE: every table in the target database is dropped and recreated
 # from the backup. The full procedure, in order, is RECOVERY.md.
 #
@@ -15,7 +15,7 @@
 # Runs in a single transaction (pg_restore --single-transaction): if anything
 # fails to apply, Postgres rolls the whole thing back. A half-restored database
 # that looks healthy is the worst outcome, and this cannot produce one.
-# Stop Legion's API first.
+# Stop Argust's API first.
 
 set -euo pipefail
 cd "$(dirname "$0")/.."
@@ -28,7 +28,7 @@ DUMP="${1:-}"
 [[ -n "$DUMP" && -f "$DUMP" ]] || { echo "usage: $0 <backup-file> --yes" >&2; exit 2; }
 [[ "${2:-}" == "--yes" ]] || {
   echo "This replaces every table in the target database with the contents of $DUMP." >&2
-  echo "Stop Legion's API first. Re-run with --yes to proceed." >&2
+  echo "Stop Argust's API first. Re-run with --yes to proceed." >&2
   exit 2
 }
 
@@ -58,4 +58,4 @@ fi
 TABLES="$(psql "$DATABASE_URL" -Atc \
   "SELECT count(*) FROM information_schema.tables WHERE table_schema='public' AND table_type='BASE TABLE'")"
 [[ "$TABLES" -gt 0 ]] || die "the database has no tables after restore — restore from an earlier backup immediately"
-log "OK — $TABLES tables present. Next: provisioning (if you use a separate app role), then start Legion (RECOVERY.md)."
+log "OK — $TABLES tables present. Next: provisioning (if you use a separate app role), then start Argust (RECOVERY.md)."

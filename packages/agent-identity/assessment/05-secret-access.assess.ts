@@ -43,7 +43,7 @@ describe("Secret access", () => {
   scenario({
     id: "SA-2",
     category: "Secret access",
-    title: "Admin tries to open Legion's own secret tables to agents via policy",
+    title: "Admin tries to open Argust's own secret tables to agents via policy",
     attackPath: "An administrator (possibly tricked by a compromised or malicious agent's suggestion) tries to set firewall policy so agents can query machine_credentials, machine_tokens, agent_delegations or principal_audit_log directly through the database tool.",
     expectedDefense: "The policy schema itself refuses to accept any protected table name, independent of admin intent — this cannot be misconfigured into existence.",
   }, async (ev) => {
@@ -63,9 +63,9 @@ describe("Secret access", () => {
   scenario({
     id: "SA-3",
     category: "Secret access",
-    title: "Agent tries to smuggle a real Legion credential through a tool call's arguments",
-    attackPath: "A compromised agent that somehow obtained a Legion credential or access token string tries to pass it as an argument to an allowed tool (e.g. embedded in a Slack message or an HTTP request body), for example to relay it out through a channel that isn't directly being watched.",
-    expectedDefense: "High-confidence secret-format detection scans tool arguments and blocks the call outright when a Legion credential/token pattern is found, whatever tool is used.",
+    title: "Agent tries to smuggle a real Argust credential through a tool call's arguments",
+    attackPath: "A compromised agent that somehow obtained a Argust credential or access token string tries to pass it as an argument to an allowed tool (e.g. embedded in a Slack message or an HTTP request body), for example to relay it out through a channel that isn't directly being watched.",
+    expectedDefense: "High-confidence secret-format detection scans tool arguments and blocks the call outright when a Argust credential/token pattern is found, whatever tool is used.",
   }, async (ev) => {
     const a = await mkAgent(w, ["tool.slack:write", "tool.http:write"]);
     const fakeCredential = `lgs_${"a".repeat(32)}_${"B".repeat(43)}`;
@@ -77,14 +77,14 @@ describe("Secret access", () => {
     const bothBlocked = viaSlack.status !== 200 && viaHttpBody.status !== 200;
     return bothBlocked
       ? defended(`Both blocked: ${viaSlack.status} (${viaSlack.body?.error?.rules}), ${viaHttpBody.status} (${viaHttpBody.body?.error?.rules}).`)
-      : notDefended(JSON.stringify({ slack: viaSlack.status, http: viaHttpBody.status }), "Critical", "Scan every tool call's arguments/body for Legion credential and token formats.");
+      : notDefended(JSON.stringify({ slack: viaSlack.status, http: viaHttpBody.status }), "Critical", "Scan every tool call's arguments/body for Argust credential and token formats.");
   });
 
   scenario({
     id: "SA-4",
     category: "Secret access",
     title: "Agent tries to pass a secret through an agent-to-agent message payload",
-    attackPath: "A compromised agent tries to relay a real Legion credential to a peer agent as the payload of an agent-to-agent request, hoping the peer (with different, perhaps broader, egress permissions) will carry it further.",
+    attackPath: "A compromised agent tries to relay a real Argust credential to a peer agent as the payload of an agent-to-agent request, hoping the peer (with different, perhaps broader, egress permissions) will carry it further.",
     expectedDefense: "The same secret-format scan applies to agent-to-agent payloads; the message is refused before it is ever stored or delivered.",
   }, async (ev) => {
     const sender = await mkAgent(w, ["alerts:read"]);

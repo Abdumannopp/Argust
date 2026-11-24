@@ -32,7 +32,7 @@ on_exit() {
   if (( ! OK )); then
     REASON="$(printf '%s' "${REASON:-unexpected error}" | scrub | tr '\n' ' ' | head -c 400)"
     status_set "restore_test_result=failed" "restore_test_failed_at=$(now_iso)" "restore_test_failure=$REASON"
-    send_alert "Legion backup restore test FAILED on $(hostname)" "$REASON"
+    send_alert "Argust backup restore test FAILED on $(hostname)" "$REASON"
     ping_monitor /fail
   fi
 }

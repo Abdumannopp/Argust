@@ -1,5 +1,5 @@
 /**
- * Reaching a server the CUSTOMER runs (MISP, OpenCTI): the one place Legion calls a host a customer typed.
+ * Reaching a server the CUSTOMER runs (MISP, OpenCTI): the one place Argust calls a host a customer typed.
  *
  * adapterFetch (fetch.ts) only ever calls hosts a manifest declares. A self-hosted threat-intelligence platform
  * has no vendor host, so this is the guarded exception, and it is narrow:
@@ -9,7 +9,7 @@
  *   - the connection is then made to exactly the address that was checked (the lookup is pinned), so a name
  *     that answers differently a moment later (DNS rebinding) cannot move the request inside;
  *   - no redirects are followed, the response is size-capped and timed out.
- * A platform that is only reachable inside the customer's network therefore cannot be connected to hosted Legion.
+ * A platform that is only reachable inside the customer's network therefore cannot be connected to hosted Argust.
  */
 import { lookup as dnsLookup } from "node:dns/promises";
 import { request as httpsRequest } from "node:https";

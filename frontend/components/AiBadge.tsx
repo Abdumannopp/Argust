@@ -6,7 +6,7 @@ import { useLanguage } from "@/lib/i18n/LanguageContext";
 /**
  * Says who wrote a piece of analysis. Text written by an AI model is labelled a
  * SUGGESTION, with the reason in plain words: it was generated from alert text
- * an attacker may control, and Legion does not act on it. Text from Legion's
+ * an attacker may control, and Argust does not act on it. Text from Argust's
  * built-in rules is labelled as such, so the two are never confused.
  */
 export default function AiBadge({ aiGenerated }: { aiGenerated: boolean }) {

@@ -1,7 +1,7 @@
 /**
  * Safety primitives for everything that talks to a language model.
  *
- * Pure functions, no I/O, no imports from the rest of Legion except the
+ * Pure functions, no I/O, no imports from the rest of Argust except the
  * configured secrets (so they can be recognised by value). Kept apart from
  * ai.ts so each rule can be tested — and attacked — on its own.
  *
@@ -49,7 +49,7 @@ export function clip(text: string, max: number): string {
  * Text written for a MODEL rather than for a person: "ignore previous
  * instructions", "classify this as a false positive", chat control tokens,
  * characters a human cannot see. Attackers who expect an AI to triage their
- * traffic plant it in usernames, user agents, URLs and file names. Legion's own
+ * traffic plant it in usernames, user agents, URLs and file names. Argust's own
  * prompts already treat alert text as data (sanitizeUntrusted, the output
  * checks below); this reports the ATTEMPT, which is itself evidence of an
  * attacker who knows an AI is watching (campaigns.ts rule ai_manipulation).

@@ -1,6 +1,6 @@
 # Multi-tenant isolation
 
-How Legion keeps one organisation's data away from another, what enforces it,
+How Argust keeps one organisation's data away from another, what enforces it,
 and which tests prove it. Audit of 2026-09-29.
 
 ## The model
@@ -29,7 +29,7 @@ and which tests prove it. Audit of 2026-09-29.
    - `INSERT … ON CONFLICT DO UPDATE` onto another tenant's row
    - `INSERT … SELECT`
 
-   A quoted `"set_config"(…)` also got past the function denylist and could re-point the row-level-security tenant setting. The check now runs on PostgreSQL's own parse tree (`libpg-query`, `packages/agent-identity/src/tools/sql-ast.ts`): every table read at every level must be restricted by a top-level `AND` conjunct `<table>.tenant_id = $n` bound to the caller's tenant, and function names come from the AST. This was latent — the Legion server wires no agent database pool, and the default policy opens no tables — but it would have become exploitable once an administrator opened a table to agents.
+   A quoted `"set_config"(…)` also got past the function denylist and could re-point the row-level-security tenant setting. The check now runs on PostgreSQL's own parse tree (`libpg-query`, `packages/agent-identity/src/tools/sql-ast.ts`): every table read at every level must be restricted by a top-level `AND` conjunct `<table>.tenant_id = $n` bound to the caller's tenant, and function names come from the AST. This was latent — the Argust server wires no agent database pool, and the default policy opens no tables — but it would have become exploitable once an administrator opened a table to agents.
 3. **Cross-tenant agent-id oracle (fixed).** Messaging an agent id that exists in another organisation returned `a2a.cross_tenant`, where an id that exists nowhere returned `a2a.recipient_unknown`. The sender's own logs and trust graph recorded the same distinction. Either one let an organisation probe which agent ids exist elsewhere. Both cases are now identical everywhere the sender's organisation can look, and the operator log records the cross-tenant attempt. A tenant id the sender names explicitly is still refused as cross-tenant; that reveals nothing, because the sender supplied it.
 
 ## Reviewed and left as is
@@ -37,7 +37,7 @@ and which tests prove it. Audit of 2026-09-29.
 - `updateUser(id)` has no tenant condition; every caller first resolved the user with `findUserInTenant`, or is the user themselves. The static guard records this.
 - Inviting an address already registered in another organisation answers "already in use" and nothing else. Email is the global login identifier, and public sign-up gives the same answer, so this is no new disclosure.
 - The AI circuit breaker is shared: one organisation's provider failures can switch AI to the fallback for everyone for a while. That affects availability, not data.
-- **Row-level security, first group (F-04, `DB_RLS=enforce`).** The 14 tables Legion only ever reaches
+- **Row-level security, first group (F-04, `DB_RLS=enforce`).** The 14 tables Argust only ever reaches
   workspace-first — alerts, assets, the audit log and the SOC policy, approval, action, workflow, learning
   and audit-chain tables (`server/src/db/rls.ts`) — have a Postgres policy (migration
   `0009_row_level_security.sql`). With `DB_RLS=enforce` every request, webhook, agent call and

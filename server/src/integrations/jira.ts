@@ -1,10 +1,10 @@
 /**
  * Jira Cloud — opens a ticket for an alert.
  *
- * One ticket per alert and connection: before creating, Legion looks for an issue labelled
+ * One ticket per alert and connection: before creating, Argust looks for an issue labelled
  * "legion-<alert id>" in the project, so a retry after a timeout (or a crash after the ticket was created)
  * finds the first ticket instead of opening a second. The site is chosen by name (acme → acme.atlassian.net),
- * never by URL; the only hosts Legion calls are *.atlassian.net. The API token is sealed per connection.
+ * never by URL; the only hosts Argust calls are *.atlassian.net. The API token is sealed per connection.
  *
  * Jira's search index lags a few seconds behind creation, so "search, then create" alone can open a second ticket when
  * a retry follows a create whose answer was lost (audit A-6). Two things close that window: the new key is written
@@ -73,7 +73,7 @@ export const jiraAdapter: OutboundAdapter = {
     if (existing) return { ref: { key: existing, url: `${base(conn)}/browse/${existing}` } };
     // 2. Create it. The attempt is recorded first: if the answer is lost, the retry knows a ticket may exist.
     await remember?.({ createAttemptedAt: new Date().toISOString() });
-    const lines = [msg.summary, msg.target ? `Host: ${msg.target}` : "", msg.sourceIp ? `Source address: ${msg.sourceIp}` : "", `Open in Legion: ${msg.link}`].filter(Boolean).map((t) => clean(t, 3000));
+    const lines = [msg.summary, msg.target ? `Host: ${msg.target}` : "", msg.sourceIp ? `Source address: ${msg.sourceIp}` : "", `Open in Argust: ${msg.link}`].filter(Boolean).map((t) => clean(t, 3000));
     const res = await adapterFetch(jiraAdapter.manifest, `${base(conn)}/rest/api/3/issue`, {
       method: "POST", headers: headers(conn), signal, timeoutMs: 20_000, maxBytes: 256 * 1024,
       body: JSON.stringify({

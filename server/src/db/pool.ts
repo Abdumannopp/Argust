@@ -11,7 +11,7 @@ export { MIGRATION_LOCK_TIMEOUT, MIGRATIONS_DIR, migrationFiles, schemaFingerpri
 
 const { Pool, types } = pg;
 
-// Return NUMERIC as a JS number. Legion only stores small values in numeric
+// Return NUMERIC as a JS number. Argust only stores small values in numeric
 // columns (confidence, counts); without this, node-postgres hands back strings
 // to avoid precision loss on big decimals.
 types.setTypeParser(1700, (value) => Number(value));

@@ -5,7 +5,7 @@
  * reader knows what Wazuh, a webhook or a firewall rule is:
  *   - what is protected   (connected sources, the machines they watch, AI agents under control)
  *   - what threats exist  (open alerts by severity — open ones only)
- *   - what Legion blocked (AI agent actions refused, contained, or waiting for a person)
+ *   - what Argust blocked (AI agent actions refused, contained, or waiting for a person)
  *   - what is left to set up (the getting-started checklist)
  * Every number comes from a query; nothing is estimated or invented.
  */
@@ -107,7 +107,7 @@ export async function overview(tenantId: string): Promise<Overview> {
   const contained = decisions?.contained ?? 0;
   const firstEvent = Boolean(realEvent?.ok) || sources.some((s) => s.last_event_at);
 
-  // AI agents are protected by Legion whether or not a sensor is connected,
+  // AI agents are protected by Argust whether or not a sensor is connected,
   // so what they need from a person is reported in every state.
   const agentReasons = [...(approvalsPending ? ["approvals_pending"] : []), ...(contained ? ["agent_contained"] : [])];
   const reasons: string[] = [];

@@ -1,6 +1,6 @@
 # Data retention, export and deletion
 
-What Legion keeps, for how long, and the tools that enforce it. Hosted installations only;
+What Argust keeps, for how long, and the tools that enforce it. Hosted installations only;
 a self-hosted installation keeps its data for as long as its owner likes.
 
 | Data | Kept | How it is enforced |

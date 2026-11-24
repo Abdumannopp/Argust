@@ -1,7 +1,7 @@
 /**
  * Refresh-token sessions.
  *
- * Legion's access token used to last an hour with no way to renew it, so a SOC
+ * Argust's access token used to last an hour with no way to renew it, so a SOC
  * analyst watching the dashboard through a shift was signed out every hour.
  * Simply extending the lifetime would have been worse: a stateless JWT cannot
  * be revoked, so a long one is a long-lived key that survives password changes

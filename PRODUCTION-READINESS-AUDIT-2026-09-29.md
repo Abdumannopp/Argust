@@ -1,7 +1,7 @@
-# Legion — Production-Readiness Audit (2026-09-29)
+# Argust — Production-Readiness Audit (2026-09-29)
 
 **Roles:** Principal Software Architect · Application Security Engineer · SaaS Reliability Engineer
-**Scope:** the full codebase in `Legion-2026-09-29-final-audit.zip` (≈40k lines: `server/`, `frontend/`,
+**Scope:** the full codebase in `Argust-2026-09-29-final-audit.zip` (≈40k lines: `server/`, `frontend/`,
 `packages/agent-identity/`, `ops/`, `deploy/`, `integrations/`, `.github/`) plus the current state of the
 GitHub repository `abdumannopp/legion-`.
 **Method:** I read the code and runtime configuration directly. Earlier audit documents (`SECURITY-AUDIT-*.md`,
@@ -55,7 +55,7 @@ delivery, operations, billing integrity and data lifecycle.**
 
 1. **P0: the deployable system is not in version control.** The GitHub repository holds only docs plus a stale
    Docker path that cannot build or boot against the current code. CI therefore never runs.
-2. **Alert pipeline durability.** A Legion restart or outage of more than about 10 seconds permanently loses Wazuh
+2. **Alert pipeline durability.** A Argust restart or outage of more than about 10 seconds permanently loses Wazuh
    alerts. Boot-time migrations take `ACCESS EXCLUSIVE` locks on `alerts`/`users`/`tenants` on every start.
 3. **Billing integrity.** The server never validates which price was bought. A late event from a different
    subscription can overwrite the tenant's current one. The subscription gate does not cover the AI-agent
@@ -79,7 +79,7 @@ delivery, operations, billing integrity and data lifecycle.**
 | ID | Sev | Area | Title |
 |---|---|---|---|
 | P0-1 | P0 | Delivery / Docker | Application source, CI and deploy assets are not in the repo; the committed Docker path is broken and unsafe |
-| P1-1 | P1 | Wazuh / alert pipeline | Alerts are permanently lost during any Legion outage or restart longer than ~10 s; large events are dropped |
+| P1-1 | P1 | Wazuh / alert pipeline | Alerts are permanently lost during any Argust outage or restart longer than ~10 s; large events are dropped |
 | P1-2 | P1 | PostgreSQL / migrations | Boot-time migrations lock hot tables on every start, in one transaction, with no lock timeout or versioning |
 | P1-3 | P1 | API security / rate limiting | Unauthenticated traffic to the sensor webhook (and `/health`) is exempt from all rate limiting |
 | P1-4 | P1 | Billing | The Paddle webhook grants access for any price or quantity; the client picks the price ID |
@@ -172,7 +172,7 @@ reconciled: diff each deployed tree against the committed tree before the first 
 
 ---
 
-### P1-1 — Alerts are permanently lost during any Legion outage or restart longer than ~10 s; large events are dropped
+### P1-1 — Alerts are permanently lost during any Argust outage or restart longer than ~10 s; large events are dropped
 
 **Risk.** This is the core promise of a SIEM-adjacent product, and it has several ways to lose data:
 
@@ -598,7 +598,7 @@ PITR.
 **Risk.** Login compares the password against a dummy hash when the email is unknown, to equalise timing. The
 dummy string is **64 characters**, while a valid bcrypt hash is 60, so `bcryptjs` returns `false` immediately.
 Measured: unknown email ≈ 1 ms, known email ≈ 350 ms. Invited accounts (`password_hash = ""`) are also fast.
-Anyone can enumerate which emails have Legion accounts, and which organisations use Legion, which enables targeted
+Anyone can enumerate which emails have Argust accounts, and which organisations use Argust, which enables targeted
 credential stuffing and phishing. The per-account limiter does not stop this, because enumeration needs only one
 request per email.
 
@@ -639,7 +639,7 @@ can reuse `activeSessionCount`. *Evidence:* `server/src/sessions.ts:42, 141-148`
 ### P2-3 — Global email enumeration via invites; unverified sign-ups squat emails; phishable invite subjects
 
 - **Enumeration through invites.** Emails are unique across tenants, and `/users/invite` answers "That email
-  address is already in use", which reveals that the address is a Legion user anywhere.
+  address is already in use", which reveals that the address is a Argust user anywhere.
 - **Email squatting.** Unverified hosted sign-ups are never cleaned up, so anyone can permanently reserve a
   victim's address and block future invitations to it.
 - **Phishing through invite emails.** Invite subjects embed the attacker-chosen tenant name and are sent from the
@@ -765,7 +765,7 @@ an external append-only store (S3 Object Lock or a transparency log). *Evidence:
 
 - **Blocked or anomalous agent activity raises no alert.** `createAgentIdentity` supports `onFirewallDecision`,
   `onBehaviorChange` and `onSecurityEvent`, but the server wires **none** of them. A firewall BLOCK, a behaviour
-  escalation or an auto-suspension creates no Legion alert, no realtime frame and no email (except the kill-switch
+  escalation or an auto-suspension creates no Argust alert, no realtime frame and no email (except the kill-switch
   admin notice). *Fix:* map them to `outbox.insertAlertAndNotify` with `source: "agent-firewall"`.
 - **Idle agents are never reassessed.** `behavior.sweep(tenantId)` is documented as "run every minute" but is not
   scheduled. Idle agents are therefore never reassessed. *Fix:* add it to `startBackgroundJobs`, iterating
@@ -920,6 +920,6 @@ foundation for almost every data-layer fix, so start it as soon as the source is
 - CI green and required on `main`.
 - Zero open P0/P1 findings.
 - A restore drill from an off-site copy completed within the stated RTO.
-- A 1-hour Legion outage replayed from Wazuh with zero lost alerts.
+- A 1-hour Argust outage replayed from Wazuh with zero lost alerts.
 - Billing sandbox tests covering foreign prices, discounts and multiple subscriptions.
 - A dashboard and alerts for ingestion, outbox, DB pool and backups.

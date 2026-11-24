@@ -38,7 +38,7 @@ function warn(reason: string): void {
   const now = Date.now();
   if (now - lastWarning < 60_000) return;
   lastWarning = now;
-  console.warn(`Legion: Turnstile verification unavailable (${reason}); sign-in and sign-up are refused until it recovers`);
+  console.warn(`Argust: Turnstile verification unavailable (${reason}); sign-in and sign-up are refused until it recovers`);
 }
 
 /** Asks Cloudflare whether `token` is a valid, unused challenge solution. */

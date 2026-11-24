@@ -4,7 +4,7 @@
  * On a brand-new self-hosted install nobody has an account yet, so "who may
  * create the first one" cannot be answered by a login. It is answered by a
  * one-time setup token that the server prints to its own console at startup:
- * only someone with access to the machine Legion was installed on can read it.
+ * only someone with access to the machine Argust was installed on can read it.
  *
  * Two separate attacks are covered:
  *  - the stranger who simply gets to the setup page first (no token → refused);

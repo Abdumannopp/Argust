@@ -89,7 +89,7 @@ export async function collectMetrics(): Promise<string> {
 
   const samples: Sample[] = [
     g("legion_up", "The API answered.", 1),
-    g("legion_database_size_bytes", "Size of Legion's database on disk (retention keeps it bounded: DATA-RETENTION.md).", Number(m.db_bytes)),
+    g("legion_database_size_bytes", "Size of Argust's database on disk (retention keeps it bounded: DATA-RETENTION.md).", Number(m.db_bytes)),
     g("legion_process_uptime_seconds", "Seconds since this process started.", Math.round(process.uptime())),
     g("legion_build_info", "Version of this instance.", 1, { version: config.version, mode: config.deploymentMode }),
     // --- SOC runtime
@@ -103,7 +103,7 @@ export async function collectMetrics(): Promise<string> {
     // --- actions / approvals
     byLabel("legion_soc_actions", "Action requests by status.", "status", ["denied", "recorded", "awaiting_approval", "rejected", "expired", "cancelled", "queued", "running", "simulated", "executed", "failed"], actions, "k"),
     g("legion_soc_actions_live", "Actions in live mode. Must be 0 unless a workspace opted in (legion_soc_workspaces_protection_active).", sum(act, "live")),
-    g("legion_soc_workspaces_protection_active", "Workspaces whose administrator allowed Legion to act on its own (hybrid or automatic).", protectionActive),
+    g("legion_soc_workspaces_protection_active", "Workspaces whose administrator allowed Argust to act on its own (hybrid or automatic).", protectionActive),
     g("legion_soc_actions_stuck_running", "Actions stuck in running past the recovery window.", sum(act, "stuck")),
     g("legion_soc_approvals_pending", "Approval requests waiting for a person.", sum(appr, "pending")),
     g("legion_soc_approvals_oldest_pending_age_seconds", "Age of the longest-waiting approval request.", maxOf(appr, "oldest")),

@@ -1,6 +1,6 @@
-# Protection modes — Legion acts on its own only when an administrator allowed it
+# Protection modes — Argust acts on its own only when an administrator allowed it
 
-Legion watches around the clock, detects, explains, and — **only if an
+Argust watches around the clock, detects, explains, and — **only if an
 administrator switched it on** — carries out a small set of pre-approved
 actions by itself, tells the administrators, and records everything.
 Dangerous actions always wait for a person.
@@ -22,9 +22,9 @@ Dangerous actions always wait for a person.
 
 | Mode | Behaviour |
 |---|---|
-| `manual` (default) | Legion detects and recommends. Nothing is done without a person. |
-| `hybrid` | Legion does by itself **only the actions the administrator ticked**. Everything else asks. |
-| `automatic` | Legion does by itself every action that has a real executor and is not critical. |
+| `manual` (default) | Argust detects and recommends. Nothing is done without a person. |
+| `hybrid` | Argust does by itself **only the actions the administrator ticked**. Everything else asks. |
+| `automatic` | Argust does by itself every action that has a real executor and is not critical. |
 
 ## What is real, and what is not
 
@@ -58,7 +58,7 @@ Everything else (kill a process, money, other identity systems and EDRs, …) st
 
 - `GET /soc/protection` — current mode and effective mode.
 - `PUT /soc/protection` — `{mode, auto_actions, acknowledge}`.
-- `GET /soc/protection/report?days=7` — what Legion did on its own, and who changed the settings.
+- `GET /soc/protection/report?days=7` — what Argust did on its own, and who changed the settings.
 - Metrics: `legion_soc_actions_live`, `legion_soc_workspaces_protection_active`. The page alert `LegionLiveActionDetected` fires only when a live action exists while **no** workspace has opted in.
 
 ## Honest limits

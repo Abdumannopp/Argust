@@ -9,7 +9,7 @@
 #
 # A fingerprint is the first 12 hex characters of SHA-256 of the value: enough
 # to tell "same" from "different", useless for recovering the value.
-# Exit code 1 if a secret Legion cannot recover without is missing.
+# Exit code 1 if a secret Argust cannot recover without is missing.
 set -euo pipefail
 ENV_FILE="${1:-server/.env}"
 [[ -f "$ENV_FILE" ]] || { echo "no such file: $ENV_FILE" >&2; exit 2; }

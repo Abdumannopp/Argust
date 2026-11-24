@@ -1,8 +1,8 @@
 # SOC core (v0)
 
-The SOC core is the part of Legion that decides, asks, prepares and records
+The SOC core is the part of Argust that decides, asks, prepares and records
 **actions** — blocking an address, changing an alert, disabling an account —
-whoever proposes them: a person, one of the five agents, or Legion itself.
+whoever proposes them: a person, one of the five agents, or Argust itself.
 
 **v0 does not perform any action.** It runs in two modes only:
 
@@ -23,7 +23,7 @@ code changes state. Default mode is `manual`: nothing live happens.
 propose ──► catalog + input check ──► policy ──┬─ DENY ─────────────► denied
  (person,     (closed list, strict     (pure,  ├─ RECORD_ONLY ──────► recorded
   agent,       schemas)                 deter- ├─ REQUIRE_APPROVAL ─► approval request ─► person(s) decide ─┐
-  Legion)                               minist)└─ ALLOW ───────────────────────────────────────────────────┤
+  Argust)                               minist)└─ ALLOW ───────────────────────────────────────────────────┤
                                                                                                          ▼
                                                      queued ──► (runtime job) ──► running ──► simulated (result, side_effects: "none")
 ```
@@ -53,7 +53,7 @@ HTTP routes are in `src/soc-routes.ts`.
 - **Critical (R4) actions always need approval** — two different people, each
   with a current two-factor code; the person who asked cannot approve
   (enforced in code and by a database `CHECK`).
-- **High-risk (R3) actions proposed by an agent or by Legion need approval.**
+- **High-risk (R3) actions proposed by an agent or by Argust need approval.**
 - **Anything a model proposed needs approval above read-only.**
 - **Who acts is set by the server** (session or engine), never by a request
   body, an alert or a model.
@@ -61,7 +61,7 @@ HTTP routes are in `src/soc-routes.ts`.
   input and mode), expire, and are consumed once, atomically.
 - **Every table is per workspace**; the tenant-query guard test now scans all
   of `src/` recursively.
-- **Memory can only make Legion more careful** and is written by people, never
+- **Memory can only make Argust more careful** and is written by people, never
   by a model. **Learning only suggests**; it changes nothing.
 
 ## Risk classes (catalog: `src/policy/catalog.ts`)

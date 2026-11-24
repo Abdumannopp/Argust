@@ -1,5 +1,5 @@
 /**
- * The price list. These numbers come from "Legion — recommended prices and
+ * The price list. These numbers come from "Argust — recommended prices and
  * plans"; a change here is a pricing decision, so it should fail a test and be
  * made on purpose.
  */

@@ -1,8 +1,8 @@
 /**
  * Shared pieces for the production validation scripts (ops/tests/*.mjs):
  * a throwaway database, the built API as a real process, a local SMTP sink
- * that records what Legion sends, signed sensor requests, cookie sessions and
- * a realtime (WebSocket) client. Nothing here is mocked inside Legion: the API
+ * that records what Argust sends, signed sensor requests, cookie sessions and
+ * a realtime (WebSocket) client. Nothing here is mocked inside Argust: the API
  * runs from server/dist exactly as `npm start` runs it.
  */
 import { spawn, spawnSync } from "node:child_process";

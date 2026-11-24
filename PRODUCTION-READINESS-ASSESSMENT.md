@@ -1,4 +1,4 @@
-# Legion — Production readiness assessment (Task 13)
+# Argust — Production readiness assessment (Task 13)
 
 Prepared by: Claude (acting as Principal SRE / Security Engineer / Release Manager)
 Commit assessed: see §3 (the exact SHA and the CI run that tested it)
@@ -8,9 +8,9 @@ Nothing in this document was deployed. No listener was opened, no real action wa
 
 | Question | Answer |
 |---|---|
-| Is Legion ready for **general production** (many customer tenants, real money/data, 24×7 expectations)? | **NO-GO** |
-| Is Legion ready for the **controlled pilot** described in `PILOT.md` (one workspace, simulation only)? | **GO, conditional** on the approvals in §10 and the items marked *before pilot* in §12 |
-| Is Legion ready for **autonomous (live) actions**? | **Built as opt-in, off by default (see `PROTECTION.md`): two actions only (block a public address, e-mail administrators). Tested in CI and end to end; NOT soaked, NOT pen-tested. Not approved for any pilot or production workspace until stage 5 evidence exists.** |
+| Is Argust ready for **general production** (many customer tenants, real money/data, 24×7 expectations)? | **NO-GO** |
+| Is Argust ready for the **controlled pilot** described in `PILOT.md` (one workspace, simulation only)? | **GO, conditional** on the approvals in §10 and the items marked *before pilot* in §12 |
+| Is Argust ready for **autonomous (live) actions**? | **Built as opt-in, off by default (see `PROTECTION.md`): two actions only (block a public address, e-mail administrators). Tested in CI and end to end; NOT soaked, NOT pen-tested. Not approved for any pilot or production workspace until stage 5 evidence exists.** |
 
 Why general production is a NO-GO — the blockers, each of them a missing *evidence*, not a missing opinion:
 

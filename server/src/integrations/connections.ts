@@ -109,7 +109,7 @@ export interface ConnectionHealth {
 export interface HealthReport {
   summary: { total: number; ok: number; attention: number; paused: number };
   connections: ConnectionHealth[];
-  /** Every source that brought alerts in the last 30 days, connected here or not (Wazuh, webhooks, Legion's own correlation). */
+  /** Every source that brought alerts in the last 30 days, connected here or not (Wazuh, webhooks, Argust's own correlation). */
   sources: { source: string; alerts_24h: number; last_alert_at: string | null }[];
 }
 
@@ -162,7 +162,7 @@ export async function checkNow(tenantId: string, id: string): Promise<Connection
     `UPDATE integration_connections SET next_poll_at = now(), updated_at = now()
       WHERE id = $1 AND tenant_id = $2 AND status = 'active' AND kind = ANY($3::text[]) AND (lease_until IS NULL OR lease_until < now()) RETURNING *`,
     [id, tenantId, pullKinds()]);
-  if (!row) throw new ConnectionError("not_found", "Only a working connection that Legion polls can be checked now.");
+  if (!row) throw new ConnectionError("not_found", "Only a working connection that Argust polls can be checked now.");
   return view(row);
 }
 
@@ -279,7 +279,7 @@ export function startIntegrationWorker(intervalMs: number, realtime?: (a: Alert)
         if (report.claimed < batch) break;
       }
     })()
-      .catch((error) => console.error("Legion: integration poll failed:", error instanceof Error ? error.message : "unknown error"))
+      .catch((error) => console.error("Argust: integration poll failed:", error instanceof Error ? error.message : "unknown error"))
       .finally(() => { busy = false; });
   }, intervalMs);
   timer.unref();

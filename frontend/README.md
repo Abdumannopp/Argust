@@ -1,7 +1,7 @@
-# Legion dashboard
+# Argust dashboard
 
-The Legion web app: the public website (product, pricing, legal pages) and the
-dashboard (alerts, incidents, assets, Defense, AI agents, Legion team, settings,
+The Argust web app: the public website (product, pricing, legal pages) and the
+dashboard (alerts, incidents, assets, Defense, AI agents, Argust team, settings,
 billing). Built with Next.js, React and Tailwind CSS; it talks to the Express
 API in `../server`.
 
@@ -20,7 +20,7 @@ Open http://localhost:3000. On a fresh installation, create the first
 administrator at `/setup` (self-hosted) or `/signup` (SaaS). There is no demo
 account.
 
-Legion needs an always-on server, PostgreSQL and WebSocket connections, so it is
+Argust needs an always-on server, PostgreSQL and WebSocket connections, so it is
 deployed on a VPS rather than a serverless host — see
 [DEPLOY-ONLINE.md](../DEPLOY-ONLINE.md).
 

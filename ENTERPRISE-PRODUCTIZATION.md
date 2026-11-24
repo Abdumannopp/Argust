@@ -1,13 +1,13 @@
-# Legion — Enterprise productization: scope proposal (Task 14)
+# Argust — Enterprise productization: scope proposal (Task 14)
 
 **Status: PROPOSAL, awaiting your review and approval. Nothing in §8 has been implemented.**
-No production billing, customer setting or deployment was changed. Legion holds **no SOC 2 or ISO 27001 certification**; §6 describes readiness, not certification.
+No production billing, customer setting or deployment was changed. Argust holds **no SOC 2 or ISO 27001 certification**; §6 describes readiness, not certification.
 
-This document answers: what Legion already has for each of the 17 requirements (§1, from the code, not from earlier documents), how the missing parts should be built (§2–§5), what it takes to be credible to enterprise buyers (§6–§7), and the ordered backlog to approve (§8). The decisions I need from you are in §9.
+This document answers: what Argust already has for each of the 17 requirements (§1, from the code, not from earlier documents), how the missing parts should be built (§2–§5), what it takes to be credible to enterprise buyers (§6–§7), and the ordered backlog to approve (§8). The decisions I need from you are in §9.
 
 ---
 
-## 1. Where Legion stands today (verified in the code, 2026-11-05)
+## 1. Where Argust stands today (verified in the code, 2026-11-05)
 
 Legend: **Built** (code + tests) · **Partial** (works but missing something an enterprise buyer will ask for) · **Seam** (interface/contract only) · **Missing**
 
@@ -24,7 +24,7 @@ Legend: **Built** (code + tests) · **Partial** (works but missing something an 
 | 9 | Customer audit exports | **Partial** | `GET /audit/export` (NDJSON/CSV, streamed, injection-safe, itself audited); `/audit/principal-events`; `GET /soc/audit`, `/soc/audit/verify` | SOC audit chain **export with a verification bundle** (customer can check integrity offline); continuous SIEM streaming (outbound webhook seam) |
 | 10 | Data retention and deletion | **Partial** | Retention jobs (payments, audit pseudonymisation, agent-log pruning with anchors), legal hold, workspace export, tenant deletion with tombstone/ledger and replay after restore, opt-in auto-delete with notices (`retention.ts`, `tenant-deletion.ts`, `DATA-RETENTION.md`) | Retention is **platform-wide**, not per customer; SOC history tables have **no retention** (Task 13 K-2); no customer-initiated deletion request flow in the UI |
 | 11 | Data residency architecture | **Partial** | `tenants.region`, `LEGION_REGION`, a deployment refuses other regions' workspaces with 421 (`GLOBAL-SAAS-ARCHITECTURE.md` §6) | Global directory/routing (sign-in for an account in another region); per-region sub-processor list; documented residency of backups, logs, AI provider calls |
-| 12 | Enterprise reporting | **Partial** | Reports page; `response_sla_review`, `triage_priority`, `threat_coverage` skills | Scheduled reports (PDF/CSV by email), MTTA/MTTR — **impossible today: Legion does not record when an alert is resolved**; multi-workspace rollups for MSSPs |
+| 12 | Enterprise reporting | **Partial** | Reports page; `response_sla_review`, `triage_priority`, `threat_coverage` skills | Scheduled reports (PDF/CSV by email), MTTA/MTTR — **impossible today: Argust does not record when an alert is resolved**; multi-workspace rollups for MSSPs |
 | 13 | API and integration documentation | **Partial** | `packages/agent-identity/README.md`, `SOC-CORE.md`, `WAZUH.md`, `AGENTS.md`; integration catalogue endpoint | No OpenAPI spec; no guarantee docs match routes; no versioning/deprecation policy; no SDK |
 | 14 | Customer onboarding | **Partial** | First-run setup token, signup, invitations, connect page, onboarding UX doc | No guided checklist with progress (connect sensor → first alert → invite team → set policy); no SSO/SCIM set-up wizard |
 | 15 | Backup and DR documentation | **Built** (operator) | `BACKUP.md`, `RECOVERY.md`, `PILOT.md` §7, CI restore test | A **customer-facing** DR statement (RPO/RTO per plan, what the customer must keep for self-hosted) |
@@ -68,7 +68,7 @@ Legend: **Built** (code + tests) · **Partial** (works but missing something an 
 
 Principles that do not change:
 1. **The workspace is the isolation boundary.** Every new table carries `tenant_id`; the tenant-query guard and the isolation sweep extend to it in the same change.
-2. **No god mode.** Neither an MSSP nor Legion staff gets a code path that skips membership checks. Access to a workspace is always a membership (possibly delegated and time-bound), visible to and revocable by the customer, and audited.
+2. **No god mode.** Neither an MSSP nor Argust staff gets a code path that skips membership checks. Access to a workspace is always a membership (possibly delegated and time-bound), visible to and revocable by the customer, and audited.
 3. **Effective autonomy = min(platform ceiling, plan ceiling, customer policy).** The platform ceiling is the two executor-backed actions (`LIVE_ACTION_IDS`); everything else stays simulation. Plan ceiling: automatic blocking is a Business+ feature.
 4. **One way in for identity.** Password, OIDC, SAML all end at `startSession()`; SCIM only calls the membership functions.
 5. **Second layer for isolation:** add Postgres row-level security keyed by a per-transaction `app.tenant_id`, in addition to the application guard (closes Task 13 K-4).
@@ -85,7 +85,7 @@ Principles that do not change:
 
 An MSSP console shows several customers by calling the API **once per delegated workspace with that delegation's membership**, never by a cross-tenant query. A customer revoking the delegation ends access on the next request.
 
-**Legion staff support access** uses the same mechanism: a time-boxed (max 72 h), customer-approved "support delegation", read-only by default, every request audited in the customer's own audit log.
+**Argust staff support access** uses the same mechanism: a time-boxed (max 72 h), customer-approved "support delegation", read-only by default, every request audited in the customer's own audit log.
 
 ### 2.2 Authorization model
 
@@ -98,10 +98,10 @@ An MSSP console shows several customers by calling the API **once per delegated 
 
 | Layer | Who sets it | Values |
 |---|---|---|
-| Platform ceiling | Legion (code + deployment) | `SHADOW_ONLY` today; `LIVE_ALLOWED_FOR(action list)` only after Task 13 stage 5 approval |
+| Platform ceiling | Argust (code + deployment) | `SHADOW_ONLY` today; `LIVE_ALLOWED_FOR(action list)` only after Task 13 stage 5 approval |
 | Plan ceiling | Entitlement | Starter: OBSERVE/ASSIST · Professional: + APPROVE · Business/Enterprise: + per-action AUTO *within the platform ceiling* |
 | Customer policy | Customer admin, versioned, simulated before save, rollback | default / per agent / per action / rules |
-| Emergency | Customer admin or Legion on-call | Pause (exists), policy freeze (exists) |
+| Emergency | Customer admin or Argust on-call | Pause (exists), policy freeze (exists) |
 
 The policy screen shows the effective value per action **and which layer limited it**.
 
@@ -111,8 +111,8 @@ The policy screen shows the effective value per action **and which layer limited
 
 | Option | For | Isolation | Operated by | Updates | Status |
 |---|---|---|---|---|---|
-| **SaaS multi-tenant** (shared stack per region) | SMB, mid-market | Workspace (app guard + RLS) | Legion | Continuous, staged rollout | Exists in single region |
-| **SaaS dedicated** (one stack per customer, our cloud) | Enterprise, regulated | Separate DB and process | Legion | Same images, customer-specific window | Same compose/Helm, new automation |
+| **SaaS multi-tenant** (shared stack per region) | SMB, mid-market | Workspace (app guard + RLS) | Argust | Continuous, staged rollout | Exists in single region |
+| **SaaS dedicated** (one stack per customer, our cloud) | Enterprise, regulated | Separate DB and process | Argust | Same images, customer-specific window | Same compose/Helm, new automation |
 | **Self-hosted** (customer's infra) | Air-gapped, government, MSSP own DC | Customer's | Customer | Signed releases, licence key, LTS channel | Compose exists; add Helm, offline bundle, licence |
 | **MSSP-hosted** | MSSPs serving SMBs | Workspace per end-customer | MSSP | MSSP pulls our releases | Uses self-hosted + partner model |
 
@@ -130,8 +130,8 @@ The policy screen shows the effective value per action **and which layer limited
 | **Workspace Admin** | Members, roles, integrations and credentials, policy/autonomy within ceilings, audit export | Billing, SSO, delete org |
 | **Responder / Analyst / Viewer** | As the matrix | Change policy or members |
 | **Partner (MSSP) operator** | What the delegation's role ceiling allows, in delegated workspaces only | Exceed the ceiling; see undelegated workspaces; keep access after revocation |
-| **Legion support** | Read-only during an approved support delegation | Anything without the customer's approval; write by default |
-| **Legion platform operator** | Customer list, plan, region, health, usage (metadata only) | Read customer security data (that needs a support delegation) |
+| **Argust support** | Read-only during an approved support delegation | Anything without the customer's approval; write by default |
+| **Argust platform operator** | Customer list, plan, region, health, usage (metadata only) | Read customer security data (that needs a support delegation) |
 
 Every administrative change writes to the workspace (or org) audit log with actor, source (UI/API/SCIM/SSO-JIT/delegation) and before/after.
 
@@ -247,5 +247,5 @@ Sizes: S ≤ 2 days, M ≤ 1 week, L ≤ 3 weeks (one engineer). Every item ship
 3. **SAML in the first enterprise release, or OIDC only?** SAML is the higher-risk component (XML signatures); I recommend OIDC first.
 4. **New dependencies:** OK to add a maintained OIDC library (`openid-client`) and, later, a SAML library (`@node-saml/node-saml`), instead of hand-written crypto?
 5. **Packaging (§5):** approve the matrix as a direction? It will **not** be applied to live Paddle products or existing customers without a separate explicit authorization.
-6. **Support tooling:** integrate an external helpdesk (recommended) or build ticketing into Legion?
+6. **Support tooling:** integrate an external helpdesk (recommended) or build ticketing into Argust?
 7. **Postgres RLS (A4):** accept the effort now, or after the first enterprise customer?

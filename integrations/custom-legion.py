@@ -1,47 +1,47 @@
 #!/usr/bin/env python3
 """
-Wazuh -> Legion integration.
+Wazuh -> Argust integration.
 
 Wazuh invokes this as:
     custom-legion <alert_file> <api_key> <hook_url>
 
 where <api_key> and <hook_url> come from the <integration> block in
 ossec.conf. <api_key> carries "KEY_ID:SECRET" -- the webhook credential a
-Legion administrator created for your organisation:
+Argust administrator created for your organisation:
 
     <api_key>whk_AbCd...:whs_XyZ...</api_key>
 
 Every message is signed; the secret itself is never sent:
-    x-legion-key-id:     the credential's public id (Legion learns the
+    x-legion-key-id:     the credential's public id (Argust learns the
                          organisation from this, not from anything you type)
     x-legion-timestamp:  current Unix time in seconds
     x-legion-nonce:      a fresh random value for every request
     x-legion-signature:  "v2=" + hex(HMAC-SHA256(SECRET,
                              "v2.<timestamp>.<nonce>." + <body bytes>))
 
-Legion rejects a message whose body was changed, whose signature belongs to
+Argust rejects a message whose body was changed, whose signature belongs to
 another message or credential, whose timestamp is outside its window
 (5 minutes by default), or whose nonce it has already seen (a replay). Keep the
 Wazuh manager's clock in sync (NTP).
 
-Rotation: create a new credential in Legion, put the new KEY_ID:SECRET in
+Rotation: create a new credential in Argust, put the new KEY_ID:SECRET in
 ossec.conf and restart wazuh-manager. The old credential keeps working for the
-overlap period Legion chose, so nothing is dropped in between.
+overlap period Argust chose, so nothing is dropped in between.
 
 Delivery is retried: a connection failure, timeout, 408, 429 or 5xx is tried
 again (up to MAX_ATTEMPTS, with exponential backoff), each attempt signed
 afresh with a new nonce -- so a retry is never mistaken for a replay. This is
-safe because Legion de-duplicates events by id -- a retry of an event that was
+safe because Argust de-duplicates events by id -- a retry of an event that was
 in fact stored comes back as "duplicate". A 4xx other than 408/429 means the
-request itself is wrong and is not retried. Legion only answers 2xx after the
+request itself is wrong and is not retried. Argust only answers 2xx after the
 alert is committed to its database.
 
-Nothing is dropped when Legion is unreachable: an event that exhausts its
+Nothing is dropped when Argust is unreachable: an event that exhausts its
 retries is written to
 LEGION_SPOOL_DIR/<key id>/ and re-sent -- oldest first, with the same
 credential only -- by the next invocation, or by
 `custom-legion.py --drain <api_key> <hook_url>` from a timer (see WAZUH.md).
-An event Legion refuses (401/403 or another 4xx) is kept in <key id>/dead/.
+An event Argust refuses (401/403 or another 4xx) is kept in <key id>/dead/.
 """
 
 import hashlib
@@ -60,31 +60,31 @@ TIMEOUT_SECONDS = 10
 MAX_ATTEMPTS = int(os.environ.get("LEGION_MAX_ATTEMPTS", "4"))
 BACKOFF_BASE_SECONDS = float(os.environ.get("LEGION_BACKOFF_SECONDS", "1"))
 RETRYABLE_STATUS = {408, 429}
-# Named, so a CDN's bot protection in front of Legion does not take this for an
+# Named, so a CDN's bot protection in front of Argust does not take this for an
 # abusive client (Python's default "Python-urllib/3.x" is a common block-list entry).
 USER_AGENT = "Legion-Wazuh-Integration/2 (+custom-legion.py)"
-# Legion refuses bodies over WEBHOOK_MAX_BODY_BYTES (1 MB by default) with 413,
-# which is not retryable -- so an oversized event used to be dropped. Legion
+# Argust refuses bodies over WEBHOOK_MAX_BODY_BYTES (1 MB by default) with 413,
+# which is not retryable -- so an oversized event used to be dropped. Argust
 # keeps only the first 4000 characters of full_log anyway, so an event larger
 # than this has its full_log trimmed (never its id, rule or agent) before signing.
 MAX_PAYLOAD_BYTES = int(os.environ.get("LEGION_MAX_PAYLOAD_BYTES", str(900 * 1024)))
 TRIMMED_LOG_CHARS = 64 * 1024
 LOG_FILE = os.environ.get("LEGION_INTEGRATION_LOG", "/var/ossec/logs/integrations.log")
 
-# --sync-blocklist: Legion's automatic response, enforced by Wazuh itself.
+# --sync-blocklist: Argust's automatic response, enforced by Wazuh itself.
 # Each address to block becomes one JSON line in BLOCKLIST_LOG; Wazuh reads that
 # file (<localfile>), rule 100950 (integrations/wazuh/legion_rules.xml) matches
 # it and its active response runs firewall-drop on every agent, undone after the
-# <timeout> configured there. While Legion still lists an address, it is
+# <timeout> configured there. While Argust still lists an address, it is
 # re-announced every BLOCK_REFRESH_SECONDS so the block does not lapse; once
-# Legion stops listing it (expired, or an administrator unblocked it), Wazuh's
+# Argust stops listing it (expired, or an administrator unblocked it), Wazuh's
 # timeout lifts it. Keep BLOCK_REFRESH_SECONDS below that timeout.
 BLOCKLIST_LOG = os.environ.get("LEGION_BLOCKLIST_LOG", "/var/ossec/logs/legion-blocklist.log")
 BLOCKLIST_STATE = os.environ.get("LEGION_BLOCKLIST_STATE", "/var/ossec/tmp/legion-blocklist-state.json")
 BLOCK_REFRESH_SECONDS = int(os.environ.get("LEGION_BLOCK_REFRESH_SECONDS", "300"))
 LOG_GRACE_SECONDS = int(os.environ.get("LEGION_BLOCKLIST_LOG_GRACE_SECONDS", "120"))
 LOG_CREATED_KEY = "_log_created"
-# Our own block events must not travel back to Legion as new alerts.
+# Our own block events must not travel back to Argust as new alerts.
 OWN_RESPONSE_GROUP = "legion_response"
 
 
@@ -112,7 +112,7 @@ def parse_api_key(api_key):
     if not KEY_ID_RE.match(key_id) or not secret:
         # Never echo api_key: it contains the secret.
         log("ERROR api_key must be formatted as KEY_ID:SECRET (whk_...:whs_...). "
-            "The old TENANT_ID:SECRET format is no longer accepted -- ask a Legion "
+            "The old TENANT_ID:SECRET format is no longer accepted -- ask a Argust "
             "administrator to create a webhook credential")
         return None
     return key_id, secret
@@ -148,7 +148,7 @@ PAYMENT_ALLOW, PAYMENT_ERROR, PAYMENT_HOLD = 0, 1, 3
 
 
 def payment_check(hook_url, key_id, secret, payment, out=sys.stdout):
-    """Asks Legion whether a payment may go ahead. Prints Legion's answer as
+    """Asks Argust whether a payment may go ahead. Prints Argust's answer as
     JSON. Returns 0 (allow), 3 (hold: do not pay yet) or 1 (could not ask).
     Anything but 0 means: do not pay automatically."""
     url = payment_check_url(hook_url)
@@ -173,14 +173,14 @@ def payment_check(hook_url, key_id, secret, payment, out=sys.stdout):
         with urllib.request.urlopen(request, timeout=TIMEOUT_SECONDS) as response:
             answer = json.loads(response.read(64 * 1024).decode("utf-8"))
     except urllib.error.HTTPError as exc:
-        log(f"ERROR payment-check: Legion answered {exc.code}; do not pay automatically")
+        log(f"ERROR payment-check: Argust answered {exc.code}; do not pay automatically")
         return PAYMENT_ERROR
     except (urllib.error.URLError, TimeoutError, ValueError) as exc:
-        log(f"ERROR payment-check: could not reach Legion ({type(exc).__name__}); do not pay automatically")
+        log(f"ERROR payment-check: could not reach Argust ({type(exc).__name__}); do not pay automatically")
         return PAYMENT_ERROR
     decision = answer.get("decision") if isinstance(answer, dict) else None
     if decision not in ("allow", "hold"):
-        log("ERROR payment-check: unexpected answer from Legion; do not pay automatically")
+        log("ERROR payment-check: unexpected answer from Argust; do not pay automatically")
         return PAYMENT_ERROR
     out.write(json.dumps(answer) + "\n")
     log(f"PAYMENT {answer.get('id', '?')} {decision}")
@@ -214,15 +214,15 @@ def sync_blocklist(hook_url, key_id, secret):
         with urllib.request.urlopen(request, timeout=TIMEOUT_SECONDS) as response:
             data = json.loads(response.read(2 * 1024 * 1024).decode("utf-8"))
     except urllib.error.HTTPError as exc:
-        log(f"ERROR blocklist: Legion answered {exc.code}; existing blocks stay until their Wazuh timeout")
+        log(f"ERROR blocklist: Argust answered {exc.code}; existing blocks stay until their Wazuh timeout")
         return 1
     except (urllib.error.URLError, TimeoutError, ValueError) as exc:
-        log(f"ERROR blocklist: could not reach Legion ({type(exc).__name__}); existing blocks stay until their Wazuh timeout")
+        log(f"ERROR blocklist: could not reach Argust ({type(exc).__name__}); existing blocks stay until their Wazuh timeout")
         return 1
 
     entries = data.get("entries") if isinstance(data, dict) else None
     if not isinstance(entries, list):
-        log("ERROR blocklist: unexpected answer from Legion")
+        log("ERROR blocklist: unexpected answer from Argust")
         return 1
     try:
         with open(BLOCKLIST_STATE, "r") as handle:
@@ -277,7 +277,7 @@ def sync_blocklist(hook_url, key_id, secret):
         except OSError as exc:
             log(f"ERROR blocklist: could not write {BLOCKLIST_LOG}: {exc.strerror}")
             return 1
-    # Only addresses Legion still lists are remembered; one it drops is no longer
+    # Only addresses Argust still lists are remembered; one it drops is no longer
     # re-announced, so Wazuh lifts it at its timeout.
     if waiting:
         active[LOG_CREATED_KEY] = created
@@ -361,17 +361,17 @@ def main(argv):
         log(f"ERROR could not read alert file {alert_file}: {exc}")
         return 1
 
-    # Legion reads req.body.event, so wrap the Wazuh alert as-is. Its field
+    # Argust reads req.body.event, so wrap the Wazuh alert as-is. Its field
     # names (rule.description, rule.level, rule.mitre.id, full_log,
     # data.srcip, agent.name, id, timestamp) already match what the webhook expects.
     groups = alert.get("rule", {}).get("groups") or []
     if isinstance(groups, list) and OWN_RESPONSE_GROUP in groups:
-        return 0  # Legion's own block, as Wazuh recorded it: nothing to report
+        return 0  # Argust's own block, as Wazuh recorded it: nothing to report
     payload = build_payload(alert)
     rule_id = str(alert.get("rule", {}).get("id", "?"))
 
     # Anything left over from an outage goes first (a bounded batch per run),
-    # so the backlog empties as soon as Legion is reachable again.
+    # so the backlog empties as soon as Argust is reachable again.
     drain(hook_url, key_id, secret, limit=DRAIN_BATCH)
 
     status = None
@@ -384,7 +384,7 @@ def main(argv):
         time.sleep(BACKOFF_BASE_SECONDS * 2 ** (attempt - 1))
 
     # Not delivered, and never silently dropped:
-    #  - Legion down, overloaded or failing (no answer, 408, 429, 5xx): kept in
+    #  - Argust down, overloaded or failing (no answer, 408, 429, 5xx): kept in
     #    this credential's spool and re-sent automatically.
     #  - Refused (401/403: revoked, wrong or rotated credential; or any other
     #    4xx): kept in this credential's dead/ folder. It is NOT re-sent under
@@ -393,7 +393,7 @@ def main(argv):
     #    After a rotation an operator re-sends it explicitly with --from.
     if is_retryable(status):
         if spool(payload, rule_id, key_id):
-            log(f"SPOOLED rule={rule_id} after {attempt} attempt(s); it will be re-sent when Legion accepts it")
+            log(f"SPOOLED rule={rule_id} after {attempt} attempt(s); it will be re-sent when Argust accepts it")
             return 1
     else:
         spool(payload, rule_id, key_id, dead=True)
@@ -401,20 +401,20 @@ def main(argv):
     return 1
 
 
-# --- the spool: events Legion could not take yet ----------------------------------------
+# --- the spool: events Argust could not take yet ----------------------------------------
 #
 # Files hold the unsigned body only (never the secret), mode 0600 in a 0700
 # directory, named <nanoseconds>-<body hash>.json so the oldest drains first
 # and an identical event spooled twice is one file. A drain claims a file by
 # renaming it before sending, so several integration processes running at once
-# never send the same file together (and if they did, Legion's per-event
+# never send the same file together (and if they did, Argust's per-event
 # de-duplication would absorb it). A claim left by a crashed process is
 # returned to the queue after STALE_CLAIM_SECONDS.
 
 SPOOL_DIR = os.environ.get("LEGION_SPOOL_DIR", "/var/ossec/tmp/legion-spool")
 SPOOL_MAX_FILES = int(os.environ.get("LEGION_SPOOL_MAX_FILES", "50000"))
-# An event Legion keeps answering "500 Internal Server Error" for while it accepts
-# others is the problem, not Legion being down: after this many such answers it is
+# An event Argust keeps answering "500 Internal Server Error" for while it accepts
+# others is the problem, not Argust being down: after this many such answers it is
 # set aside in dead/ (kept for review) so it cannot hold back everything behind it.
 POISON_AFTER = int(os.environ.get("LEGION_POISON_AFTER", "10"))
 # This many different events in a row answered 500 looks like an outage, not poison.
@@ -424,10 +424,10 @@ STALE_CLAIM_SECONDS = 600
 
 
 def blocked_by_cdn(exc):
-    """A CDN in front of Legion (Cloudflare) refused the request before Legion
-    saw it -- bot protection or a challenge page. That is not Legion's verdict
+    """A CDN in front of Argust (Cloudflare) refused the request before Argust
+    saw it -- bot protection or a challenge page. That is not Argust's verdict
     on the event or the credential, so the event is kept (spooled) rather than
-    set aside as refused, and goes out once the CDN lets it through. Legion's
+    set aside as refused, and goes out once the CDN lets it through. Argust's
     own refusals are JSON, even when they pass through Cloudflare."""
     headers = exc.headers or {}
     if headers.get("cf-mitigated"):
@@ -438,7 +438,7 @@ def blocked_by_cdn(exc):
 
 
 def is_retryable(status):
-    """No HTTP answer, 408, 429 or 5xx: Legion may accept it later."""
+    """No HTTP answer, 408, 429 or 5xx: Argust may accept it later."""
     return status is None or status >= 500 or status in RETRYABLE_STATUS
 
 
@@ -483,7 +483,7 @@ def spool(payload, rule_id, key_id, dead=False):
             os.fsync(handle.fileno())
         os.rename(tmp, os.path.join(directory, name))
         if dead:
-            log(f"ERROR rule={rule_id} refused by Legion; kept in {directory}. If the credential was "
+            log(f"ERROR rule={rule_id} refused by Argust; kept in {directory}. If the credential was "
                 f"rotated, re-send with: --drain <new api_key> <hook_url> --from {key_id}")
         return True
     except OSError as exc:
@@ -542,9 +542,9 @@ def _save_failures(directory, failures):
 def drain(hook_url, key_id, secret, limit, source_key_id=None):
     """Re-sends this credential's spooled events (or, with source_key_id, a
     rotated-away credential's -- an explicit operator action), oldest first,
-    one attempt each. Stops at the first failure that means "Legion still
+    one attempt each. Stops at the first failure that means "Argust still
     cannot take it". Returns "clear" when nothing is left, "more" when the
-    batch ended with events waiting, and "blocked" when Legion is still refusing."""
+    batch ended with events waiting, and "blocked" when Argust is still refusing."""
     source = source_key_id or key_id
     directory = spool_dir(source)
     if source_key_id and source_key_id != key_id:
@@ -577,14 +577,14 @@ def drain(hook_url, key_id, secret, limit, source_key_id=None):
             failures.pop(name, None)
             continue
         if status == 500:
-            # Legion answered, so it is up: this event may be what it cannot handle.
+            # Argust answered, so it is up: this event may be what it cannot handle.
             failures[name] = failures.get(name, 0) + 1
             consecutive_500 += 1
             if failures[name] >= POISON_AFTER:
                 os.makedirs(os.path.join(directory, "dead"), mode=0o700, exist_ok=True)
                 os.rename(claimed, os.path.join(directory, "dead", name))
                 failures.pop(name, None)
-                log(f"ERROR a spooled event got HTTP 500 {POISON_AFTER} times while Legion accepted others; moved to dead/ for review")
+                log(f"ERROR a spooled event got HTTP 500 {POISON_AFTER} times while Argust accepted others; moved to dead/ for review")
             else:
                 os.rename(claimed, path)
             if consecutive_500 >= OUTAGE_AFTER_CONSECUTIVE:
@@ -596,7 +596,7 @@ def drain(hook_url, key_id, secret, limit, source_key_id=None):
             os.rename(claimed, path)
             _save_failures(directory, failures)
             if sent:
-                log(f"DRAIN re-sent {sent} spooled event(s) before Legion stopped accepting")
+                log(f"DRAIN re-sent {sent} spooled event(s) before Argust stopped accepting")
             return "blocked"
         os.makedirs(os.path.join(directory, "dead"), mode=0o700, exist_ok=True)
         os.rename(claimed, os.path.join(directory, "dead", name))
@@ -609,8 +609,8 @@ def drain(hook_url, key_id, secret, limit, source_key_id=None):
 
 
 def build_payload(alert):
-    """The signed body. Oversized events keep everything Legion stores; only
-    the tail of full_log, which Legion would discard, is cut."""
+    """The signed body. Oversized events keep everything Argust stores; only
+    the tail of full_log, which Argust would discard, is cut."""
     payload = json.dumps({"provider": "wazuh", "event": alert}).encode("utf-8")
     if len(payload) <= MAX_PAYLOAD_BYTES or not isinstance(alert.get("full_log"), str):
         return payload
@@ -646,7 +646,7 @@ def post_once(hook_url, key_id, secret, payload, rule_id, attempt):
             return "ok", response.status
     except urllib.error.HTTPError as exc:
         if blocked_by_cdn(exc):
-            log(f"ERROR rule={rule_id} status={exc.code} attempt={attempt} blocked by Cloudflare before it reached Legion "
+            log(f"ERROR rule={rule_id} status={exc.code} attempt={attempt} blocked by Cloudflare before it reached Argust "
                 "(bot protection / challenge). Add a WAF skip rule for /api/security-events/webhook -- "
                 "DEPLOY-ONLINE.md section 12.5. The event is kept and re-sent automatically.")
             return "hold", None
@@ -654,7 +654,7 @@ def post_once(hook_url, key_id, secret, payload, rule_id, attempt):
         log(f"ERROR rule={rule_id} status={exc.code} attempt={attempt} {detail}")
         return ("retry" if exc.code >= 500 or exc.code in RETRYABLE_STATUS else "fatal"), exc.code
     except urllib.error.URLError as exc:
-        log(f"ERROR rule={rule_id} attempt={attempt} could not reach Legion: {exc.reason}")
+        log(f"ERROR rule={rule_id} attempt={attempt} could not reach Argust: {exc.reason}")
         return "retry", None
     except TimeoutError:
         log(f"ERROR rule={rule_id} attempt={attempt} timed out")

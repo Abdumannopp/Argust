@@ -105,7 +105,7 @@ export const threatDetection: SkillDefinition<Input, Output> = {
   example: { windowHours: 24, minSeverity: "medium" },
   limitations: [
     "Rule-based: it recognises the MITRE techniques and event wording listed in skills/knowledge.ts, not every attack.",
-    "It only sees events Legion has ingested; gaps in sensor coverage are gaps here.",
+    "It only sees events Argust has ingested; gaps in sensor coverage are gaps here.",
   ],
   async handler(ctx, q) {
     const to = ctx.now.toISOString();

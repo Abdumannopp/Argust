@@ -1,5 +1,5 @@
 /**
- * Agent security events become Legion alerts — stored, versioned, emailed
+ * Agent security events become Argust alerts — stored, versioned, emailed
  * and pushed through the same durable pipeline as a Wazuh alert
  * (outbox.insertAlertAndNotify), so they reach the SOC even when nobody is
  * looking at the agents pages.

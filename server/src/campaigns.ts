@@ -262,7 +262,7 @@ async function signInDetections(tenantId: string, ip: string, want: { failures: 
 
 /**
  * One attack seen from several sides: the same attacking address, or the same host or account, in the alerts of
- * two or more DIFFERENT platforms within the hour. Legion's own alerts (legion-…) are not platforms. For a host or
+ * two or more DIFFERENT platforms within the hour. Argust's own alerts (legion-…) are not platforms. For a host or
  * account each platform must have a high or critical alert: a busy server is in every tool's ordinary noise.
  * Skipped while such a campaign is already active for the subject, so a flood stays cheap.
  */
@@ -495,7 +495,7 @@ export function describe(d: Detection): { title: string; summary: string } {
         title: `Attempt to manipulate AI analysis${d.sourceIp ? ` from ${d.sourceIp}` : ""}`,
         summary: `An event contains text written to instruct an AI system rather than a person (${(d.signals ?? []).join(", ")}). `
           + "Attackers plant such text in usernames, URLs, user agents or file names, expecting an AI to triage the logs and be told to ignore them. "
-          + "Legion does not follow instructions found in alert data, but the attempt itself shows a deliberate attacker who knows AI is watching.",
+          + "Argust does not follow instructions found in alert data, but the attempt itself shows a deliberate attacker who knows AI is watching.",
       };
     case "ransomware":
       return {
@@ -528,13 +528,13 @@ export function describe(d: Detection): { title: string; summary: string } {
         title: `Password attack from ${d.subject}: ${list(d.signals ?? [], 2)}`,
         summary: `One address (${d.subject}) is trying to sign in without permission: ${list(d.signals ?? [])} within ${d.minutes} minute(s)`
           + `${d.targets.length ? ` on ${list(d.targets)}` : ""}. This is password guessing or password spraying (one password tried against many accounts). `
-          + "With automatic response on, Legion blocks the address on your Wazuh manager. Make sure every exposed account has a second factor (MFA).",
+          + "With automatic response on, Argust blocks the address on your Wazuh manager. Make sure every exposed account has a second factor (MFA).",
       };
     case "account_compromise":
       return {
         title: `Account broken into: ${d.subject} signed in from ${d.sourceIp ?? "an attacking address"} after failed attempts`,
         summary: `The address ${d.sourceIp ?? "(unknown)"} failed to sign in to ${d.subject} and then succeeded (${list(d.signals ?? [])}). `
-          + "The password was guessed or stolen, often by phishing. With automatic response on, Legion blocks the address. "
+          + "The password was guessed or stolen, often by phishing. With automatic response on, Argust blocks the address. "
           + `Now: reset the password of ${d.subject}, end its sessions, require a second factor, and check what the account did after the sign-in.`,
       };
     case "multi_platform":
@@ -620,7 +620,7 @@ export async function correlate(tenantId: string, alerts: Alert[], opts: { realt
     detections.push(...await bySource(tenantId, ip, { failures: kinds.some((k) => k.failed), success: kinds.some((k) => k.ok) }));
   }
   for (const target of distinct(fresh.map((a) => a.target))) detections.push(...await byTarget(tenantId, target));
-  // Seen from several sides: only alerts that came from a platform (not Legion's own) can start this.
+  // Seen from several sides: only alerts that came from a platform (not Argust's own) can start this.
   const external = fresh.filter((a) => !a.source.startsWith("legion-") && !SCANNER_SOURCES.has(a.source));
   for (const ip of distinct(external.map((a) => a.source_ip)).filter((ip) => isIP(ip) !== 0)) detections.push(...await acrossPlatforms(tenantId, "source_ip", ip));
   for (const target of distinct(external.map((a) => a.target))) detections.push(...await acrossPlatforms(tenantId, "target", target));
@@ -664,7 +664,7 @@ export async function threatCoverage(tenantId: string): Promise<{ windowDays: nu
     `SELECT id, created_at, title, left(summary, 4000) AS summary FROM alerts
       WHERE tenant_id = $1 AND source NOT LIKE 'legion-%' AND created_at >= now() - make_interval(days => $2)
       ORDER BY created_at DESC LIMIT 2000`,
-    // Legion's own alerts (legion-correlation, legion-payments, legion-agent-security,
+    // Argust's own alerts (legion-correlation, legion-payments, legion-agent-security,
     // legion-monitor) describe attacks in words like "mailbox" and "email": they are
     // not evidence of what the sensors send, and must not make a blind spot look watched.
     [tenantId, COVERAGE_DAYS],

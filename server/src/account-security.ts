@@ -41,7 +41,7 @@ const when = () => new Date().toISOString().replace("T", " ").replace(/\.\d+Z$/,
  */
 export function notifyAccountOwner(user: Pick<User, "email">, kind: SecurityNoticeKind, req: Request, detail?: string): void {
   void sendMail({ to: user.email, ...securityNoticeEmail(kind, { when: when(), detail, locale: requestLocale(req) }) })
-    .then((r) => { if (!r.sent && r.reason !== "not_configured") console.warn(`Legion: security notice (${kind}) not delivered`); })
+    .then((r) => { if (!r.sent && r.reason !== "not_configured") console.warn(`Argust: security notice (${kind}) not delivered`); })
     .catch(() => { /* sendMail already reports; a notice must never break the request */ });
 }
 

@@ -1,5 +1,5 @@
 /**
- * Authenticated encryption for secrets Legion must be able to read back —
+ * Authenticated encryption for secrets Argust must be able to read back —
  * TOTP seeds (the server recomputes codes) and webhook signing secrets (the
  * server recomputes signatures). Anything that only needs to be COMPARED
  * (passwords, reset/invite/verify tokens, refresh tokens, API credentials) is

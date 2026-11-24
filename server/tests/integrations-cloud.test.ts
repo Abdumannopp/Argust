@@ -94,7 +94,7 @@ describe("Defender XDR", () => {
     respond = (c) => c.url.includes("/oauth2") ? { status: 200, body: { access_token: "t" } } : { status: 403 };
     expect(((await m365Adapter.poll(conn, null, new AbortController().signal).catch((e: Error) => e)) as Error).message).toMatch(/admin consent/);
   });
-  it("end to end through the worker: alerts become Legion alerts in the right workspace; secret sealed; outage backs off and recovers", async () => {
+  it("end to end through the worker: alerts become Argust alerts in the right workspace; secret sealed; outage backs off and recovers", async () => {
     const created = await request(app).post("/integrations").set(...bearer(adminA)).send({ kind: "m365", name: "Defender", config: { directory_id: DIR, client_id: APP }, secrets: { client_secret: SECRET } });
     expect(created.status).toBe(201);
     expect(JSON.stringify(created.body)).not.toContain(SECRET);

@@ -11,7 +11,7 @@
  *     single public attacking address, outside the allowlist, within its rate
  *     limit — every block audited, expiring, and undoable;
  *   - the Wazuh manager receives exactly its own workspace's list, signed, and
- *     Legion's own block events never come back as alerts.
+ *     Argust's own block events never come back as alerts.
  */
 import { describe, it, expect, beforeAll, beforeEach, afterAll } from "vitest";
 import request from "supertest";
@@ -36,7 +36,7 @@ let tenantA: string, tenantB: string;
 let adminA: User, analystA: User;
 let credA: TestCredential, credB: TestCredential;
 const savedMode = config.deploymentMode;
-// Public addresses (documentation ranges are deliberately NOT public to Legion).
+// Public addresses (documentation ranges are deliberately NOT public to Argust).
 const ATTACKER = "45.155.205.12";
 const OTHER = "91.240.118.7";
 
@@ -307,8 +307,8 @@ describe("the Wazuh manager's side", () => {
     await request(app).post("/security-events/blocklist").set("content-type", "application/json").send('{"action":"sync-blocklist"}').expect(401);
   });
 
-  it("Legion's own block, as Wazuh records it, never comes back as an alert", async () => {
-    await send(credA, event({ groups: ["legion", "legion_response"], log: "Legion automatic response: block" }));
+  it("Argust's own block, as Wazuh records it, never comes back as an alert", async () => {
+    await send(credA, event({ groups: ["legion", "legion_response"], log: "Argust automatic response: block" }));
     expect((await query("SELECT count(*)::int AS n FROM alerts WHERE tenant_id = $1", [tenantA])).rows[0].n).toBe(0);
   });
 });
@@ -323,7 +323,7 @@ describe("what counts as a public address", () => {
   });
 });
 
-describe("the seven most dangerous attack types, as they reach Legion", () => {
+describe("the seven most dangerous attack types, as they reach Argust", () => {
   const hostEvent = (host: string, log: string, extra: Parameters<typeof event>[0] = {}) => event({ ip: null, host, mitre: [], log, ...extra });
   const rules = async () => (await campaigns(tenantA)).map((c) => `${c.rule}:${c.subject}`);
 
@@ -462,7 +462,7 @@ describe("the seven most dangerous attack types, as they reach Legion", () => {
   });
 });
 
-describe("threat coverage: what Legion sees of the seven attack types", () => {
+describe("threat coverage: what Argust sees of the seven attack types", () => {
   const cover = async (u: User) => (await request(app).get("/security/coverage").set("Authorization", bearer(u)).expect(200)).body;
 
   it("with nothing connected, it says it is blind — it does not claim protection", async () => {
@@ -563,7 +563,7 @@ describe("stopping unauthorized access", () => {
     expect(audited.sort()).toEqual([ATTACKER, OTHER].sort());
   });
 
-  it("while a password-attack campaign for an address is active, further failures from it are not re-analysed (a flood must not make Legion slower)", async () => {
+  it("while a password-attack campaign for an address is active, further failures from it are not re-analysed (a flood must not make Argust slower)", async () => {
     for (let i = 0; i < 10; i++) await send(credA, login(false, "root"));
     expect(await rulesOf()).toEqual(["credential_attack"]);
     const before = (await campaigns(tenantA))[0];
@@ -605,7 +605,7 @@ describe("written acknowledgement before automatic blocking", () => {
   });
 });
 
-describe("F-11: ATT&CK mapping of Legion's own signs", () => {
+describe("F-11: ATT&CK mapping of Argust's own signs", () => {
   // Strong signs that deliberately name no technique: the text does not prove one.
   const WITHOUT_TECHNIQUE: Record<string, string> = {
     integrity_failure: "a failed signature or checksum may be corruption or a bad mirror, not an attack technique",

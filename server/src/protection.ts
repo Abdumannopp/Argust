@@ -1,9 +1,9 @@
 /**
- * Protection modes: how much Legion may do on its own in a workspace, and only because a person said so.
+ * Protection modes: how much Argust may do on its own in a workspace, and only because a person said so.
  *
- *   manual     (the default) nothing runs on its own. Legion detects, explains and proposes; a person acts.
+ *   manual     (the default) nothing runs on its own. Argust detects, explains and proposes; a person acts.
  *   hybrid     the actions the administrator pre-authorised run on their own; everything else asks first.
- *   automatic  every action Legion can carry out that is not critical runs on its own.
+ *   automatic  every action Argust can carry out that is not critical runs on its own.
  *
  * What is always true, in every mode (policy/evaluate.ts, the database, actions/engine.ts):
  *   - critical (R4) actions always wait for a person's approval;
@@ -71,13 +71,13 @@ export async function updateProtection(tenantId: string, patch: ProtectionPatch,
   const mode = patch.mode ?? current.mode;
   const auto = [...new Set(patch.auto_actions ?? current.auto_actions)];
   for (const a of auto) {
-    if (!LIVE_ACTION_IDS.includes(a)) throw new ProtectionError(422, "unknown_action", `Legion cannot carry out "${a.slice(0, 40)}" on its own: it is simulation-only`);
+    if (!LIVE_ACTION_IDS.includes(a)) throw new ProtectionError(422, "unknown_action", `Argust cannot carry out "${a.slice(0, 40)}" on its own: it is simulation-only`);
   }
   if (mode !== "manual") {
     const plan = await resolvePlan(tenantId);
     if (!allows(plan, "autoBlocking")) throw new ProtectionError(402, "plan_feature", "Automatic protection is not part of this plan");
     if (!current.acknowledged && patch.acknowledge !== true) {
-      throw new ProtectionError(400, "acknowledgement_required", "Read and accept the notice before Legion may act on its own");
+      throw new ProtectionError(400, "acknowledgement_required", "Read and accept the notice before Argust may act on its own");
     }
   }
   const ack = patch.acknowledge === true && mode !== "manual";
@@ -99,15 +99,15 @@ export async function updateProtection(tenantId: string, patch: ProtectionPatch,
 
 /** The text an administrator accepts. Shown in the dashboard; PROTECTION_NOTICE_VERSION changes with its meaning. */
 export const PROTECTION_NOTICE: readonly string[] = [
-  "In hybrid and automatic mode Legion acts on your systems without waiting for a person: today that means blocking an attacker's internet address for a limited time (through the sensor that reads your blocklist) and e-mailing your administrators.",
+  "In hybrid and automatic mode Argust acts on your systems without waiting for a person: today that means blocking an attacker's internet address for a limited time (through the sensor that reads your blocklist) and e-mailing your administrators.",
   "It decides from what the sensors report. A report can be wrong or forged: an address in a log may not be the real attacker, and a block can interrupt a legitimate user. Addresses on your allowlist, private addresses and your own network are never blocked.",
-  "Critical actions (disabling accounts, isolating hosts, moving money) are never done without a person's approval, and neither is anything an AI model proposed. Legion cannot do those today; they stay in simulation.",
+  "Critical actions (disabling accounts, isolating hosts, moving money) are never done without a person's approval, and neither is anything an AI model proposed. Argust cannot do those today; they stay in simulation.",
   "Every action is recorded in the audit trail and e-mailed to your administrators. You can turn this off, or press the emergency stop, at any time; both take effect immediately.",
-  "You are responsible for the settings you choose here. Legion does not guarantee that it will stop an attack.",
+  "You are responsible for the settings you choose here. Argust does not guarantee that it will stop an attack.",
 ];
 
 /**
- * Alert sources that never start anything on their own: a test alert, a sample, the demo, Legion's own
+ * Alert sources that never start anything on their own: a test alert, a sample, the demo, Argust's own
  * monitors. Only what a real sensor or integration reported may lead to a real action.
  */
 export const NON_ACTING_SOURCES: readonly string[] = ["legion-test", "mock", "demo", "legion-monitor", "legion-agent-security"];
@@ -126,7 +126,7 @@ export async function wantsLiveResponse(client: PoolClient, tenantId: string, so
   return Boolean(t) && t!.protection_mode !== "manual" && t!.protection_ack_version === PROTECTION_NOTICE_VERSION && t!.protection_ack_at !== null;
 }
 
-// --- the report: what Legion did, what it asked, what it could not do ------------------------------
+// --- the report: what Argust did, what it asked, what it could not do ------------------------------
 
 export interface ProtectionReport {
   days: number;
@@ -137,7 +137,7 @@ export interface ProtectionReport {
   changes: Array<{ at: string; by: string | null; detail: string | null }>;
 }
 
-/** Everything Legion did in live mode over the last `days` days, in one place, for the people who answer for it. */
+/** Everything Argust did in live mode over the last `days` days, in one place, for the people who answer for it. */
 export async function protectionReport(tenantId: string, days: number): Promise<ProtectionReport> {
   const d = Math.min(90, Math.max(1, Math.floor(days) || 7));
   const [protection, rows, recent, changes] = await Promise.all([

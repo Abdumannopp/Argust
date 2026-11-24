@@ -184,7 +184,7 @@ export async function autoDeleteExpired(days = config.tenantAutoDeleteDays, onNo
         if (!w.notice_at || !w.scheduled_for) {
           const deleteOn = new Date(Date.now() + config.tenantDeleteNoticeDays * 86_400_000);
           if (!(await sendDeletionNotice(w, deleteOn))) {
-            console.warn(`Legion: not warning or deleting ${w.id}: the warning e-mail could not be sent (no mail server, or no administrator to tell)`);
+            console.warn(`Argust: not warning or deleting ${w.id}: the warning e-mail could not be sent (no mail server, or no administrator to tell)`);
             continue;
           }
           await query("UPDATE tenants SET deletion_notice_at = now(), deletion_scheduled_for = $2 WHERE id = $1", [w.id, deleteOn.toISOString()]);
@@ -194,7 +194,7 @@ export async function autoDeleteExpired(days = config.tenantAutoDeleteDays, onNo
           gone.push(w.id);
         }
       } catch (error) {
-        console.warn(`Legion: not auto-deleting ${w.id}: ${error instanceof Error ? error.message : error}`);
+        console.warn(`Argust: not auto-deleting ${w.id}: ${error instanceof Error ? error.message : error}`);
       }
     }
   } finally {

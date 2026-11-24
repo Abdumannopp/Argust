@@ -102,7 +102,7 @@ export const dataExfiltrationHunt: SkillDefinition<Input, Output> = {
   auditEvents: ["skill.invoke"],
   example: { windowHours: 24 },
   limitations: [
-    "It reads what events say. Legion does not measure network traffic itself, so a transfer no sensor reported is invisible and a size is only known when an event states it.",
+    "It reads what events say. Argust does not measure network traffic itself, so a transfer no sensor reported is invisible and a size is only known when an event states it.",
     "Backups, migrations and reporting jobs look like collection and transfer. A result is a lead to check with the owner of the host or account.",
     "A transfer to a destination outside your network is only known when the event names the destination address.",
     "Text in events can be written by an attacker. It is treated as data, never as instructions.",

@@ -15,7 +15,7 @@ import type { ToolAnalysis, ToolCall } from "./types.js";
 /*
  * One deterministic analyser per tool family. Each answers: what is the
  * target, where does the effect land, which permission does it need, how
- * sensitive is it, does it change state or act outside Legion, and which
+ * sensitive is it, does it change state or act outside Argust, and which
  * dangerous patterns does it contain. Nothing here does I/O.
  */
 
@@ -90,9 +90,9 @@ function analyzeHttp(c: Extract<ToolCall, { kind: "http" }>, { policy }: Ctx, f:
   }
   // Credentials the agent needs for the destination's API may travel in the
   // auth headers (the destination is allowlisted); anywhere else they are
-  // exfiltration. Legion's own secrets never leave.
+  // exfiltration. Argust's own secrets never leave.
   const legion = findSecrets({ headers, body: c.body, url: c.url }).filter((s) => s.startsWith("legion_"));
-  if (legion.length) f.hard("http.legion_secret", "Legion credentials must never be sent to another service.");
+  if (legion.length) f.hard("http.legion_secret", "Argust credentials must never be sent to another service.");
   const { authorization, "x-api-key": apiKey, ...otherHeaders } = headers;
   if (findSecrets(authorization ?? "").length || findSecrets(apiKey ?? "").length) f.add("sends an API credential", 5);
   secrets({ otherHeaders, body: c.body, url: c.url }, f, "egress.secret_in_payload", "The request");

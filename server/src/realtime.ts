@@ -2,7 +2,7 @@
  * Realtime alert delivery.
  *
  * The socket registry is per-process by nature — a WebSocket belongs to the pod
- * that accepted it. That was fine while Legion ran as a single instance, and it
+ * that accepted it. That was fine while Argust ran as a single instance, and it
  * silently broke when it stopped: an alert ingested by pod A was only ever
  * pushed to clients connected to pod A. Nothing errored. The dashboard simply
  * missed alerts, which for a security product is the worst possible way to

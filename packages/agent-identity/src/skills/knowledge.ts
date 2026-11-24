@@ -31,7 +31,7 @@ export const STAGES = [
 export type Stage = (typeof STAGES)[number];
 export const STAGE_ORDER: Record<Stage, number> = Object.fromEntries(STAGES.map((s, i) => [s, i])) as Record<Stage, number>;
 
-/** MITRE ATT&CK techniques Legion recognises, with the stage and a plain name. */
+/** MITRE ATT&CK techniques Argust recognises, with the stage and a plain name. */
 export const TECHNIQUES: Record<string, { stage: Stage; name: string; points: number }> = {
   T1595: { stage: "reconnaissance", name: "Active scanning", points: 5 },
   T1046: { stage: "discovery", name: "Network service discovery", points: 10 },
@@ -294,7 +294,7 @@ export function extractIndicators(text: string, max = 100): Indicator[] {
   return [...out.values()];
 }
 
-/** Facts Legion can state about an IP without any lookup. */
+/** Facts Argust can state about an IP without any lookup. */
 export function localIpFacts(ip: string): string[] {
   const facts: string[] = [];
   if (net.isIPv4(ip)) {

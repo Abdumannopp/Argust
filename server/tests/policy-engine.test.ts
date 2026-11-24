@@ -52,7 +52,7 @@ describe("evaluator: hard refusals", () => {
     // the old name does not gain anything: an action Vanguard may not do is refused under either name
     expect(evaluatePolicy(agentReq("alert.triage", "Executor"), null).decision).toBe(evaluatePolicy(agentReq("alert.triage", "Vanguard"), null).decision);
   });
-  it("live mode is denied unless an administrator opted in AND Legion can really do the action — whatever the policy says", () => {
+  it("live mode is denied unless an administrator opted in AND Argust can really do the action — whatever the policy says", () => {
     const allowAll = doc({ default_autonomy: "AUTONOMOUS", rules: [{ id: "all", effect: "ALLOW", actions: ["*"] }] });
     // No protection settings, or manual: refused, for a person and for an agent.
     expect(evaluatePolicy(agentReq("ip.block", "Vanguard", { mode: "live" }), allowAll)).toMatchObject({ decision: "DENY", reason_codes: ["LIVE_NOT_ENABLED"] });
@@ -133,7 +133,7 @@ describe("evaluator: floors no policy can lower", () => {
     }
     expect(evaluatePolicy(agentReq("payment.release", "Vanguard"), allowAll).reason_codes).toContain("FLOOR_CRITICAL");
   });
-  it("high-risk (R3) actions by an agent or by Legion itself need approval even if a rule allows them", () => {
+  it("high-risk (R3) actions by an agent or by Argust itself need approval even if a rule allows them", () => {
     expect(evaluatePolicy(agentReq("ip.block", "Vanguard"), allowAll)).toMatchObject({ decision: "REQUIRE_APPROVAL", reason_codes: expect.arrayContaining(["FLOOR_R3_NON_HUMAN"]) });
     expect(evaluatePolicy({ action_id: "ip.block", actor: { kind: "system", component: "auto_response" }, origin: "system", mode: "shadow" }, allowAll).decision).toBe("REQUIRE_APPROVAL");
     // A person acting directly (their role checked by the route) is not held back for R3.
@@ -341,8 +341,8 @@ describe("shadow mode observes and never enforces", () => {
     expect(sites).toEqual(expect.arrayContaining(["route:manual_unblock:ip.unblock:ALLOW", "route:alert_status:alert.set_status:ALLOW"]));
   });
 
-  it("Legion's own automatic block is shadowed as a machine action: the engine would have asked a person", async () => {
-    // Even a policy that allows everything cannot let Legion block on its own without a person (R3 floor).
+  it("Argust's own automatic block is shadowed as a machine action: the engine would have asked a person", async () => {
+    // Even a policy that allows everything cannot let Argust block on its own without a person (R3 floor).
     await putPolicy(tenantA, { schema: 1, default_autonomy: "AUTONOMOUS", rules: [{ id: "all", effect: "ALLOW", actions: ["*"] }] }, { expectedVersion: 0, userId: adminA.id });
     await blocklist.updateSettings(tenantA, { mode: "auto", minutes: 30 });
     await blocklist.acknowledgeNotice(tenantA, "admin@a.io");
@@ -357,7 +357,7 @@ describe("shadow mode observes and never enforces", () => {
     expect(d.reason_codes).toContain("FLOOR_R3_NON_HUMAN");
   });
 
-  it("with no policy at all (D0), Legion's automatic block is shadowed as record-only", async () => {
+  it("with no policy at all (D0), Argust's automatic block is shadowed as record-only", async () => {
     await blocklist.updateSettings(tenantA, { mode: "auto", minutes: 30 });
     await blocklist.acknowledgeNotice(tenantA, "admin@a.io");
     const id = `CMP-${randomUUID().slice(0, 8)}`;

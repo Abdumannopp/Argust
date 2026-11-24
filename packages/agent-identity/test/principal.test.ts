@@ -117,7 +117,7 @@ describe("an AI agent is never served as an anonymous client", () => {
     expect(rows[0].principal_type).toBe("external_system");
   });
 
-  it("the same self-declared agent WITH a Legion identity is served, as itself", async () => {
+  it("the same self-declared agent WITH a Argust identity is served, as itself", async () => {
     const { agent, token } = await agentWithToken(t, "alice");
     const res = await request(t.app).get("/agent/v1/whoami").set(bearer(token)).set("user-agent", "ClaudeBot/1.0");
     expect(res.status).toBe(200);

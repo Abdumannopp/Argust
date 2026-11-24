@@ -7,7 +7,7 @@
 #   sudo systemctl daemon-reload
 #   sudo systemctl enable --now legion-backup.timer legion-backup-check.timer
 [Unit]
-Description=Legion encrypted database backup
+Description=Argust encrypted database backup
 After=postgresql.service network-online.target
 Wants=network-online.target
 # The script alerts on its own failures; this catches the ones it cannot (killed, out of disk).

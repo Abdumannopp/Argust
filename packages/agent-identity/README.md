@@ -1,6 +1,6 @@
 # @legion/agent-identity
 
-Gives every AI agent (and every non-AI machine) in Legion its own identity,
+Gives every AI agent (and every non-AI machine) in Argust its own identity,
 owner, permissions and audit trail, so every action it takes is traceable to
 it, and so an AI agent is never served as an anonymous API client. Every
 agent action then passes a central, deterministic **agent firewall** before it
@@ -16,9 +16,9 @@ in an auditable [Agent Trust Graph](#agent-trust-graph). Agents analyse
 security data through read-only, explicitly assigned
 [security skills](#security-skills).
 
-> **Status.** Wired into Legion's server (`server/src/agents.ts`): people
+> **Status.** Wired into Argust's server (`server/src/agents.ts`): people
 > manage agents with their normal session, agents use `/agent/v1/…`, and the
-> security skills read Legion's own alerts and assets. Tested standalone
+> security skills read Argust's own alerts and assets. Tested standalone
 > (against real PostgreSQL 16), inside the server, and end to end with the
 > Wazuh integration (`ops/tests/e2e-wazuh.mjs`).
 
@@ -28,14 +28,14 @@ Every request is resolved to exactly one of these and stored on `req.principal`:
 
 | Type | Who | How it authenticates |
 |---|---|---|
-| `human` | A person | Legion's existing cookie login (called through `HostAdapter`, never reimplemented) |
+| `human` | A person | Argust's existing cookie login (called through `HostAdapter`, never reimplemented) |
 | `ai_agent` | An AI system acting on its own | Access token `lgt_…` obtained with an agent credential `lga_…` |
 | `service_account` | A non-AI machine (script, integration) | Access token `lgt_…` obtained with a service credential `lgs_…` |
 | `external_system` | Everything else: sensor webhooks, anonymous traffic | Its own scheme, which the route must prove: `guards.externalSystem("wazuh-webhook", { verify })` labels the caller only after `verify(req)` succeeds (a signature or shared secret); without `verify` every request is refused (401 `unverified_source`) |
 
 Rules enforced on every request:
 
-- **A self-declared AI agent without a Legion identity is refused (401) and
+- **A self-declared AI agent without a Argust identity is refused (401) and
   audited.** This covers `GPTBot`, `ClaudeBot`, `Claude-User`, `PerplexityBot`
   and similar user agents, plus the `x-legion-agent` and `Signature-Agent`
   headers. Ordinary browsers are unaffected. This catches *honest* agents;
@@ -109,7 +109,7 @@ request id (also returned as the `x-request-id` header), IP, user agent.
 
 ## API
 
-People (Legion session required):
+People (Argust session required):
 
 | Method & path | Who | Purpose |
 |---|---|---|
@@ -157,7 +157,7 @@ written, or the policy can't be read, the answer is BLOCK.
 | User delegation | `x-legion-on-behalf-of: <userId>`, checked against a grant **that person** created (`POST /firewall/delegations`), their current role, and the agent's grants. Write/execute (tier 2) authority can be delegated by an **administrator** only — checked when the grant is made and again at every use |
 | Requested action & permission | The route or executor. For tools, the policy's permission for the tool wins over the caller's claim |
 | Target resource | Type, id and owning tenant |
-| Sensitivity | `public` < `internal` < `confidential` < `restricted`. The policy can raise a resource type's level, never lower it. Data leaving Legion is at least `confidential`; `restricted` is never reachable |
+| Sensitivity | `public` < `internal` < `confidential` < `restricted`. The policy can raise a resource type's level, never lower it. Data leaving Argust is at least `confidential`; `restricted` is never reachable |
 | Risk | Deterministic score: agent risk + permission tier + sensitivity + external effect + delegation + agent hops + unusual rate |
 | Destination | API resource, file path, `db:table`, URL, `tool:x`, `mcp:server/tool`, `agent:id` |
 
@@ -212,7 +212,7 @@ by comparing with one value.
     agent. Defaults: reaching into another tenant, laundering permissions
     through another agent, spreading an injection payload, structured tool
     requests hidden in a message, credentials in outgoing data → QUARANTINE;
-    Legion's own credentials sent out (`http.legion_secret`) → KILL.
+    Argust's own credentials sent out (`http.legion_secret`) → KILL.
 - **An AI/LLM is never the decider.** `firewallAdvisors` run only after a
   deterministic decision below BLOCK. They can only return WARN or BLOCK,
   each is limited to 2 seconds, and failures are logged and ignored. Tests
@@ -266,7 +266,7 @@ each identity, its owner, lifecycle status and whether it can act now,
 granted and effective permissions, tool families and assigned skills, tools
 used, connected systems (destinations, MCP servers, other agents), risk
 (level, baseline, behaviour, refusals, containments, pending approvals, an
-overall rating) and last activity — computed from Legion's records, never
+overall rating) and last activity — computed from Argust's records, never
 from what an agent reports.
 
 ### Decision log (`firewall_decisions`)
@@ -312,7 +312,7 @@ but the protection doesn't depend on it:
 |---|---|---|
 | 1. System instructions | `SYSTEM_PROMPTS` in code only | Chosen by key. The compiler rejects runtime text (`test/compile-guards.ts`), so external content can never become a system instruction |
 | 2. User intent | The signed-in person or authenticated agent | `USER REQUEST` section. Also classified, since injection-like intent usually means external text was pasted in as a request |
-| 3. Trusted application data | Values Legion produced (ids, counts, times) | `TRUSTED APPLICATION DATA`, JSON-encoded, so a value can't start a new section |
+| 3. Trusted application data | Values Argust produced (ids, counts, times) | `TRUSTED APPLICATION DATA`, JSON-encoded, so a value can't start a new section |
 | 4. Untrusted external content | Emails, web pages, security alerts, PDFs, documents, tickets, GitHub issues, API responses, user-generated content, other agents' messages, model output | Classified, sanitised, and wrapped between markers carrying a random per-prompt boundary. Content can't know that boundary in advance, so it can't close its own block; if it contains the boundary anyway, the forgery is removed and flagged |
 
 **The system message always states the separation rules. There is no method
@@ -362,7 +362,7 @@ Several independent weak signals add up; repeating one phrase doesn't.
 |---|---|
 | **Record the event** | `content_ingestion_log`, against the principal the content reached — **every item, including content classified clean** (tool output, inspected content, prompt inputs). Append-only and hash-chained. Stores a digest, length, a 300-character redacted preview and the findings, never the raw content. If an item can't be recorded, the caller gets an error instead of passing the content on |
 | **Increase risk** | Suspicious: +10 to +25 on the agent's firewall risk score for `suspiciousWindowSeconds` (default 1 h). Malicious: +40 until reviewed |
-| **Prevent unsafe actions** | Unreviewed malicious content puts the agent in **quarantine**. The hard firewall rule `content.quarantine` blocks everything that changes state (tier-2 permissions, file writes, database writes), acts outside Legion (egress, external tools), touches confidential data, or messages another agent. Reads continue, flagged WARN. The quarantine doesn't expire, so an attacker can't just wait it out |
+| **Prevent unsafe actions** | Unreviewed malicious content puts the agent in **quarantine**. The hard firewall rule `content.quarantine` blocks everything that changes state (tier-2 permissions, file writes, database writes), acts outside Argust (egress, external tools), touches confidential data, or messages another agent. Reads continue, flagged WARN. The quarantine doesn't expire, so an attacker can't just wait it out |
 | **Require stronger authorization** | Only an **administrator** can lift a quarantine (`POST /prompt-guard/acknowledge`), and must state what they reviewed (at least 10 characters, written to the audit trail). A later malicious event re-imposes the quarantine |
 | **Hold actions after ANY external content** | Detection is a word list. The assessment found realistic wordings it missed (IPI-1; IPI-3 in Spanish, German and French); those are now covered, along with Russian and Uzbek, but the next wording may not be. So whatever the verdict, for `promptInjection.untrustedHoldSeconds` after an agent reads external content (default **900 s**), the hard rule `content.untrusted_hold` blocks the same unsafe set as the quarantine. Reads continue. It ends when an administrator acknowledges what the agent read, or when the window lapses. `0` turns it off — only do that for an agent whose inputs you trust, because the agent then acts on whatever text the classifier misses. Content an agent *writes* to another agent does not trigger it |
 
@@ -373,7 +373,7 @@ Several independent weak signals add up; repeating one phrase doesn't.
 - A suspicious payload is delivered, marked `trust: "untrusted"` with its
   classification, and recorded once against the recipient.
 
-**Legion's own AI:** `reviewProposedAction(assembly, proposal)` means a
+**Argust's own AI:** `reviewProposedAction(assembly, proposal)` means a
 model's suggestion made after reading external content never auto-executes if
 it is sensitive:
 - `block` after malicious content
@@ -412,7 +412,7 @@ const messages = a.toMessages();                // send these to OpenRouter / Gr
 ```
 
 **Everything that came from Wazuh is part 4:** title, summary, `full_log`,
-hostnames, IPs, user names. Only values Legion computed are part 3. Treat
+hostnames, IPs, user names. Only values Argust computed are part 3. Treat
 the model's answer as `model_output` if it is fed back into a later prompt.
 When an agent is served alert content through `/agent/v1/…`, call
 `identity.contentGuard.ingest({ tenantId, principal: agent }, "security_alert", text)`
@@ -443,7 +443,7 @@ Every AI tool call passes through `ToolGateway.authorize` **before it runs**:
 | Tool | Examples |
 |---|---|
 | Browser | Running scripts in a page; typing passwords or card data; executable downloads; `javascript:`, `file:` and internal URLs |
-| HTTP | SSRF (internal, metadata, mapped addresses; DNS re-checked at connect time); Host-header overrides; Legion credentials or secrets in the payload |
+| HTTP | SSRF (internal, metadata, mapped addresses; DNS re-checked at connect time); Host-header overrides; Argust credentials or secrets in the payload |
 | Database | Anything other than one SELECT/INSERT/UPDATE/DELETE; DDL, GRANT, COPY; comments; dollar quoting; server/file/network functions; system catalogs; identity/secret/audit tables; UPDATE/DELETE without WHERE; missing or foreign tenant scope, including an `OR` beside the tenant condition (`tenant_id = $1 OR 1=1`) and a table referenced twice but scoped once (`alerts a JOIN alerts b`) |
 | Files | Keys, `.env`, `.ssh`, `/proc`; paths outside the roots, including via symlinks (re-checked at the real path); recursive delete; writing executables |
 | Shell | Interpreters, privilege tools, network tools, destructive and system commands (`DENIED_COMMANDS`; the policy *can't* allow them); paths or shell strings instead of a bare command; option-based code execution (`git -c`, `--upload-pack`, `core.sshCommand`); shell syntax in arguments; paths leaving the roots. Runs through `execFile` with no shell, a fixed `PATH`, and time and output limits |
@@ -457,7 +457,7 @@ Every AI tool call passes through `ToolGateway.authorize` **before it runs**:
 unlisted hosts or ports, downloads, attachments, Slack mass mentions,
 direct messages and uploads, and SQL without a LIMIT.
 
-### Tickets: making "through Legion" enforceable
+### Tickets: making "through Argust" enforceable
 
 An allowed call returns a single-use ticket (`ltk_…`, 60 seconds), bound to
 the SHA-256 of the exact validated call. A tool server (a service account)
@@ -470,7 +470,7 @@ calls `POST /agent/v1/tools/verify { ticket, call }` and runs only on
 
 Every verification, accepted or rejected, is audited.
 
-### Executing through Legion
+### Executing through Argust
 
 `tools.execute(ctx, call, executor)` runs your executor only after an allow.
 Built-in executors:
@@ -622,7 +622,7 @@ as a proposal with `executed: false`.
 
 ### Available skills
 
-Every skill belongs to one of Legion's five agents (`agent` in its definition
+Every skill belongs to one of Argust's five agents (`agent` in its definition
 and in discovery; the registry refuses a skill without one). Sentinel
 watches, Hunter hunts, Guardian protects, Oracle explains and prioritises,
 Vanguard prepares the response. Even Vanguard's skills only recommend.
@@ -636,20 +636,20 @@ Vanguard prepares the response. Even Vanguard's skills only recommend.
 | `secret_exposure_check` | Guardian | Credentials, payment card numbers (Luhn-checked) and IBANs (mod-97-checked) that ended up in logs: kind, count, assets, advice. Never the value | `read:security_events` → `alerts:read` |
 | `sensitive_access_watch` | Sentinel | Who opens the data that matters (customers, payroll, contracts, keys, backups): an account opening 10+ distinct sensitive items or reaching them on 3+ machines | `read:security_events` → `alerts:read` |
 | `response_sla_review` | Oracle | Open alerts against response targets per severity (defaults 4 h / 24 h / 3 d / 7 d, adjustable): which are late and by how much, the share on time. Serious alerts are read first so a busy workspace cannot hide an old critical one | `read:security_events` → `alerts:read` |
-| `payment_fraud_review` | Vanguard | Legion's payment checks: allowed vs held, what still waits for a phone confirmation and for how long, and fraud patterns (repeated attempts, retry after rejection, one requester with several new accounts). Never an account number | `read:payments` → `payments:read` (tier 0) |
+| `payment_fraud_review` | Vanguard | Argust's payment checks: allowed vs held, what still waits for a phone confirmation and for how long, and fraud patterns (repeated attempts, retry after rejection, one requester with several new accounts). Never an account number | `read:payments` → `payments:read` (tier 0) |
 | `triage_priority` | Oracle | The open alerts in the order to handle them (now / today / this week), each score explained; resolved alerts excluded | `read:security_events`, `read:assets` → `alerts:read`, `assets:read` |
 | `containment_candidates` | Vanguard | Attacking public addresses worth blocking, with evidence; private and documentation addresses listed as not blockable; warns when many addresses attack one host. **Blocks nothing** | `read:security_events` → `alerts:read` |
 | `threat_detection` | Sentinel | Analyse recent Wazuh alerts: suspicious patterns (brute force, success after failures, multi-stage activity, prompt-injection attempts), related-event groups, a risk level with reasons | `read:security_events` → `alerts:read` |
 | `alert_analysis` | Oracle | One alert in detail: summary, affected asset/user, likely attack type and stage, indicators, related events, investigation steps; optional model narrative | `read:security_events`, `read:assets` → `alerts:read`, `assets:read` |
 | `incident_response` | Vanguard | Response plan for a suspected or confirmed incident: containment, investigation and recovery steps. **Recommends only** | `read:security_events`, `read:assets` → `alerts:read`, `assets:read` |
-| `threat_intelligence` | Hunter | Classify IPs, domains, URLs, hashes, CVEs and email addresses as `known_malicious` / `suspicious` / `unknown` / `known_safe`, with Legion's own sightings as context | `read:threat_intel`, `read:security_events` → `intel:read`, `alerts:read` |
+| `threat_intelligence` | Hunter | Classify IPs, domains, URLs, hashes, CVEs and email addresses as `known_malicious` / `suspicious` / `unknown` / `known_safe`, with Argust's own sightings as context | `read:threat_intel`, `read:security_events` → `intel:read`, `alerts:read` |
 | `attack_investigation` | Hunter | Link events into possible attack chains (failed login → login → process → connection → file change) with a timeline, stages, assets and confidence | `read:security_events`, `read:assets` → `alerts:read`, `assets:read` |
 | `vulnerability_analysis` | Guardian | Explain scanner findings: component, CVE, severity (CVSS or scanner), exposure, priority and remediation | `read:vulnerabilities`, `read:assets` → `vulnerabilities:read`, `assets:read` |
 | `security_reporting` | Oracle | A report: what happened, when, affected assets, risk, evidence, actions already taken (marked unverified), next steps, plus safe Markdown | `read:security_events`, `read:assets` → `alerts:read`, `assets:read` |
-| `ai_security_red_team` | Guardian | Test Legion's own defences with synthetic attacks (prompt injection, tool abuse, privilege escalation, SSRF, SQL injection, secret exfiltration, tenant isolation, token replay, malicious tool output). **Testing only** | `run:security_self_test` → `security:self_test` |
+| `ai_security_red_team` | Guardian | Test Argust's own defences with synthetic attacks (prompt injection, tool abuse, privilege escalation, SSRF, SQL injection, secret exfiltration, tenant isolation, token replay, malicious tool output). **Testing only** | `run:security_self_test` → `security:self_test` |
 
 Three permissions were added for skills: `vulnerabilities:read` (tier 0),
-`intel:read` (tier 1, because a provider may reach outside Legion) and
+`intel:read` (tier 1, because a provider may reach outside Argust) and
 `security:self_test` (tier 1). Agent suspension, shell execution, cloud
 changes and deletion are **not** skill capabilities. They stay behind their
 own permissions (`tool.shell:execute`, `tool.cloud:write`, …) or with people
@@ -716,7 +716,7 @@ curl -X POST /agent/v1/skills/incident_response/invoke -H "Authorization: Bearer
      -d '{"input":{"alertIds":["SEC-1A2B3C4D5E6F7A8B"],"status":"suspected"}}'
 ```
 
-### Connecting Legion's data (`skillData`)
+### Connecting Argust's data (`skillData`)
 
 ```ts
 createAgentIdentity({
@@ -761,13 +761,13 @@ or, for threat intelligence, answer `unknown` with
   resets and isolation are marked `humanOnly`. An agent that wants to act on
   one uses the normal guarded route or tool gateway, which checks its
   permission again.
-- **The red team is in process and synthetic.** It tests Legion's defence
+- **The red team is in process and synthetic.** It tests Argust's defence
   functions with a fixed policy, not the tenant's live policy. It does not
   exercise the database, DNS or live tickets; those are covered by
   `test/tools.test.ts`, `test/firewall.test.ts` and
   `test/db-least-privilege.test.ts`. It never contacts anything: the
   addresses in its cases are only handed to checkers.
-- **In Legion's server** (`server/src/agents.ts`), skills read alerts and
+- **In Argust's server** (`server/src/agents.ts`), skills read alerts and
   assets. Vulnerability findings come only from Wazuh's vulnerability
   detector alerts (`CVE-… affects <package>`). No threat-intelligence
   provider is configured, so indicators are `unknown` unless one is added.
@@ -945,7 +945,7 @@ Concurrent activations record exactly one event.
 
 An agent asks another agent for work with `POST /agent/v1/messages`. The
 recipient reads it from `GET /agent/v1/messages`, and acts on it by citing
-it with `x-legion-message-id`. Legion relays and checks every step.
+it with `x-legion-message-id`. Argust relays and checks every step.
 
 ### Every request identifies
 
@@ -955,7 +955,7 @@ it with `x-legion-message-id`. Legion relays and checks every step.
 | **Destination agent** | `toAgentId`, resolved within the sender's tenant | receipt, inbox, log |
 | **Tenant** | the sender's identity; a `tenantId` claim other than its own is refused | receipt, inbox, log |
 | **Requested action** | `requestedPermission` (+ optional `resource: {type, id}`) | receipt, inbox, log |
-| **Delegated authority** | Legion (below) | receipt, inbox, log, every decision |
+| **Delegated authority** | Argust (below) | receipt, inbox, log, every decision |
 
 Authority is one of:
 
@@ -983,7 +983,7 @@ Hidden tool delegation means getting another agent to use a tool without
 that tool ever appearing in what the firewall checked. It is caught in two
 places:
 
-1. **In the request.** The payload is searched for tool calls: Legion's own
+1. **In the request.** The payload is searched for tool calls: Argust's own
    call format, LLM `tool_calls` / `function_call` / `{name, arguments}`,
    MCP `tools/call`, command and SQL objects, and calls serialised as JSON
    strings.
@@ -1079,7 +1079,7 @@ authority, and what actually happened.
 
 ## Integration
 
-Legion's server already has everything this needs (Express 5, `pg`,
+Argust's server already has everything this needs (Express 5, `pg`,
 `cookie-parser`). In `server/`:
 
 1. Add the dependency: `"@legion/agent-identity": "file:../packages/agent-identity"`.
@@ -1203,7 +1203,7 @@ requests from self-declared AI user agents without an identity get 401, and
   proposal gating), but a model may still be swayed in what it *says*. Show
   analysts the verdict next to AI answers.
 - **Tickets only enforce anything if the tool server checks them.** Tools
-  an agent runs itself, without a Legion-verifying server in between, are
+  an agent runs itself, without a Argust-verifying server in between, are
   only as safe as the agent's honesty; route them through `tools.execute`
   or a verifying proxy.
 - **The SQL reader deliberately accepts a narrow subset.** Valid but
@@ -1236,8 +1236,8 @@ requests from self-declared AI user agents without an identity get 401, and
 - **If the injection history can't be read, decisions fail open with a
   visible WARN** (`content.risk_unavailable`) instead of blocking every
   agent.
-- **The kill switch stops what passes through Legion.** An agent process
-  keeps running on its own host, and anything it does *without* Legion,
+- **The kill switch stops what passes through Argust.** An agent process
+  keeps running on its own host, and anything it does *without* Argust,
   such as a cloud key it was handed directly, is outside this switch. Rotate
   such secrets as part of the incident.
 - **An effect already delivered cannot be recalled.** An aborted HTTP

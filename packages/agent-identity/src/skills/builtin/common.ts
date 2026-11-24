@@ -54,7 +54,7 @@ export function scoreEvent(ctx: SkillContext, e: SecurityEvent): ScoredEvent {
 export { levelOf };
 
 /**
- * A recommendation, never an action. Actions Legion can let a machine do go
+ * A recommendation, never an action. Actions Argust can let a machine do go
  * through reviewProposedAction() against the external content the plan was
  * built from; actions only a person can take are marked humanOnly and
  * always need confirmation.
@@ -65,7 +65,7 @@ export function propose(
 ): ProposedActionOut {
   const permission = p.permission && isPermission(p.permission) ? p.permission : null;
   if (p.humanOnly || !permission) {
-    const reasons = ["Only a person can take this action; Legion gives agents no permission for it."];
+    const reasons = ["Only a person can take this action; Argust gives agents no permission for it."];
     if (assembly.verdict === "malicious") reasons.push("The plan was built from content flagged as malicious: verify the evidence independently first.");
     else if (assembly.tainted) reasons.push("The plan was built from external content: verify the evidence first.");
     return { ...p, permission: p.permission, humanOnly: true, review: "confirm", reviewReasons: reasons, executed: false };

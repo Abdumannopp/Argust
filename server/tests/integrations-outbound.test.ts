@@ -259,7 +259,7 @@ describe("Jira tickets", () => {
     await ingestFindings(tA, "wazuh", [finding("j6")]);
     await deliverDue({ kind: "integration_message" });
     expect(created).toBe(1);
-    // an immediate retry: the search is still empty (index lag), but Legion must not create again
+    // an immediate retry: the search is still empty (index lag), but Argust must not create again
     await due(); await deliverDue({ kind: "integration_message" });
     await due(); await deliverDue({ kind: "integration_message" });
     expect(created).toBe(1);

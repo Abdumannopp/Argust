@@ -113,7 +113,7 @@ export function findToolRequests(payload: unknown, requested: Permission, permis
       }
       const tool = isToolShaped(o);
       if (tool) {
-        if (!familyCovers(requested, tool)) out.push({ form: "structured", tool, permission: null, detail: `a ${tool} invocation Legion cannot verify` });
+        if (!familyCovers(requested, tool)) out.push({ form: "structured", tool, permission: null, detail: `a ${tool} invocation Argust cannot verify` });
         return;
       }
       for (const [k, x] of Object.entries(o)) {

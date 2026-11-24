@@ -5,7 +5,7 @@
  * Cloudflare itself, which this machine cannot reach. Its widget script is
  * replaced (Playwright route) by a stand-in that renders a "verify" button and
  * hands out single-use tokens, and its siteverify API by a local server that
- * accepts each token exactly once. What is tested is Legion's side: the
+ * accepts each token exactly once. What is tested is Argust's side: the
  * widget appears, the forms wait for it, the token travels with the request,
  * a used token is never reused, the server refuses without one, the CSP admits
  * the widget, and a blocked widget is explained instead of failing silently.
@@ -41,7 +41,7 @@ const { chromium } = loadPlaywright();
 const SITE_KEY = "1x00000000000000000000AA";
 const SECRET = "0x4AAAAAAA-e2e-test-secret";
 
-/** Stand-in for https://challenges.cloudflare.com/turnstile/v0/api.js — the same API surface Legion uses. */
+/** Stand-in for https://challenges.cloudflare.com/turnstile/v0/api.js — the same API surface Argust uses. */
 const FAKE_WIDGET = `
 (() => {
   let n = 0;

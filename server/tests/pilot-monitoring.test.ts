@@ -58,7 +58,7 @@ describe("pilot monitoring references real metrics", () => {
     const blocks = read("monitoring/alerts.yml").split(/\n\s+- alert: /).slice(1);
     expect(blocks.length).toBeGreaterThanOrEqual(15);
     for (const b of blocks) {
-      expect(b.split("\n")[0], "alert name").toMatch(/^Legion[A-Za-z]+$/);
+      expect(b.split("\n")[0], "alert name").toMatch(/^Argust[A-Za-z]+$/);
       expect(b).toMatch(/severity: (page|ticket|info)/);
       expect(b).toMatch(/summary: \S/);
     }

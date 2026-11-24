@@ -21,6 +21,6 @@ export const reports = defineMessages({
       `${explained} of ${total} incidents have an Oracle-generated explanation on file.`,
     recentlyResolved: "Recently resolved incidents",
     nothingResolved: "Nothing resolved yet.",
-    loadError: "Couldn't reach the Legion API. Is the backend running?",
+    loadError: "Couldn't reach the Argust API. Is the backend running?",
   },
 });

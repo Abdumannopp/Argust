@@ -1,7 +1,7 @@
 -- Task 10, module 7: Memory and Learning foundation.
 --
--- Memory: short facts people record about things Legion sees (this address is
--- our scanner, this alert rule is noisy). Written by people or by Legion's own
+-- Memory: short facts people record about things Argust sees (this address is
+-- our scanner, this alert rule is noisy). Written by people or by Argust's own
 -- deterministic code — never by a language model. Every entry expires.
 --
 -- Learning: counts of how people decided on agents' proposals, per action.

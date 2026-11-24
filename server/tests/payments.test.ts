@@ -1,5 +1,5 @@
 /**
- * Payment check: the payment software asks Legion before paying, and a
+ * Payment check: the payment software asks Argust before paying, and a
  * payment that looks like fraud is HELD until a person confirms it by phone.
  */
 import { describe, it, expect, beforeAll, beforeEach, afterAll } from "vitest";
@@ -200,8 +200,8 @@ describe("the dashboard explains every reason", () => {
   });
 });
 
-describe("Legion's own payment alerts are not evidence for coverage", () => {
-  it("a held payment does not make Legion claim it can see phishing or BEC", async () => {
+describe("Argust's own payment alerts are not evidence for coverage", () => {
+  it("a held payment does not make Argust claim it can see phishing or BEC", async () => {
     await check(credA, pay()).expect(200);
     const c = (await request(app).get("/security/coverage").set("Authorization", bearer(analystA)).expect(200)).body;
     const by = Object.fromEntries(c.threats.map((t: { threat: string; status: string }) => [t.threat, t.status]));

@@ -1,4 +1,4 @@
-# Legion — Global SaaS Architecture (Phase 5) — 2026-09-30
+# Argust — Global SaaS Architecture (Phase 5) — 2026-09-30
 
 Branch `claude/laughing-clarke-cmfudk`. This document is the design and the
 record of what was built. Everything marked **built** is in the code and
@@ -153,7 +153,7 @@ refresh_tokens.tenant_id = the workspace the session belongs to (NULL = home, se
 
 ```
              data plane (findings in)                     tool plane (actions out)
-  push:  vendor ─► Legion endpoint ─► authenticate ─►     notify:  outbox ─► Slack/Teams/webhook  (seam)
+  push:  vendor ─► Argust endpoint ─► authenticate ─►     notify:  outbox ─► Slack/Teams/webhook  (seam)
          adapter.normalize(payload) ─► Finding[]          respond: agent firewall ─► MCP tools, A2A (built)
   pull:  worker ─► adapter.poll(conn, cursor) ─► Finding[] + cursor
                          │

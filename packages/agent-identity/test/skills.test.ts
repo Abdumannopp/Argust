@@ -26,7 +26,7 @@ describe("discovery and explicit assignment", () => {
       "security_reporting", "sensitive_access_watch", "threat_coverage", "threat_detection",
       "threat_intelligence", "triage_priority", "vulnerability_analysis",
     ]);
-    // Each skill names the Legion agent it belongs to.
+    // Each skill names the Argust agent it belongs to.
     expect(Object.fromEntries(Object.entries(byName).map(([n, d]) => [n, (d as { agent: string }).agent]))).toEqual({
       threat_detection: "Sentinel", account_activity_watch: "Sentinel",
       attack_investigation: "Hunter", threat_intelligence: "Hunter", data_exfiltration_hunt: "Hunter",
@@ -276,7 +276,7 @@ describe("the original eight skills", () => {
     const [system, user] = model.sent[0]!;
     expect(system!.role).toBe("system");
     expect(system!.content).not.toMatch(/Ignore all previous instructions/);
-    expect(user!.content).toMatch(/EXTERNAL CONTENT LEGION-[0-9a-f]{24} source=security_alert/);
+    expect(user!.content).toMatch(/EXTERNAL CONTENT ARGUST-[0-9a-f]{24} source=security_alert/);
     expect(JSON.stringify(model.sent)).not.toContain(FAKE_AWS_KEY);
   });
 });

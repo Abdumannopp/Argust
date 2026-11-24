@@ -102,11 +102,11 @@ export interface AgentIdentityOptions {
   aiUserAgents?: RegExp | null;
   /** Optional non-deterministic reviewers (e.g. an LLM). They can only escalate a decision. */
   firewallAdvisors?: Advisor[];
-  /** Called for every decision other than ALLOW after it is logged (and contained) — hook this to Legion's alerting. */
+  /** Called for every decision other than ALLOW after it is logged (and contained) — hook this to Argust's alerting. */
   onFirewallDecision?: (ctx: FirewallContext, req: ActionRequest, d: FirewallDecision) => void | Promise<void>;
   /** DNS resolver for firewall.request(); every returned address is checked. */
   dnsLookup?: (host: string) => Promise<{ address: string; family: number }[]>;
-  /** Called once when an agent's behaviour level changes — hook this to Legion's alerting. */
+  /** Called once when an agent's behaviour level changes — hook this to Argust's alerting. */
   onBehaviorChange?: (change: BehaviorChange) => void | Promise<void>;
   /** How long a per-agent behaviour assessment is reused (default 30 s). */
   behaviorRefreshSeconds?: number;
@@ -116,7 +116,7 @@ export interface AgentIdentityOptions {
    * Without it, notices are logged and kept in the API as undeliverable.
    */
   notifyAdmins?: (notice: AdminNotice) => void | Promise<void>;
-  /** Called once per security event (suspension, revocation, kill switch) — hook this to Legion's alerting/SIEM. */
+  /** Called once per security event (suspension, revocation, kill switch) — hook this to Argust's alerting/SIEM. */
   onSecurityEvent?: (event: Omit<SecurityEventRow, "seq">) => void | Promise<void>;
   /** How often running tool executions re-check their agent's status (default 1000 ms). */
   killSwitchPollMs?: number;
@@ -208,7 +208,7 @@ export function createAgentIdentity(opts: AgentIdentityOptions) {
       identityIds: [p.id],
       reason: `Agent firewall ${d.decision} on ${req.action} (decision ${d.decisionId}): ${rules.join(", ")}`.slice(0, 500),
       compromise: d.decision === "KILL" ? "confirmed" : "suspected",
-      actor: { type: "external_system", id: "legion-agent-firewall", tenantId: p.tenantId, displayName: "Legion agent firewall" },
+      actor: { type: "external_system", id: "legion-agent-firewall", tenantId: p.tenantId, displayName: "Argust agent firewall" },
       kind: d.decision === "KILL" ? "agent_killed" : "agent_auto_suspended",
       requestId: ctx.requestId,
       ip: ctx.ip,

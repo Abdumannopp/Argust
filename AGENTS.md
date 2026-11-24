@@ -1,13 +1,13 @@
-# Legion's five agents and their skills
+# Argust's five agents and their skills
 
-Legion has five agents. Each has its own job and its own skills.
-In the dashboard you see them on the **Legion team** page.
+Argust has five agents. Each has its own job and its own skills.
+In the dashboard you see them on the **Argust team** page.
 
 | Agent | Job | Skills |
 |---|---|---|
 | **Sentinel** (watches) | Watches sign-ins, accounts and events from your servers | `threat_detection`, `account_activity_watch`, `sensitive_access_watch` |
 | **Hunter** (hunts) | Connects separate events into one attack, looks for data theft | `attack_investigation`, `threat_intelligence`, `data_exfiltration_hunt` |
-| **Guardian** (protects) | Finds what is open to attack before anyone attacks it, tests Legion's own defences | `vulnerability_analysis`, `ai_security_red_team`, `exposure_review`, `threat_coverage`, `secret_exposure_check` |
+| **Guardian** (protects) | Finds what is open to attack before anyone attacks it, tests Argust's own defences | `vulnerability_analysis`, `ai_security_red_team`, `exposure_review`, `threat_coverage`, `secret_exposure_check` |
 | **Oracle** (explains) | Explains an alert in plain words and says what to look at first | `alert_analysis`, `security_reporting`, `triage_priority`, `response_sla_review` |
 | **Vanguard** (prepares the response) | Prepares the next step with its evidence; **a person approves it** | `incident_response`, `containment_candidates`, `payment_fraud_review` |
 
@@ -18,7 +18,7 @@ In the dashboard you see them on the **Legion team** page.
 | `account_activity_watch` (Sentinel) | Spots stolen or guessed accounts: a sign-in after many failures, one account used from many addresses, one address trying many accounts (password spraying), new privileges or a new account right after a sign-in |
 | `data_exfiltration_hunt` (Hunter) | Finds data being collected (a database dump, an archive) and then sent out, with the volume and the external address. Collection alone (for example a nightly backup) is not reported |
 | `exposure_review` (Guardian) | Ranks assets by exposure: reachable from the internet, known weaknesses, whether a fixed version exists. Cheapest fixes first |
-| `threat_coverage` (Guardian) | For the seven most dangerous attack types: what Legion detected, what it is watching, and where it is blind because data never arrives ([THREATS.md](THREATS.md)) |
+| `threat_coverage` (Guardian) | For the seven most dangerous attack types: what Argust detected, what it is watching, and where it is blind because data never arrives ([THREATS.md](THREATS.md)) |
 | `triage_priority` (Oracle) | Orders open alerts into now / today / this week, each score with its reasons |
 | `containment_candidates` (Vanguard) | Attacker addresses worth blocking, with evidence. Private addresses go into a "cannot block" list. Warns when an attack comes from many addresses and blocking will not help |
 
@@ -69,23 +69,23 @@ Authorization: Bearer <the agent's short-lived token>
 
 ## Honest limits
 
-- **The user name comes from the log text.** Legion does not store a separate
+- **The user name comes from the log text.** Argust does not store a separate
   "user" field. The name is extracted from familiar lines in sshd, sudo, PAM and
   Windows logs; on an unfamiliar line it stays unknown and is not guessed.
   Whoever wrote the log chose the name, so it is used only as data.
 - **Exposure is estimated.** An asset with a public IP is treated as "open to the
   internet". A private address stays "unknown" (not "internal"): it may be
   exposed through NAT or a load balancer.
-- **Legion does not measure network volume.** Data volume is known only if the
+- **Argust does not measure network volume.** Data volume is known only if the
   event recorded it. Backups and migrations also look like "collect and send";
   the result is a direction to check, not proof.
-- **Agents call the skills.** Legion does not run them on a schedule. Legion's
+- **Agents call the skills.** Argust does not run them on a schedule. Argust's
   own detection and automatic blocking run separately ([WAZUH.md](WAZUH.md),
   "Automatic response").
 - **Ranking is based on evidence, not business value.** A high score on a test
   server can rank above a medium one on the payment system.
 - An address in a log may be forged. Confirm from a second source before blocking.
-- **`response_sla_review` does not know when alerts were closed.** Legion does
+- **`response_sla_review` does not know when alerts were closed.** Argust does
   not record when an alert was resolved, so it measures only how long open ones
   have waited. The targets are your choice; the defaults are not a legal or
   contractual standard.

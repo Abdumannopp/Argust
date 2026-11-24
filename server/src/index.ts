@@ -236,7 +236,7 @@ function safeEqual(a: string, b: string): boolean {
  */
 function logUnsentLink(kind: "password reset" | "invitation" | "notification address confirmation", url: string, reason: string): void {
   if (config.devLogAuthLinks) console.info(`[DEV_LOG_AUTH_LINKS] ${kind} link (SMTP ${reason}): ${url}`);
-  else console.info(`Legion: a ${kind} link was generated but not e-mailed (SMTP ${reason}). Configure SMTP, or set DEV_LOG_AUTH_LINKS=true on a development machine to print it.`);
+  else console.info(`Argust: a ${kind} link was generated but not e-mailed (SMTP ${reason}). Configure SMTP, or set DEV_LOG_AUTH_LINKS=true on a development machine to print it.`);
 }
 
 /** The answer to a TOTP check, whatever state the stored seed is in. An
@@ -303,8 +303,8 @@ async function enforceAccess(req: AuthedRequest, res: Response): Promise<boolean
   if (state === "readonly" && req.method === "GET") return true;
   res.status(402).json({
     detail: state === "readonly"
-      ? "Your subscription payment is past due. Legion is read-only until it is settled."
-      : "This workspace does not have an active Legion subscription.",
+      ? "Your subscription payment is past due. Argust is read-only until it is settled."
+      : "This workspace does not have an active Argust subscription.",
     code: state === "readonly" ? "subscription_past_due" : "subscription_inactive",
     access_state: state,
   });
@@ -414,7 +414,7 @@ function outputAlert(alert: Alert) {
   const codes = suggestedActions(alert);
   return {
     ...alert,
-    // True only when a model wrote the stored explanation; Legion's own
+    // True only when a model wrote the stored explanation; Argust's own
     // fallback text is not "AI" and is not labelled as if it were.
     ai_generated: alert.ai_explanation_source === "ai",
     suggested_actions: codes.map((a) => actionText(a, "en")), suggested_action_codes: codes,
@@ -716,15 +716,15 @@ async function registerFirstAdmin(
 
   if (outcome.kind === "already-set-up") {
     return res.status(403).json({
-      detail: "This Legion installation is already set up. Ask an administrator to invite you.",
+      detail: "This Argust installation is already set up. Ask an administrator to invite you.",
     });
   }
   if (outcome.kind === "bad-token") {
     // No tenant exists yet, so there is no audit_log to write to (every row
     // belongs to a tenant). The server log is the only record available.
-    console.warn(`Legion: refused first-run setup from ${req.ip || "unknown"}: missing or wrong setup token`);
+    console.warn(`Argust: refused first-run setup from ${req.ip || "unknown"}: missing or wrong setup token`);
     return res.status(403).json({
-      detail: "A valid setup token is required. It is printed in the Legion server's console on startup.",
+      detail: "A valid setup token is required. It is printed in the Argust server's console on startup.",
     });
   }
 
@@ -802,7 +802,7 @@ async function completeSignInChecks(req: Request, user: User): Promise<void> {
     await store.audit({ tenant_id: user.tenant_id, user_id: user.id, user_email: user.email, action: "auth.login_suspicious", resource_type: "user", resource_id: user.id, detail, ip_address: req.ip || null });
     notifyAccountOwner(user, "new_device_login", req, detail);
   } catch (error) {
-    console.error("Legion: sign-in risk check failed:", error instanceof Error ? error.message : "unknown error");
+    console.error("Argust: sign-in risk check failed:", error instanceof Error ? error.message : "unknown error");
   }
 }
 
@@ -1145,7 +1145,7 @@ app.patch("/auth/me/preferences", auth, async (req: AuthedRequest, res) => {
 
 // --- Audit export ---------------------------------------------------------------
 // The workspace's audit trail for a period, streamed (NDJSON or CSV) in time
-// order — for a SIEM, an auditor or retention outside Legion. Cells that a
+// order — for a SIEM, an auditor or retention outside Argust. Cells that a
 // spreadsheet would execute are neutralised.
 
 const csvCell = (v: unknown) => {
@@ -1373,7 +1373,7 @@ app.post("/auth/accept-invite", authLimiter, async (req, res) => {
     // has an account, is accepted by signing in — never by choosing a
     // password here, which would let the link take over the account.
     if (await workspaces.findInvite(hashOneTimeToken(body.token))) {
-      return res.status(409).json({ detail: "You already have a Legion account. Sign in to accept this invitation.", existing_account: true });
+      return res.status(409).json({ detail: "You already have a Argust account. Sign in to accept this invitation.", existing_account: true });
     }
     return res.status(400).json({ detail: "This invitation is invalid or has expired" });
   }
@@ -1465,7 +1465,7 @@ app.get("/alerts/:id/deliveries", auth, async (req: AuthedRequest, res) => {
 });
 
 // Threat intelligence for one alert's source address, asked of the workspace's own sources (VirusTotal, MISP,
-// OpenCTI) only when a person presses the button: the address leaves Legion, so it is never sent by itself.
+// OpenCTI) only when a person presses the button: the address leaves Argust, so it is never sent by itself.
 app.post("/alerts/:id/intel", requireRole("analyst"), async (req: AuthedRequest, res) => {
   const alert = await store.getAlert(req.user!.tenant_id, String(req.params.id));
   if (!alert) return res.status(404).json({ detail: "Alert not found" });
@@ -1635,7 +1635,7 @@ app.post("/users/invite", requireRole("admin"), async (req: AuthedRequest, res) 
   const { token: inviteToken, hash: inviteHash } = newOneTimeToken();
   const inviteExpires = new Date(Date.now() + config.inviteDays * 86_400_000);
   let user: User;
-  // Someone who already has a Legion account (in another workspace) joins
+  // Someone who already has a Argust account (in another workspace) joins
   // this one through a membership invitation, accepted while signed in.
   const existing = await store.findUserByEmail(body.email);
   if (existing) {
@@ -1671,7 +1671,7 @@ app.post("/users/invite", requireRole("admin"), async (req: AuthedRequest, res) 
   const mail = await sendMail({
     to: user.email,
     ...inviteEmail({
-      inviteUrl, tenantName: tenant?.name || "Legion",
+      inviteUrl, tenantName: tenant?.name || "Argust",
       invitedBy: req.user!.email, role: user.role, expiresDays: config.inviteDays,
       locale: requestLocale(req),
     }),
@@ -1711,7 +1711,7 @@ app.post("/users/:id/resend-invite", requireRole("admin"), async (req: AuthedReq
   const inviteUrl = `${config.frontendUrl}/accept-invite?token=${inviteToken}`;
   const mail = await sendMail({
     to: user.email,
-    ...inviteEmail({ inviteUrl, tenantName: tenant?.name || "Legion", invitedBy: req.user!.email, role: user.role, expiresDays: config.inviteDays, locale: requestLocale(req) }),
+    ...inviteEmail({ inviteUrl, tenantName: tenant?.name || "Argust", invitedBy: req.user!.email, role: user.role, expiresDays: config.inviteDays, locale: requestLocale(req) }),
   });
   if (!mail.sent) logUnsentLink("invitation", inviteUrl, mail.reason);
   res.setHeader("Cache-Control", "no-store");
@@ -1844,7 +1844,7 @@ app.patch("/notifications/settings", requireRole("admin"), async (req: AuthedReq
     const url = `${config.frontendUrl}/confirm-notification-email?token=${token}`;
     const mail = await sendMail({
       to: requested,
-      ...notificationConfirmEmail({ url, tenantName: before?.name ?? "Legion", requestedBy: req.user!.email, hours: NOTIFY_CONFIRM_HOURS, locale: before?.notification_locale ?? "en" }),
+      ...notificationConfirmEmail({ url, tenantName: before?.name ?? "Argust", requestedBy: req.user!.email, hours: NOTIFY_CONFIRM_HOURS, locale: before?.notification_locale ?? "en" }),
     });
     if (!mail.sent) logUnsentLink("notification address confirmation", url, mail.reason);
     confirmationSent = mail.sent;
@@ -1883,12 +1883,12 @@ app.post("/notifications/test", requireRole("admin"), async (req: AuthedRequest,
   // log (sanitised), not to a tenant administrator.
   const check = await verifyMail();
   if (!check.sent) {
-    console.error(`Legion: SMTP check failed: ${outbox.sanitizeError(String(check.detail || check.reason))}`);
+    console.error(`Argust: SMTP check failed: ${outbox.sanitizeError(String(check.detail || check.reason))}`);
     return res.status(502).json({ detail: "The mail server could not be reached. Your administrator can see the details in the server log." });
   }
   // In the language alert emails will use, so the test shows what arrives.
   const result = await sendMail({ to, ...testNotificationEmail(tenant?.notification_locale ?? "en") });
-  if (!result.sent) console.error(`Legion: test email failed: ${outbox.sanitizeError(String(result.detail || result.reason))}`);
+  if (!result.sent) console.error(`Argust: test email failed: ${outbox.sanitizeError(String(result.detail || result.reason))}`);
   return result.sent
     ? res.json({ status: `sent to ${to}`, message: `Test email sent to ${to}` })
     : res.status(502).json({ detail: "The test email could not be sent. Your administrator can see the details in the server log." });
@@ -1944,7 +1944,7 @@ app.get("/billing/entitlements", auth, async (req: AuthedRequest, res) => {
 app.post("/billing/checkout-context", requireRole("admin"), async (req: AuthedRequest, res) => {
   // A plan and billing period, plus add-ons. The server maps them to Paddle
   // prices (PADDLE_PLAN_PRICES / PADDLE_ADDON_PRICES), so the client can only
-  // ask for what Legion sells, never name a price. Without a body it behaves as
+  // ask for what Argust sells, never name a price. Without a body it behaves as
   // before: the workspace's currency price (PADDLE_PRICE_IDS), if any.
   const tenant = await store.getTenant(req.user!.tenant_id);
   const currency = tenant?.currency ?? config.defaultCurrency;
@@ -2029,7 +2029,7 @@ app.post("/billing/change-plan", requireRole("admin"), async (req: AuthedRequest
   const bought = classifyPrices(changed.priceIds);
   if (!bought.plan || bought.unknown.length) {
     await log(req, "billing.plan_change_unrecognised", "subscription", sub.paddle_subscription_id, changed.priceIds.join(",").slice(0, 200));
-    return res.status(502).json({ detail: "The billing provider confirmed something Legion does not sell. The plan was not changed here; contact support.", code: "provider_mismatch" });
+    return res.status(502).json({ detail: "The billing provider confirmed something Argust does not sell. The plan was not changed here; contact support.", code: "provider_mismatch" });
   }
   const saved = await store.setSubscriptionPlan(tenantId, sub.paddle_subscription_id, bought.plan, bought.addons, planPrice);
   await log(req, "billing.plan_changed", "subscription", sub.paddle_subscription_id, `${before.plan} -> ${bought.plan} (${body.interval})${bought.addons.length ? ` + ${bought.addons.join(",")}` : ""}`.slice(0, 300));
@@ -2079,7 +2079,7 @@ function tenantFromCustomData(customData: Record<string, unknown> | null | undef
   // Expiry is relaxed here, but no longer ignored outright. The token only has
   // to prove which tenant opened the checkout (our key, our audience, our
   // purpose); the event itself is proven genuine by Paddle's signature. If
-  // Legion was down when the customer paid, Paddle retries for up to ~3 days —
+  // Argust was down when the customer paid, Paddle retries for up to ~3 days —
   // so a token is honoured for CHECKOUT_TOKEN_MAX_AGE after it was minted, and
   // never after that.
   const claims = verifyTokenOf<Token>("checkout", raw, { ignoreExpiration: true, maxAge: CHECKOUT_TOKEN_MAX_AGE })
@@ -2117,7 +2117,7 @@ app.post("/billing/webhook", async (req, res) => {
     // First event for this subscription: bind it to a tenant via the token.
     tenantId = tenantFromCustomData(payload.custom_data) || undefined;
     if (!tenantId) {
-      // A paid subscription Legion cannot attribute is money without access.
+      // A paid subscription Argust cannot attribute is money without access.
       // Say so loudly; the operator can match it in the Paddle dashboard.
       console.error(`Paddle ${eventType} for subscription ${payload.id} (customer ${payload.customer_id ?? "?"}) has no valid checkout_token — not assigned to any workspace.`);
       return res.status(202).json({ status: "skipped", reason: "no valid checkout_token in custom_data" });
@@ -2141,7 +2141,7 @@ app.post("/billing/webhook", async (req, res) => {
   const offered = offeredPriceIds();
   const bought = classifyPrices(priceIds);
   if (offered.size && GRANTS_ACCESS.has(resolved) && (!priceIds.length || bought.unknown.length)) {
-    console.error(`Paddle ${eventType} for subscription ${payload.id}: price ${(bought.unknown.length ? bought.unknown : priceIds).join(",") || "(none)"} is not one Legion offers — access not granted.`);
+    console.error(`Paddle ${eventType} for subscription ${payload.id}: price ${(bought.unknown.length ? bought.unknown : priceIds).join(",") || "(none)"} is not one Argust offers — access not granted.`);
     resolved = "paused";
     await store.audit({
       tenant_id: tenantId, user_id: null, user_email: null, action: "billing.unrecognised_price",
@@ -2265,11 +2265,11 @@ app.post("/security-events/test", requireRole("admin"), async (req: AuthedReques
   if ((await store.recentAuditCount(req.user!.tenant_id, "security_events.test_sent")) >= 10) {
     return res.status(429).json({ detail: "Too many test alerts. Try again later." });
   }
-  // Written in the sender's language: it is Legion's own text, not a sensor's.
+  // Written in the sender's language: it is Argust's own text, not a sensor's.
   const locale = requestLocale(req);
   const report = await ingestFindings(req.user!.tenant_id, "legion-test", [{
     externalId: randomUUID(),
-    title: translate("Test alert: Legion is working", locale),
+    title: translate("Test alert: Argust is working", locale),
     severity: "low",
     summary: translate("This is a test alert you sent from the Connect page. It shows what a real alert looks like and that live updates and notifications reach you. It is safe to resolve.", locale),
     occurredAt: new Date().toISOString(), sourceIp: null, target: "legion-test", mitre: [], confidence: 100, asset: null,
@@ -2337,7 +2337,7 @@ function sensorIngest(adapter: PushAdapter, contentType: "application/json" | "t
   if (!auth.ok) {
     // What is logged is fixed vocabulary plus a key id that already passed a
     // strict format check — never a header value, a signature or a secret.
-    console.warn(`Legion: rejected webhook (${auth.cause}) key=${auth.keyId ? auth.keyId.slice(0, 8) : "-"} ip=${req.ip || "unknown"}`);
+    console.warn(`Argust: rejected webhook (${auth.cause}) key=${auth.keyId ? auth.keyId.slice(0, 8) : "-"} ip=${req.ip || "unknown"}`);
     return res.status(401).json({ detail: WEBHOOK_REJECTION_DETAIL[auth.reason] });
   }
   const tenantId = auth.tenantId;
@@ -2515,7 +2515,7 @@ app.patch("/security/auto-response", requireRole("admin"), async (req: AuthedReq
   }), req.body, res); if (!body) return;
   // Turning automatic blocking ON needs a plan with policy-based blocking. Turning it off, or changing the allowlist, never does.
   if (body.mode === "auto" && !(await planAllows(req.user!.tenant_id, "autoBlocking", res))) return;
-  // …and a written acknowledgement: Legion will act on the customer's systems on its own, so a person says they understand how.
+  // …and a written acknowledgement: Argust will act on the customer's systems on its own, so a person says they understand how.
   if (body.mode === "auto") {
     const current = await blocklist.getSettings(req.user!.tenant_id);
     if (!current.acknowledged && body.acknowledge !== true) {
@@ -2552,7 +2552,7 @@ app.post(BLOCKLIST_PATH,
     header: (name) => req.header(name), rawBody, claimedTenantId: req.header("x-tenant-id"),
   });
   if (!authResult.ok) {
-    console.warn(`Legion: rejected blocklist request (${authResult.cause}) key=${authResult.keyId ? authResult.keyId.slice(0, 8) : "-"} ip=${req.ip || "unknown"}`);
+    console.warn(`Argust: rejected blocklist request (${authResult.cause}) key=${authResult.keyId ? authResult.keyId.slice(0, 8) : "-"} ip=${req.ip || "unknown"}`);
     return res.status(401).json({ detail: WEBHOOK_REJECTION_DETAIL[authResult.reason] });
   }
   // F-04: the rest of this request runs in the credential's workspace (db/rls.ts).
@@ -2579,7 +2579,7 @@ app.post(payments.PAYMENT_CHECK_PATH,
     header: (name) => req.header(name), rawBody, claimedTenantId: req.header("x-tenant-id"),
   });
   if (!authResult.ok) {
-    console.warn(`Legion: rejected payment check (${authResult.cause}) key=${authResult.keyId ? authResult.keyId.slice(0, 8) : "-"} ip=${req.ip || "unknown"}`);
+    console.warn(`Argust: rejected payment check (${authResult.cause}) key=${authResult.keyId ? authResult.keyId.slice(0, 8) : "-"} ip=${req.ip || "unknown"}`);
     return res.status(401).json({ detail: WEBHOOK_REJECTION_DETAIL[authResult.reason] });
   }
   // F-04: the rest of this request runs in the credential's workspace (db/rls.ts).
@@ -2593,7 +2593,7 @@ app.post(payments.PAYMENT_CHECK_PATH,
   const checkPlan = await resolvePlan(authResult.tenantId);
   if (!allows(checkPlan, "paymentCheck")) return res.status(403).json(planRefusal("paymentCheck", checkPlan.plan));
   // A new hosted workspace may use the check only after an administrator confirmed the notice
-  // (what a "hold" is, who decides, what Legion does not do). Refusing makes the client exit 1.
+  // (what a "hold" is, who decides, what Argust does not do). Refusing makes the client exit 1.
   const consent = await payments.paymentConsent(authResult.tenantId);
   if (consent.required) {
     return res.status(403).json({
@@ -2853,7 +2853,7 @@ if (process.env.NODE_ENV !== "test") {
     production: refusePrivilegedRole(process.env.NODE_ENV), allowPrivileged: config.dbAllowPrivilegedRole,
   });
   if (roleDecision.action === "refuse") throw new Error(`Refusing to start: ${roleDecision.message}`);
-  if (roleDecision.action === "warn") console.warn(`Legion: WARNING — ${roleDecision.message}`);
+  if (roleDecision.action === "warn") console.warn(`Argust: WARNING — ${roleDecision.message}`);
   await migrate();
   // Encrypts any TOTP seed still in plaintext and moves every sealed secret to
   // the active key. Never fatal and never destructive: an unreadable secret is
@@ -2863,13 +2863,13 @@ if (process.env.NODE_ENV !== "test") {
     const changed = report.mfa.converted + report.mfa.rotated + report.webhook.converted + report.webhook.rotated;
     if (changed || report.mfa.unreadable || report.webhook.unreadable) console.info(describeReport(report));
     if (report.mfa.unreadable || report.webhook.unreadable) {
-      console.error("Legion: WARNING — some stored secrets cannot be decrypted with LEGION_ENCRYPTION_KEYS. Those users' two-factor sign-in (and those webhook credentials) are refused until the missing key is restored. Run: npm run secrets -w server -- status");
+      console.error("Argust: WARNING — some stored secrets cannot be decrypted with LEGION_ENCRYPTION_KEYS. Those users' two-factor sign-in (and those webhook credentials) are refused until the missing key is restored. Run: npm run secrets -w server -- status");
     }
   } catch (error) {
-    console.error("Legion: secrets-at-rest migration failed:", error instanceof Error ? error.message : "unknown error");
+    console.error("Argust: secrets-at-rest migration failed:", error instanceof Error ? error.message : "unknown error");
   }
   if (keyringStatus().source === "dev") {
-    console.warn("Legion: LEGION_ENCRYPTION_KEYS is not set — two-factor and webhook secrets are encrypted with a development key derived from JWT_SECRET. Development only.");
+    console.warn("Argust: LEGION_ENCRYPTION_KEYS is not set — two-factor and webhook secrets are encrypted with a development key derived from JWT_SECRET. Development only.");
   }
   await seedDemoIfEmpty();
 
@@ -2883,12 +2883,12 @@ if (process.env.NODE_ENV !== "test") {
   // Not fatal: AI is optional and every caller falls back to local analysis.
   // But a silently-off provider is the kind of thing an operator discovers
   // weeks later, so it is said out loud once at boot.
-  for (const warning of aiConfigWarnings(config)) console.warn(`Legion: ${warning}`);
+  for (const warning of aiConfigWarnings(config)) console.warn(`Argust: ${warning}`);
   const provider = aiProviderName();
   console.info(
     provider
-      ? `Legion: AI analysis via ${provider} — alert text will be sent there.`
-      : "Legion: AI analysis off — no alert data leaves this server."
+      ? `Argust: AI analysis via ${provider} — alert text will be sent there.`
+      : "Argust: AI analysis off — no alert data leaves this server."
   );
   // Bounded: never blocks boot, even when Redis is unreachable.
   await initRateLimitStore();
@@ -2913,7 +2913,7 @@ if (process.env.NODE_ENV !== "test") {
   // instance would give clients per-instance limits and miss live events
   // from its peers until they reconcile from the database.
   if (config.isProduction && !config.redisUrl) {
-    console.warn("Legion: REDIS_URL is not set — realtime fan-out and rate limits are per instance. Set it before running more than one API instance.");
+    console.warn("Argust: REDIS_URL is not set — realtime fan-out and rate limits are per instance. Set it before running more than one API instance.");
   }
   // Polls pull integrations (src/integrations); leases make it safe on every instance.
   connections.startIntegrationWorker(15_000, newAlertFrame);
@@ -2949,20 +2949,20 @@ if (process.env.NODE_ENV !== "test") {
   void prune();
   // unref() so this timer never holds the process open during a shutdown.
   setInterval(prune, 6 * 60 * 60 * 1000).unref();
-  for (const warning of saasWarnings(config)) console.warn(`Legion (hosted): ${warning}`);
+  for (const warning of saasWarnings(config)) console.warn(`Argust (hosted): ${warning}`);
   if (config.isProduction && !config.backupStatusFile) {
-    console.warn("Legion: WARNING — BACKUP_STATUS_FILE is not set, so /health/backup cannot report on backups. Run ops/check-backup.sh from a timer (RECOVERY.md).");
+    console.warn("Argust: WARNING — BACKUP_STATUS_FILE is not set, so /health/backup cannot report on backups. Run ops/check-backup.sh from a timer (RECOVERY.md).");
   }
-  console.info(`Legion: trusting proxies — ${trustedProxies.description}.`);
+  console.info(`Argust: trusting proxies — ${trustedProxies.description}.`);
   if (trustedProxies.byHopCount && config.bindAddress !== "127.0.0.1" && config.bindAddress !== "::1") {
     console.warn(
-      "Legion: WARNING — TRUSTED_PROXIES trusts hops by position and the API listens on " +
+      "Argust: WARNING — TRUSTED_PROXIES trusts hops by position and the API listens on " +
       `${config.bindAddress}. Anything that can reach this port directly can forge its client address; ` +
       "firewall the port to the proxy, or list the proxy's address instead of a hop count."
     );
   }
   if (config.isProduction && config.wsAllowMissingOrigin) {
-    console.warn("Legion: WARNING — WS_ALLOW_MISSING_ORIGIN=true lets non-browser WebSocket clients connect without an Origin.");
+    console.warn("Argust: WARNING — WS_ALLOW_MISSING_ORIGIN=true lets non-browser WebSocket clients connect without an Origin.");
   }
   // Slow-loris bounds. Generous for a 256 KB body limit; response streaming is unaffected.
   httpServer.keepAliveTimeout = KEEP_ALIVE_TIMEOUT_MS;
@@ -2971,7 +2971,7 @@ if (process.env.NODE_ENV !== "test") {
   // A connection that opens and sends nothing has no Node timeout of its own.
   limitSilentConnections(httpServer, config.httpFirstRequestTimeoutSeconds * 1000);
   httpServer.listen(config.port, config.bindAddress, () =>
-    console.info(`Legion Node API: http://localhost:${config.port} (listening on ${config.bindAddress})`)
+    console.info(`Argust Node API: http://localhost:${config.port} (listening on ${config.bindAddress})`)
   );
 
   let shuttingDown = false;

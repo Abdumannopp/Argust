@@ -8,7 +8,7 @@ import { assemblyOf, clip, isoMinusHours, levelOf, propose, scoreEvent, type Sco
  * Vanguard: which attacking addresses are worth blocking, with the evidence,
  * ready for a person to approve. It decides nothing and blocks nothing:
  * skills are read-only. The block itself is Dashboard → Defense (or the
- * perimeter firewall); Legion's automatic response uses the same limits.
+ * perimeter firewall); Argust's automatic response uses the same limits.
  */
 
 const SWARM_SOURCES = 10;

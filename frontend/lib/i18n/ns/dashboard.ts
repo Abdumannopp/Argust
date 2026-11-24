@@ -8,7 +8,7 @@ import { defineMessages } from "../core";
 export const dashboard = defineMessages({
   en: {
     welcome: "Welcome back 👋",
-    overview: "Legion Security Overview",
+    overview: "Argust Security Overview",
     searchPlaceholder: "Search alerts by ID or title",
     empty: "No alerts match this view.",
     kpi: {
@@ -38,7 +38,7 @@ export const dashboard = defineMessages({
       otherLanguage: "This explanation is in another language.",
       explainInMyLanguage: "Explain in English",
       explainError: "Oracle couldn't explain this alert.",
-      loadError: "Couldn't reach the Legion API. Is the backend running?",
+      loadError: "Couldn't reach the Argust API. Is the backend running?",
     },
   },
 });

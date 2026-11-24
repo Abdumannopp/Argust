@@ -1,4 +1,4 @@
--- Legion schema.
+-- Argust schema.
 --
 -- Applied idempotently on boot (see migrate.ts). Every statement must be safe
 -- to re-run, because it executes on every start of every instance.
@@ -247,7 +247,7 @@ ALTER TABLE alerts ADD COLUMN IF NOT EXISTS ai_explanation_locale text;
 -- It is now an outbox job of its own kind, written in the alert's
 -- transaction and retried like an email. (The inline CHECK above is named
 -- notification_outbox_kind_check by Postgres; replacing it is idempotent.)
--- protection_email: what Legion did on its own, or needs a person to decide (protection.ts). This file is
+-- protection_email: what Argust did on its own, or needs a person to decide (protection.ts). This file is
 -- applied again on every upgrade, so the constraint must carry the newest kind here too, not only in migration
 -- 0012: otherwise each upgrade would put the old list back and the next notice would be refused.
 ALTER TABLE notification_outbox DROP CONSTRAINT IF EXISTS notification_outbox_kind_check;
@@ -314,7 +314,7 @@ ALTER TABLE tenants ADD COLUMN IF NOT EXISTS ai_data_mode text NOT NULL DEFAULT 
 ALTER TABLE tenants DROP CONSTRAINT IF EXISTS tenants_ai_data_mode_check;
 ALTER TABLE tenants ADD CONSTRAINT tenants_ai_data_mode_check CHECK (ai_data_mode IN ('standard', 'strict'));
 -- Provenance of a stored explanation: written by a model ('ai') or by
--- Legion's deterministic fallback ('local'). NULL = from before this existed.
+-- Argust's deterministic fallback ('local'). NULL = from before this existed.
 ALTER TABLE alerts ADD COLUMN IF NOT EXISTS ai_explanation_source text;
 ALTER TABLE alerts DROP CONSTRAINT IF EXISTS alerts_ai_explanation_source_check;
 ALTER TABLE alerts ADD CONSTRAINT alerts_ai_explanation_source_check CHECK (ai_explanation_source IN ('ai', 'local'));
@@ -459,7 +459,7 @@ ALTER TABLE refresh_tokens ADD COLUMN IF NOT EXISTS family_started_at timestampt
 ALTER TABLE refresh_tokens ADD COLUMN IF NOT EXISTS grace_used_at timestamptz;
 
 -- Reliability (2026-09): when the event happened at its source. created_at is
--- when Legion stored it; the two differ when a sensor re-sends from its spool
+-- when Argust stored it; the two differ when a sensor re-sends from its spool
 -- after an outage. Nullable, no default: a metadata-only ALTER.
 ALTER TABLE alerts ADD COLUMN IF NOT EXISTS occurred_at timestamptz;
 
@@ -625,7 +625,7 @@ CREATE TABLE IF NOT EXISTS ip_blocks (
   ip           text        NOT NULL CHECK (length(ip) BETWEEN 2 AND 45),
   reason       text        NOT NULL CHECK (length(reason) BETWEEN 1 AND 500),
   campaign_id  text,
-  created_by   uuid,       -- null: Legion decided automatically
+  created_by   uuid,       -- null: Argust decided automatically
   created_at   timestamptz NOT NULL DEFAULT now(),
   expires_at   timestamptz NOT NULL,
   revoked_at   timestamptz,
@@ -648,7 +648,7 @@ ALTER TABLE tenants ADD CONSTRAINT tenants_auto_block_minutes_check CHECK (auto_
 -- partners, scanners you run on purpose.
 ALTER TABLE tenants ADD COLUMN IF NOT EXISTS block_allowlist text NOT NULL DEFAULT '';
 
--- Payment check (src/payments.ts): the customer's payment software asks Legion
+-- Payment check (src/payments.ts): the customer's payment software asks Argust
 -- before paying. Account numbers are never stored, only a keyed hash (to
 -- recognise the account again) and the last four characters.
 CREATE TABLE IF NOT EXISTS payment_beneficiaries (
@@ -808,7 +808,7 @@ ALTER TABLE alerts ADD COLUMN IF NOT EXISTS tickets jsonb NOT NULL DEFAULT '[]':
 
 -- Asset intelligence: one inventory for servers, endpoints, user accounts and cloud resources. `kind` is what the
 -- first source that knew said it is ('unknown' until one does); `sources` is every platform that reported it;
--- `first_seen` is when Legion first heard of it. A user account is an asset but not a machine: it is not counted
+-- `first_seen` is when Argust first heard of it. A user account is an asset but not a machine: it is not counted
 -- against the plan's endpoint limit.
 ALTER TABLE assets ADD COLUMN IF NOT EXISTS kind text NOT NULL DEFAULT 'unknown';
 ALTER TABLE assets ADD COLUMN IF NOT EXISTS sources text[] NOT NULL DEFAULT '{}';

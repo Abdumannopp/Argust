@@ -1,14 +1,14 @@
 # Payment check: stopping financial fraud before the money leaves
 
 Business email compromise (BEC), a fake-voice "CEO" call and stolen accounts all
-end the same way: money is sent to the attacker's account. Legion is not in the
+end the same way: money is sent to the attacker's account. Argust is not in the
 payment path, so **your payment software (ERP, bank connector, accounting) asks
-Legion before sending money**. Legion answers "allow" or "hold".
+Argust before sending money**. Argust answers "allow" or "hold".
 
 ## Before the first check (hosted workspaces)
 
 An administrator must first read and confirm the notice in Dashboard → **Defense** → **Payments on hold**:
-what a "hold" is, that a person decides, that Legion's answers are not financial advice and can be wrong, and that
+what a "hold" is, that a person decides, that Argust's answers are not financial advice and can be wrong, and that
 the customer remains responsible for payments. Who confirmed, when, and which version of the text are recorded
 and written to the audit log.
 
@@ -22,7 +22,7 @@ in substance, the version number rises and administrators are asked again. A sel
 | Reason | Meaning |
 |---|---|
 | New account | Your organisation has never made a confirmed payment to this account number. "Our bank details have changed" is the most common start of fraud. |
-| Requester under attack | The account or mailbox of the person asking for the payment is compromised (there is an active campaign in Legion). |
+| Requester under attack | The account or mailbox of the person asking for the payment is compromised (there is an active campaign in Argust). |
 | Mailbox being taken over | A mailbox in the organisation showed takeover signs in the last 48 hours. |
 | Rejected before | Someone has already rejected this exact payment. |
 
@@ -69,29 +69,29 @@ Result (exit code):
 |---|---|---|
 | `0` | allow | sends the payment |
 | `3` | held | does not send; asks again later |
-| `1` | error (Legion unreachable, too many checks, etc.) | **does not send automatically** |
+| `1` | error (Argust unreachable, too many checks, etc.) | **does not send automatically** |
 
 The answer is also printed as JSON (with the reasons and how to verify). The
 request is signed (HMAC, timestamp, one-time nonce) and accepted only for the
 payment check.
 
-Each organisation may make at most 120 checks per minute; above that Legion
+Each organisation may make at most 120 checks per minute; above that Argust
 answers 429 and the client exits with `1`. At most 20 held-payment alerts are
 raised per hour; above that payments are still held, without new alerts.
 
 ## Privacy
 
-The account number **itself is never stored**. Legion keeps only a keyed hash
+The account number **itself is never stored**. Argust keeps only a keyed hash
 (to recognise the account again) and the last 4 characters (for a person to
 recognise it). The hash is different for every organisation.
 
 ## Honest limits
 
-- **If the payment software does not ask Legion, Legion cannot stop the
-  payment.** Legion cannot reach into your bank or ERP; this connection is needed.
+- **If the payment software does not ask Argust, Argust cannot stop the
+  payment.** Argust cannot reach into your bank or ERP; this connection is needed.
 - On an error (`1`) the payment must not be sent automatically — the payment
   software itself has to enforce that.
-- Legion does not verify the amount or the account holder with the bank; it
+- Argust does not verify the amount or the account holder with the bank; it
   looks only at the organisation's own history and active attacks.
 - The confirmation call is a human step. Clicking "release" without making it
   defeats the protection.
@@ -99,7 +99,7 @@ recognise it). The hash is different for every organisation.
 
 ## The hash key (`PAYMENT_HASH_KEY`)
 
-Legion never stores an account number. It stores an HMAC of it so the same account is recognised
+Argust never stores an account number. It stores an HMAC of it so the same account is recognised
 next time. An account number has little entropy, so whoever knows the key can recover accounts from
 the hashes by trying them all. Therefore:
 

@@ -3,8 +3,8 @@ import type { HumanRole, RiskLevel } from "./types.js";
 /**
  * Everything a machine identity can ever be granted, with its risk tier:
  *
- *   0  read inside Legion's reach
- *   1  annotate, or read through something that reaches outside Legion
+ *   0  read inside Argust's reach
+ *   1  annotate, or read through something that reaches outside Argust
  *      (a URL fetched by a browser or HTTP tool can itself carry data out)
  *   2  change state or act on the world — sending, pushing, running
  *
@@ -20,9 +20,9 @@ export const PERMISSION_TIERS = {
   "vulnerabilities:read": 0,
   // Payment checks (held and allowed payments). Never an account number.
   "payments:read": 0,
-  // Tier 1: a threat-intelligence provider may itself reach outside Legion.
+  // Tier 1: a threat-intelligence provider may itself reach outside Argust.
   "intel:read": 1,
-  // Tier 1: runs synthetic attacks against Legion's own in-process defences.
+  // Tier 1: runs synthetic attacks against Argust's own in-process defences.
   "security:self_test": 1,
   "alerts:comment": 1,
   "alerts:update_status": 2,

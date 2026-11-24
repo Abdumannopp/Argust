@@ -4,7 +4,7 @@
 # The CI database containers are PostgreSQL 16. A newer pg_dump (the runner image
 # updates its own) writes settings such as `SET transaction_timeout`, which a
 # 16 server refuses on restore, so the backup tests would fail for a reason that
-# has nothing to do with Legion. Matching the client to the server removes it.
+# has nothing to do with Argust. Matching the client to the server removes it.
 set -euo pipefail
 if [ -x /usr/lib/postgresql/16/bin/pg_dump ]; then
   echo "/usr/lib/postgresql/16/bin" >> "${GITHUB_PATH:-/dev/null}"

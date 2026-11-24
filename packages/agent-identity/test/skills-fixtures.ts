@@ -39,7 +39,7 @@ export const ASSETS = [
 
 const RANK: Record<string, number> = { low: 1, medium: 2, high: 3, critical: 4 };
 
-/** A host data source that behaves like Legion's: every query is filtered by the tenant it is given. */
+/** A host data source that behaves like Argust's: every query is filtered by the tenant it is given. */
 export class FakeData implements SkillDataSource {
   calls: { method: string; tenantId: string; q: unknown }[] = [];
   events = events();

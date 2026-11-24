@@ -3,7 +3,7 @@
  *
  * Regression for the finding that any administrator — in hosted mode anyone who
  * signs up — could point notification_email at any inbox and then, through a
- * sensor credential, have Legion send unlimited sensor-written email to it
+ * sensor credential, have Argust send unlimited sensor-written email to it
  * from the platform's own domain.
  */
 import { describe, it, expect, beforeAll, beforeEach, afterAll, afterEach, vi } from "vitest";

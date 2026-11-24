@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 #
-# Makes Legion see the REAL visitor address behind Cloudflare, and (optionally)
+# Makes Argust see the REAL visitor address behind Cloudflare, and (optionally)
 # lets only Cloudflare reach the server's web ports.
 #
 # Why this matters. Behind a CDN, nginx sees the CDN's address for every

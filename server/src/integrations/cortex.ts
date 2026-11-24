@@ -6,7 +6,7 @@
  * chosen by name — never a free URL). An API key with the Viewer role; the key is sealed per connection. With an
  * "advanced" key (the default, recommended by Palo Alto) each request carries a fresh nonce and timestamp and
  * the SHA-256 of key + nonce + timestamp, so the key itself never travels; a "standard" key is sent as it is.
- * Cursor: the newest modification_time. One Legion alert per incident id. Legion never changes an incident.
+ * Cursor: the newest modification_time. One Argust alert per incident id. Argust never changes an incident.
  */
 import { createHash, randomBytes } from "node:crypto";
 import { z } from "zod";

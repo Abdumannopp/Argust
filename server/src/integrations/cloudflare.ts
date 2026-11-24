@@ -8,7 +8,7 @@
  * poll; the alert id is (zone, hour, address), so a re-read hour is a duplicate.
  *
  * An API token with the single permission "Zone · Analytics · Read" on that zone, sealed per connection. Only
- * api.cloudflare.com is reachable. Legion never changes firewall rules in Cloudflare.
+ * api.cloudflare.com is reachable. Argust never changes firewall rules in Cloudflare.
  */
 import { z } from "zod";
 import { adapterFetch } from "./fetch.js";

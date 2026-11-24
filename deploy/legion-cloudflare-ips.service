@@ -4,7 +4,7 @@
 # /etc/nginx and reloads nginx; a failed download or an invalid list changes
 # nothing, and a config nginx rejects is rolled back.
 [Unit]
-Description=Update the Cloudflare ranges trusted by Legion's nginx
+Description=Update the Cloudflare ranges trusted by Argust's nginx
 After=network-online.target
 Wants=network-online.target
 

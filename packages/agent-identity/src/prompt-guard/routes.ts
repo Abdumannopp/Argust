@@ -102,7 +102,7 @@ export function contentInspectRouter(d: Deps): Router {
     const { source, content, sourceId, fieldHint } = parsed.data;
     const { classification, eventId } = await d.contentGuard.ingest({ tenantId: p.tenantId, principal: p, requestId: req.requestId }, source, content, { sourceId, fieldHint });
 
-    // The same wrapping Legion uses for its own prompts, for the agent to
+    // The same wrapping Argust uses for its own prompts, for the agent to
     // place in its model's context as data.
     const wrapped = new PromptAssembly("agent.summarize_content");
     wrapped.addUntrustedContent(source, content, { sourceId, fieldHint });

@@ -40,7 +40,7 @@
   PASS incident source is Wazuh
   PASS status changes to investigating
 ▶ 7. first AI agent
-  PASS agents page explains what Legion does for agents
+  PASS agents page explains what Argust does for agents
   PASS empty state says what to do
   PASS the preset shows what it can do in words
   PASS and what no agent can ever do
@@ -59,7 +59,7 @@
   PASS approval explains it is once only
   PASS approved
   PASS the approved action goes through, once
-▶ 10. block: Legion stops an agent reaching another workspace, and says why
+▶ 10. block: Argust stops an agent reaching another workspace, and says why
   PASS the API refuses and contains the agent
   PASS agent shows as paused
   PASS and why it can't act
@@ -69,7 +69,7 @@
   PASS the approval request shows in the history
   PASS and the approved action, as approved
   PASS rule ids stay out of the main text (they are under technical details)
-  PASS dashboard reports what Legion blocked
+  PASS dashboard reports what Argust blocked
   PASS dashboard names the agent and the reason
   PASS dashboard reason is in words
 ▶ 11. resume, then emergency stop

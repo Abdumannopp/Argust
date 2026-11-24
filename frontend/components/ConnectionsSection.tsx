@@ -52,7 +52,7 @@ const FIELDS: Record<Kind, Field[]> = {
   cortex_response: [{ key: "api_host", where: "config", type: "text" }, { key: "api_key_id", where: "config", type: "text" }, { key: "key_type", where: "config", type: "choice", options: ["advanced", "standard"] }, { key: "api_key", where: "secrets", type: "password" }, { key: "never", where: "config", type: "regions" }],
   opsgenie: [{ key: "region", where: "config", type: "choice", options: ["us", "eu"] }, { key: "api_key", where: "secrets", type: "password" }, { key: "min_severity", where: "config", type: "severity" }],
 };
-// Connections Legion polls on a schedule: only these can be checked on request.
+// Connections Argust polls on a schedule: only these can be checked on request.
 const POLLED: string[] = KINDS.filter((k) => !OUTBOUND.includes(k) && !["github", "virustotal", "misp", "opencti", "abuseipdb", "fortigate", "crowdstrike_response", "sentinelone_response", "defender_response", "cortex_response", "okta_response", "entra_response"].includes(k));
 const HEALTH_CHIP: Record<ConnectionHealth["health"], string> = {
   ok: "lg-status lg-status-healthy", waiting: "lg-status lg-status-brand", failing: "lg-status lg-status-high", overdue: "lg-status lg-status-medium", stopped: "lg-status lg-status-critical", paused: "lg-status lg-status-low",

@@ -1,5 +1,5 @@
 /**
- * F-04 (PR-3a): row-level security on the tables Legion reaches workspace-first, against a real
+ * F-04 (PR-3a): row-level security on the tables Argust reaches workspace-first, against a real
  * PostgreSQL, as the API's role under the owner/runtime split. The point: a query that FORGETS its
  * `tenant_id` predicate still only sees and changes the declared workspace's rows; with no declared
  * workspace it sees nothing and can write nothing; with DB_RLS off nothing changes.

@@ -1,12 +1,12 @@
 #!/usr/bin/env node
 /**
  * Protection modes, end to end, against the BUILT API (separate owner/runtime database roles, and
- * DB_RLS from the environment): Legion acts on its own only after an administrator allowed it, only
+ * DB_RLS from the environment): Argust acts on its own only after an administrator allowed it, only
  * as far as they allowed, and tells them.
  *
  *   1. Manual (the default): a real attack alert arrives from a sensor → nothing is blocked.
  *   2. The administrator turns on hybrid with "block an address" (notice accepted) → the next attack
- *      from a public address is blocked within seconds, by Legion, and the administrators get a mail.
+ *      from a public address is blocked within seconds, by Argust, and the administrators get a mail.
  *   3. A private address, and an address on the allowlist, are never blocked.
  *   4. The emergency stop halts it; lifting it resumes. Switching back to manual stops it for good.
  *   5. Everything is in the report and in the audit chain, which still verifies.
@@ -30,7 +30,7 @@ async function main() {
   api = await startApi({
     NODE_ENV: "development", DEPLOYMENT_MODE: "self-hosted", DATABASE_URL: db.url,
     JWT_SECRET: randomBytes(48).toString("hex"), PAYMENT_HASH_KEY: randomBytes(32).toString("hex"), LEGION_ENCRYPTION_KEYS: `prot:${randomBytes(32).toString("hex")}`,
-    FRONTEND_URL: FRONTEND, COOKIE_SECURE: "true", SMTP_HOST: "127.0.0.1", SMTP_PORT: String(smtp.port), SMTP_FROM: "Legion <no-reply@legion.test>",
+    FRONTEND_URL: FRONTEND, COOKIE_SECURE: "true", SMTP_HOST: "127.0.0.1", SMTP_PORT: String(smtp.port), SMTP_FROM: "Argust <no-reply@legion.test>",
     ALERT_EMAIL_MIN_SEVERITY: "off", RUNTIME_POLL_SECONDS: "1",
   }, { port: await freePort() });
   section("setup");
@@ -48,7 +48,7 @@ async function main() {
   const blocked = async () => ((await c.call("/security/blocks?active=true")).body?.blocks ?? []).map((b) => b.ip);
   const settle = (ms = 4000) => new Promise((r) => setTimeout(r, ms));
 
-  section("manual is the default: Legion detects and does nothing on its own");
+  section("manual is the default: Argust detects and does nothing on its own");
   const state = await c.call("/soc/protection");
   check("a new workspace is in manual mode", state.body.protection?.mode === "manual" && state.body.protection?.effective_mode === "manual", state.text);
   check("the sensor's alert is accepted", (await attack("185.220.101.201")).status === 202);
@@ -59,19 +59,19 @@ async function main() {
   const noAck = await c.call("/soc/protection", { method: "PUT", body: { mode: "hybrid", auto_actions: ["ip.block"] } });
   check("without accepting the notice it is refused", noAck.status === 400 && noAck.body.code === "acknowledgement_required", noAck.text);
   const bad = await c.call("/soc/protection", { method: "PUT", body: { mode: "hybrid", auto_actions: ["account.disable"], acknowledge: true } });
-  check("an action Legion cannot really do cannot be allowed", bad.status === 422, bad.text);
+  check("an action Argust cannot really do cannot be allowed", bad.status === 422, bad.text);
   const on = await c.call("/soc/protection", { method: "PUT", body: { mode: "hybrid", auto_actions: ["ip.block"], acknowledge: true } });
   check("accepted and saved", on.status === 200 && on.body.protection.effective_mode === "hybrid", on.text);
 
-  section("an attack from a public address is blocked by Legion, within seconds, and the administrators are told");
+  section("an attack from a public address is blocked by Argust, within seconds, and the administrators are told");
   const t0 = Date.now();
   check("the sensor's alert is accepted", (await attack("185.220.101.202")).status === 202);
   const done = await until(async () => (await blocked()).includes("185.220.101.202"), 30_000, 500);
   check(`the attacker is on the blocklist (${Math.round((Date.now() - t0) / 100) / 10}s)`, Boolean(done), JSON.stringify(await blocked()));
   const entry = ((await c.call("/security/blocks?active=true")).body.blocks ?? []).find((b) => b.ip === "185.220.101.202");
   check("…marked as done automatically, not by a person", entry?.automatic === true, JSON.stringify(entry));
-  const mail = await until(async () => smtp.messages.find((m) => /Legion acted on its own/.test(m.data)) ?? null, 30_000, 500);
-  check("the administrator received a mail saying what Legion did", Boolean(mail) && /185\.220\.101\.202/.test(mail.data), mail ? mail.data.slice(0, 300) : "no mail");
+  const mail = await until(async () => smtp.messages.find((m) => /Argust acted on its own/.test(m.data)) ?? null, 30_000, 500);
+  check("the administrator received a mail saying what Argust did", Boolean(mail) && /185\.220\.101\.202/.test(mail.data), mail ? mail.data.slice(0, 300) : "no mail");
   check("the earlier alert (sent in manual mode) was NOT blocked afterwards", !(await blocked()).includes("185.220.101.201"));
 
   section("what must never be blocked");
@@ -100,7 +100,7 @@ async function main() {
 
   section("the record");
   const report = await c.call("/soc/protection/report?days=1");
-  check("the report counts what Legion did on its own", report.body.totals?.automatic >= 2, JSON.stringify(report.body.totals));
+  check("the report counts what Argust did on its own", report.body.totals?.automatic >= 2, JSON.stringify(report.body.totals));
   check("…and who changed the settings", (report.body.changes ?? []).length >= 2, JSON.stringify(report.body.changes));
   const verify = await c.call("/soc/audit/verify");
   check("the audit chain still verifies", verify.body.ok === true, verify.text.slice(0, 200));
