@@ -1,12 +1,12 @@
 /**
  * The integration contract.
  *
- * Legion is a platform that security data flows INTO (findings) and that
+ * Argust is a platform that security data flows INTO (findings) and that
  * people and agents act THROUGH. Wazuh is one integration among many; nothing
  * outside src/integrations knows any vendor's payload shape.
  *
- *   data plane   findings into Legion      push (the vendor calls us) or pull (we poll the vendor)
- *   tool plane   actions out of Legion     notify (Slack, Teams, …) or respond (agent tools, MCP, A2A)
+ *   data plane   findings into Argust      push (the vendor calls us) or pull (we poll the vendor)
+ *   tool plane   actions out of Argust     notify (Slack, Teams, …) or respond (agent tools, MCP, A2A)
  *
  * Every adapter turns vendor data into the same Finding; one ingestion path
  * (ingest.ts) stores it — idempotently, in one transaction with its
@@ -16,7 +16,7 @@
 import type { z } from "zod";
 import type { Severity } from "../types.js";
 
-/** A security finding in Legion's vocabulary, whatever produced it. */
+/** A security finding in Argust's vocabulary, whatever produced it. */
 export interface Finding {
   /** Stable id at the source. Together with the source and workspace it makes the alert id, so a re-sent finding is a duplicate, never a second alert. */
   externalId: string;
@@ -68,14 +68,14 @@ export interface ConnectionContext {
 
 export type NormalizeResult = { skipped: true; reason: string } | { skipped: false; source: string; findings: Finding[] };
 
-/** A vendor that calls Legion (webhook). Authentication happens before normalize() is called. */
+/** A vendor that calls Argust (webhook). Authentication happens before normalize() is called. */
 export interface PushAdapter {
   manifest: IntegrationManifest & { inbound: "push" };
   /** Pure: bytes already authenticated and parsed → findings. Must not throw on hostile input. */
   normalize(payload: unknown): NormalizeResult;
 }
 
-/** A vendor Legion polls. Runs on whichever instance claims the connection. */
+/** A vendor Argust polls. Runs on whichever instance claims the connection. */
 export interface PullAdapter {
   manifest: IntegrationManifest & { inbound: "pull" };
   /** Validates the connection's non-secret settings. */
@@ -90,7 +90,7 @@ export interface PullAdapter {
   poll(conn: ConnectionContext, cursor: unknown, signal: AbortSignal): Promise<{ findings: Finding[]; cursor: unknown }>;
 }
 
-/** What Legion sends to an outbound connector for one alert. Plain data; the adapter formats it. */
+/** What Argust sends to an outbound connector for one alert. Plain data; the adapter formats it. */
 export interface OutboundMessage {
   type: "notify" | "ticket";
   alertId: string;
@@ -125,7 +125,7 @@ export class PermanentDeliveryError extends Error {}
 export class DeferredDelivery extends Error {}
 
 /**
- * A connector Legion sends INTO (chat notification, ticket). It can tell a person or open a ticket; it
+ * A connector Argust sends INTO (chat notification, ticket). It can tell a person or open a ticket; it
  * can never change anything in the customer's environment: `outbound` is "notify" or "ticket" only, and a
  * test fails if an outbound adapter claims "respond" or reaches the blocklist/action code.
  */
@@ -152,7 +152,7 @@ export interface IntelAnswer {
 }
 
 /**
- * A threat-intelligence source Legion ASKS (VirusTotal, MISP, OpenCTI). Read only: it answers "what is known
+ * A threat-intelligence source Argust ASKS (VirusTotal, MISP, OpenCTI). Read only: it answers "what is known
  * about this indicator"; it brings in no alerts and can change nothing. Only what `supports` lists is ever
  * sent to it, and an indicator it has nothing on is simply left out of the answer (no source, no opinion).
  */

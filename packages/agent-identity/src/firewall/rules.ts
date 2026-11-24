@@ -352,7 +352,7 @@ export function evaluateRules(input: RuleInputs): RuleOutput {
   // Malicious external content reached this agent and nobody has reviewed
   // it: the agent may be acting on an attacker's instructions. Reading stays
   // possible (with higher risk); anything that changes state, acts outside
-  // Legion, touches confidential data or messages other agents is blocked
+  // Argust, touches confidential data or messages other agents is blocked
   // until a person acknowledges the event.
   const tier = permission ? PERMISSION_TIERS[permission] : 0;
   const unsafe =
@@ -382,7 +382,7 @@ export function evaluateRules(input: RuleInputs): RuleOutput {
       `This agent read ${cr.unacknowledgedRecent} item(s) of external content in the last ` +
       `${Math.round(policy.promptInjection.untrustedHoldSeconds / 60)} minute(s) that nobody has reviewed. ` +
       "Until a person reviews it (POST /prompt-guard/acknowledge) or the hold lapses, it may read but not change state, " +
-      "act outside Legion, touch confidential data or message other agents — so text written by an attacker cannot become an action.");
+      "act outside Argust, touch confidential data or message other agents — so text written by an attacker cannot become an action.");
   }
 
   // ---- Runtime behaviour (risk-based, not block-everything) ---------------------
@@ -404,7 +404,7 @@ export function evaluateRules(input: RuleInputs): RuleOutput {
       add(novel ? "new behaviour while high risk" : "behaviour high risk", novel ? 25 : 5);
       if (unsafe && (novelAction || novelDestination)) {
         hard("behavior.high_risk_novel_action",
-          `This agent's behaviour is HIGH_RISK (score ${bh.score}); a ${novelAction ? "new kind of action" : "new destination"} that changes state or leaves Legion is held until a person reviews it.`);
+          `This agent's behaviour is HIGH_RISK (score ${bh.score}); a ${novelAction ? "new kind of action" : "new destination"} that changes state or leaves Argust is held until a person reviews it.`);
       }
     }
     if (bh.level === "CRITICAL") {
@@ -429,7 +429,7 @@ export function evaluateRules(input: RuleInputs): RuleOutput {
   add(`agent risk ${p.riskLevel}`, { low: 0, medium: 10, high: 20, critical: 0 }[p.riskLevel]);
   if (permission) add(`permission tier ${PERMISSION_TIERS[permission]}`, PERMISSION_TIERS[permission] * 10);
   add(`sensitivity ${sensitivity}`, { public: 0, internal: 5, confidential: 20, restricted: 0 }[sensitivity]);
-  if (externalEffect) add("effect outside Legion", 15);
+  if (externalEffect) add("effect outside Argust", 15);
 
   const v = policy.velocity;
   if (input.actionsLastMinute >= v.blockPerMinute) soft("velocity.block", `${input.actionsLastMinute} actions in the last minute (limit ${v.blockPerMinute}).`);

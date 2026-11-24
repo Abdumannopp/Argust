@@ -71,7 +71,7 @@ export const config = {
   /**
    * How this installation is run.
    *
-   * "self-hosted" — the customer runs Legion on their own server. There is no
+   * "self-hosted" — the customer runs Argust on their own server. There is no
    *   subscription to check, billing is off, and registration closes once the
    *   first administrator exists.
    * "saas"        — we run it for many tenants: trials, subscription gating and
@@ -109,7 +109,7 @@ export const config = {
 
   // --- MFA ---
   // Shown as the account name in the user's authenticator app.
-  mfaIssuer: process.env.MFA_ISSUER || "Legion",
+  mfaIssuer: process.env.MFA_ISSUER || "Argust",
 
   // --- Sessions ---
   // Access tokens are stateless and cannot be revoked, so they are kept short;
@@ -280,7 +280,7 @@ export const config = {
   smtpUser: process.env.SMTP_USER || "",
   smtpPassword: process.env.SMTP_PASSWORD || "",
   smtpSecure: process.env.SMTP_SECURE === "true",
-  smtpFrom: process.env.SMTP_FROM || "Legion <no-reply@legion.local>",
+  smtpFrom: process.env.SMTP_FROM || "Argust <no-reply@legion.local>",
   // Alerts at or above this severity trigger an email. "off" disables them.
   alertEmailMinSeverity: (process.env.ALERT_EMAIL_MIN_SEVERITY || "high") as
     | "critical"
@@ -327,7 +327,7 @@ export const config = {
    * ceiling one compromised account could fill the disk at the request-rate limit.
    */
   socActionsPerHour: Math.max(10, Math.floor(Number(process.env.SOC_ACTIONS_PER_HOUR ?? 3000)) || 3000),
-  /** Per workspace and hour, how many LIVE actions Legion takes on its own; past it, each waits for a person. */
+  /** Per workspace and hour, how many LIVE actions Argust takes on its own; past it, each waits for a person. */
   socLiveActionsPerHour: Math.max(1, Math.floor(Number(process.env.SOC_LIVE_ACTIONS_PER_HOUR ?? 20)) || 20),
   runtimePollSeconds: Math.min(300, Math.max(1, Math.floor(Number(process.env.RUNTIME_POLL_SECONDS ?? 5)) || 5)),
   /**
@@ -376,7 +376,7 @@ export const config = {
 
   // --- Encryption at rest (secret-box.ts) ---
   /**
-   * The keyring that encrypts secrets Legion must read back (TOTP seeds,
+   * The keyring that encrypts secrets Argust must read back (TOTP seeds,
    * webhook signing secrets): "id:key,id:key", 32 random bytes each. Used for
    * nothing else, and kept out of the database and its backups. The first entry
    * (or LEGION_ENCRYPTION_KEY_ID) encrypts; every entry can decrypt.
@@ -590,7 +590,7 @@ if (usingPlaceholderSecret && !weakSecretTolerated) {
  * instead of there.
  *
  * They are deliberately narrow: broad checks would also fire during local
- * evaluation (`npm run try`), which is a real and supported way to run Legion.
+ * evaluation (`npm run try`), which is a real and supported way to run Argust.
  * Each one below describes a state with no valid interpretation.
  */
 /** The subset of settings these checks look at — so they can be exercised

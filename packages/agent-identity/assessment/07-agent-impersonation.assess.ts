@@ -16,7 +16,7 @@ describe("Agent impersonation", () => {
     id: "IMP-1",
     category: "Agent impersonation",
     title: "Unauthenticated caller declares itself an AI agent via User-Agent, with no credential",
-    attackPath: "A caller with no Authorization header sends a User-Agent string that matches Legion's known-AI-agent patterns (e.g. a GPTBot-style string) or an x-legion-agent header, hoping to be treated as an anonymous (unmonitored) client rather than triggering agent-identity requirements.",
+    attackPath: "A caller with no Authorization header sends a User-Agent string that matches Argust's known-AI-agent patterns (e.g. a GPTBot-style string) or an x-legion-agent header, hoping to be treated as an anonymous (unmonitored) client rather than triggering agent-identity requirements.",
     expectedDefense: "Self-declared AI callers without a registered identity are refused (401 agent_identity_required) rather than silently downgraded to an anonymous human-equivalent client.",
   }, async (ev) => {
     const viaUserAgent = await request(w.t.app).get("/agent/v1/whoami").set("user-agent", "Mozilla/5.0 (compatible; GPTBot/1.1; +https://openai.com/gptbot)");

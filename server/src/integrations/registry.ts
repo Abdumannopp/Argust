@@ -73,7 +73,7 @@ export function connectedPushAdapter(kind: string): (PushAdapter & { configSchem
   const a = adapters.get(kind) as (PushAdapter & { configSchema?: unknown; secretFields?: unknown }) | undefined;
   return a && a.manifest.inbound === "push" && a.configSchema && Array.isArray(a.secretFields) ? (a as never) : null;
 }
-/** A connector Legion can act through (isolate a host, suspend an account). Only the action engine uses it. */
+/** A connector Argust can act through (isolate a host, suspend an account). Only the action engine uses it. */
 export function responseAdapter(kind: string): ResponseAdapter | null {
   const a = adapters.get(kind);
   return a && "respond" in a ? (a as ResponseAdapter) : null;
@@ -137,7 +137,7 @@ const PLANNED: IntegrationManifest[] = [
     auth: "Configured in the firewall policy (mcp.servers); tool servers verify single-use tickets.",
   },
   {
-    kind: "a2a", displayName: "Agent-to-agent", vendor: "Legion", status: "available", plane: "tool", inbound: null, outbound: ["respond"],
+    kind: "a2a", displayName: "Agent-to-agent", vendor: "Argust", status: "available", plane: "tool", inbound: null, outbound: ["respond"],
     egressHosts: [],
     summary: "Requests between a workspace's agents, relayed and bounded by the agent firewall with the authority carried down the chain.",
     auth: "Agent identities and short-lived tokens; allowlisted agent pairs in the firewall policy.",

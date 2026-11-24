@@ -1,6 +1,6 @@
 /**
  * Simulators: what an action WOULD do, computed from current data with reads
- * only. Nothing here writes, sends, blocks or calls out. What Legion really does
+ * only. Nothing here writes, sends, blocks or calls out. What Argust really does
  * (only in a workspace that opted in) lives in live.ts and nowhere else.
  */
 import { queryOne } from "../db/pool.js";

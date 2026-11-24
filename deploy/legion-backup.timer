@@ -1,5 +1,5 @@
 [Unit]
-Description=Nightly Legion backup
+Description=Nightly Argust backup
 
 [Timer]
 OnCalendar=*-*-* 02:40:00

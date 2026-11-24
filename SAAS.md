@@ -1,9 +1,9 @@
-# Running Legion as a paid online service (SaaS)
+# Running Argust as a paid online service (SaaS)
 
 At the end of this guide:
 
 - `https://legion.yourdomain.com` has a product page, pricing and terms;
-- anyone can sign up, confirm their email and use Legion **free for 14 days**;
+- anyone can sign up, confirm their email and use Argust **free for 14 days**;
 - then they buy a **monthly subscription** by card (Visa/Mastercard, in dollars) —
   **Paddle** takes the payment and handles tax and invoices;
 - if they do not pay, the workspace is locked (data is not deleted); when they pay, it reopens.
@@ -59,7 +59,7 @@ the same.
 
    ```env
    SMTP_PASSWORD=re_…your_key
-   SMTP_FROM=Legion <no-reply@yourdomain.com>
+   SMTP_FROM=Argust <no-reply@yourdomain.com>
    ```
 
    The domain in `SMTP_FROM` must be the one verified in step 4.
@@ -91,7 +91,7 @@ Paddle has two separate environments: **sandbox** (fake cards, no money) and
 ### 4a. Sandbox
 
 1. Sign up at <https://sandbox-login.paddle.com/signup>.
-2. **Catalog → Products → New product**: one product, `Legion`. Inside it create
+2. **Catalog → Products → New product**: one product, `Argust`. Inside it create
    these **recurring** prices (USD) — the full price list is in [PRICING.md](PRICING.md):
 
    | Price | Amount | Billing | Goes in `PADDLE_PLAN_PRICES` as |

@@ -134,7 +134,7 @@ export async function runWorkflow(tenantId: string, name: string, alertId: strin
       if ("skip" in derived && typeof derived.skip === "string") { results.push({ ...base, outcome: "skipped", action_request_id: null, action_status: null, note: derived.skip }); continue; }
       const input = derived as Record<string, unknown>;
       try {
-        // In a live run each step really happens if Legion can do it for real; the rest is simulated, as before.
+        // In a live run each step really happens if Argust can do it for real; the rest is simulated, as before.
         const stepMode = mode === "live" ? (hasLiveExecutor(step.action_id) ? "live" : "simulation") : mode;
         const { action } = await proposeAction(tenantId, {
           action_id: step.action_id, input, mode: stepMode,

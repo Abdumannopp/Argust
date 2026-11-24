@@ -1,5 +1,5 @@
 /**
- * Protection modes: Legion acts on its own only because an administrator said so, and only within what
+ * Protection modes: Argust acts on its own only because an administrator said so, and only within what
  * they said. These tests prove the chain end to end, against a real PostgreSQL:
  *
  *   settings (who may change them, what it takes) → the policy decision → the action engine → the
@@ -175,7 +175,7 @@ describe("turning protection on takes an administrator who just proved who they 
 describe("hybrid: what the administrator pre-authorised runs on its own; everything else asks", () => {
   beforeEach(async () => { await enable("hybrid", ["ip.block"]); });
 
-  it("a pre-authorised block is done at once, by Legion, and is recorded everywhere", async () => {
+  it("a pre-authorised block is done at once, by Argust, and is recorded everywhere", async () => {
     config.smtpHost = "smtp.test.invalid";
     const { action } = await proposeAction(tA, block("185.220.101.70", { reason: "brute force campaign" }));
     expect(action).toMatchObject({ status: "queued", policy_decision: "ALLOW", execution_mode: "live", approval_id: null });
@@ -191,7 +191,7 @@ describe("hybrid: what the administrator pre-authorised runs on its own; everyth
     // …and the administrators were told, in the same commit: one mail each, saying what and why.
     const mails = (await query("SELECT recipient, payload FROM notification_outbox WHERE tenant_id = $1 AND kind = 'protection_email' ORDER BY recipient", [tA])).rows;
     expect(mails.map((m) => m.recipient)).toEqual(["a1@a.io", "a2@a.io"]);
-    expect(mails[0].payload.subject).toContain("Legion acted on its own");
+    expect(mails[0].payload.subject).toContain("Argust acted on its own");
     expect(mails[0].payload.text).toContain("185.220.101.70");
     expect(mails[0].payload.text).toContain("brute force campaign");
   });
@@ -241,7 +241,7 @@ describe("hybrid: what the administrator pre-authorised runs on its own; everyth
   });
 });
 
-describe("automatic: everything Legion can really do and that is not critical — and still never what needs a person", () => {
+describe("automatic: everything Argust can really do and that is not critical — and still never what needs a person", () => {
   beforeEach(async () => { await enable("automatic", []); });
 
   it("runs the actions it has an executor for", async () => {
@@ -408,7 +408,7 @@ describe("from a real alert to a real block, without anyone clicking", () => {
     expect(steps.find((s: { name: string }) => s.name === "notify").action_status).toBe("awaiting_approval");
   });
 
-  it("test alerts, samples, the demo and Legion's own monitors never start anything", async () => {
+  it("test alerts, samples, the demo and Argust's own monitors never start anything", async () => {
     await enable("automatic", []);
     for (const [i, source] of ["legion-test", "mock", "demo", "legion-monitor", "legion-agent-security"].entries()) {
       await outbox.insertAlertAndNotify(newAlert(`SEC-T${i}`, { source }) as never);
@@ -428,7 +428,7 @@ describe("from a real alert to a real block, without anyone clicking", () => {
   });
 });
 
-describe("the report: what Legion did, in one place", () => {
+describe("the report: what Argust did, in one place", () => {
   it("counts what ran on its own, what a person approved, what a person did, what is waiting and what failed", async () => {
     await enable("hybrid", ["ip.block"]);
     const auto = (await proposeAction(tA, block("185.220.101.130"))).action; await runQueued(tA, auto.id);
@@ -449,7 +449,7 @@ describe("the report: what Legion did, in one place", () => {
   });
 });
 
-describe("old history of what Legion did is pruned like the rest, and nothing else is", () => {
+describe("old history of what Argust did is pruned like the rest, and nothing else is", () => {
   it("executed and failed live actions go with the retention period; pending ones never do; both lists agree", async () => {
     await enable("automatic", []);
     const old = (await proposeAction(tA, block("185.220.101.150"))).action; await runQueued(tA, old.id);

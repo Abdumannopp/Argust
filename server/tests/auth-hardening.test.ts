@@ -209,7 +209,7 @@ describe("step-up checks are throttled per user, from any address", () => {
     const cookies = cookieHeader(await login("owner@acme.io", PASSWORD).expect(200));
     await request(app).post("/auth/change-password").set("Cookie", cookies).send({ current_password: PASSWORD, new_password: "another-long-password" }).expect(200);
     await flush();
-    expect(sent.some((m) => m.to === "owner@acme.io" && /password of your Legion account was changed/.test(m.text))).toBe(true);
+    expect(sent.some((m) => m.to === "owner@acme.io" && /password of your Argust account was changed/.test(m.text))).toBe(true);
   });
 });
 
@@ -245,6 +245,6 @@ describe("password-reset email", () => {
     await request(app).post("/auth/reset-password").send({ token, new_password: "brand-new-password-1" }).expect(200);
     await flush();
     expect(await audits("auth.password_reset")).toHaveLength(1);
-    expect(sent.some((m) => /password of your Legion account was changed/.test(m.text))).toBe(true);
+    expect(sent.some((m) => /password of your Argust account was changed/.test(m.text))).toBe(true);
   });
 });

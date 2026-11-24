@@ -1,6 +1,6 @@
 /**
  * PagerDuty — pages the on-call person (Events API v2). Outbound, notify only.
- * The integration (routing) key is sealed per connection. dedup_key is the Legion alert id, so PagerDuty itself
+ * The integration (routing) key is sealed per connection. dedup_key is the Argust alert id, so PagerDuty itself
  * collapses repeats: a retry never pages twice. Only events.pagerduty.com is reachable.
  */
 import { z } from "zod";
@@ -28,8 +28,8 @@ export const pagerdutyAdapter: OutboundAdapter = {
       method: "POST", signal, timeoutMs: 15_000, maxBytes: 64 * 1024, headers: { "content-type": "application/json" },
       body: JSON.stringify({
         routing_key: conn.secrets.routing_key, event_action: "trigger", dedup_key: msg.alertId,
-        payload: { summary: msg.title.slice(0, 1000), source: msg.target ?? "Legion", severity: PD_SEVERITY[msg.severity], custom_details: { summary: msg.summary.slice(0, 2000), source_ip: msg.sourceIp } },
-        links: [{ href: msg.link, text: "Open in Legion" }],
+        payload: { summary: msg.title.slice(0, 1000), source: msg.target ?? "Argust", severity: PD_SEVERITY[msg.severity], custom_details: { summary: msg.summary.slice(0, 2000), source_ip: msg.sourceIp } },
+        links: [{ href: msg.link, text: "Open in Argust" }],
       }),
     });
     if (res.status === 202 || res.status === 200) return {};

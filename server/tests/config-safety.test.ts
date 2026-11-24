@@ -37,7 +37,7 @@ describe("HTTPS without a Secure cookie", () => {
   });
 
   it("leaves local evaluation alone", () => {
-    // `npm run try` is a supported way to run Legion and must keep working.
+    // `npm run try` is a supported way to run Argust and must keep working.
     expect(check({ frontendUrl: "http://localhost:3000", cookieSecure: false })).toEqual([]);
   });
 });

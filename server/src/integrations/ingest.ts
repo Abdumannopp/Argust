@@ -1,5 +1,5 @@
 /**
- * The one way findings enter Legion, whatever produced them.
+ * The one way findings enter Argust, whatever produced them.
  *
  * Each finding becomes an alert in ONE transaction with its asset, its email
  * and its realtime frame (outbox.insertAlertAndNotify). The alert id is
@@ -68,8 +68,8 @@ export interface IngestReport { ingested: string[]; duplicates: string[]; campai
 const RANK = { low: 0, medium: 1, high: 2, critical: 3 } as const;
 
 /**
- * Audit A-9: a vendor alert Legion already stored came again with a HIGHER severity (Defender, GuardDuty,
- * CrowdStrike… re-send an item when they update it). The Legion alert is raised to match, a dated note is
+ * Audit A-9: a vendor alert Argust already stored came again with a HIGHER severity (Defender, GuardDuty,
+ * CrowdStrike… re-send an item when they update it). The Argust alert is raised to match, a dated note is
  * added to its text, and the change is audited. Severity is never lowered and status is never changed by a
  * source: closing or downgrading stays a person's decision. Outbound connections are told about the raise.
  */
@@ -88,7 +88,7 @@ async function escalateIfHigher(tenantId: string, id: string, f: Finding): Promi
   await inTenant(tenantId, async () => {
     const alert = await store.getAlert(tenantId, id);
     if (alert) await transaction((client) => enqueueIntegrationMessages(client, alert, { raised: true }));
-  }).then(() => outbox.kick()).catch((e) => console.error("Legion: could not queue the severity-raise notifications:", e instanceof Error ? e.message : "unknown error"));
+  }).then(() => outbox.kick()).catch((e) => console.error("Argust: could not queue the severity-raise notifications:", e instanceof Error ? e.message : "unknown error"));
   await store.audit({ tenant_id: tenantId, user_id: null, user_email: null, action: "alert.severity_raised_by_source", resource_type: "alert", resource_id: id, detail: `raised to ${f.severity} by the source`, ip_address: null }).catch(() => { /* the alert change stands; audit is best effort here */ });
   return true;
 }
@@ -125,7 +125,7 @@ export async function ingestFindings(
         await respondToCampaigns(tenantId, campaigns);
       }
     } catch (error) {
-      console.error("Legion: campaign correlation failed:", error instanceof Error ? error.message : "unknown error");
+      console.error("Argust: campaign correlation failed:", error instanceof Error ? error.message : "unknown error");
     }
   }
   return report;

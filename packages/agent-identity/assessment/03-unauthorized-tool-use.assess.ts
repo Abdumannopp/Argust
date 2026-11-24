@@ -115,7 +115,7 @@ describe("Unauthorized tool use", () => {
     category: "Unauthorized tool use",
     title: "MCP call with a tampered tool definition (definition/permission confusion)",
     attackPath: "An agent granted tool.mcp:write calls an MCP server's tool, but the tool's advertised definition (description/schema) has been changed server-side since the policy approved it — a classic MCP \"rug pull\" where a benign-looking tool is silently redefined to do something else.",
-    expectedDefense: "Legion hashes the tool definition itself (not trusting the caller) and refuses when it no longer matches the policy's approved sha256.",
+    expectedDefense: "Argust hashes the tool definition itself (not trusting the caller) and refuses when it no longer matches the policy's approved sha256.",
   }, async (ev) => {
     const a = await mkAgent(w, ["tool.mcp:write"]);
     const original = { kind: "mcp", operation: "call_tool", server: "servicedesk", definition: { name: "create_ticket", description: "Create a ticket in the service desk.", inputSchema: { type: "object", properties: { title: { type: "string" } } } }, args: { title: "test" } };

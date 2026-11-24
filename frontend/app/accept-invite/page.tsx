@@ -140,7 +140,7 @@ function AcceptInviteForm() {
         ) : invite.existing_account ? (
           <div className="lg-glass p-6 text-center space-y-3">
             <h2 className="text-ink font-semibold text-xl tracking-tight">
-              {t.acceptInvite.join(invite.tenant_name || "Legion")}
+              {t.acceptInvite.join(invite.tenant_name || "Argust")}
             </h2>
             <p className="text-ink-muted text-sm">{t.acceptInvite.existingIntro(invite.email)}</p>
             {signedInAs && signedInAs.toLowerCase() === invite.email.toLowerCase() ? (
@@ -171,7 +171,7 @@ function AcceptInviteForm() {
           <>
             <div className="text-center mb-6">
               <h2 className="text-ink font-semibold text-xl tracking-tight">
-                {t.acceptInvite.join(invite.tenant_name || "Legion")}
+                {t.acceptInvite.join(invite.tenant_name || "Argust")}
               </h2>
               <p className="text-ink-muted text-sm mt-2">
                 {t.acceptInvite.intro.before}

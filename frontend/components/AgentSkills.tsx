@@ -12,7 +12,7 @@ import { useLanguage } from "@/lib/i18n/LanguageContext";
 const ORDER: LegionAgentName[] = ["Sentinel", "Hunter", "Guardian", "Oracle", "Vanguard"];
 
 /**
- * Which of Legion's skills this AI agent may use. Choosing a skill grants no
+ * Which of Argust's skills this AI agent may use. Choosing a skill grants no
  * permission (the server says so too): when the agent still lacks what the
  * skill reads with, the row says which permission to grant.
  */

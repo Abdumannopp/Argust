@@ -5,7 +5,7 @@ import type { RiskFactor, RuleHit, Sensitivity } from "../firewall/types.js";
 /*
  * Every tool call an AI agent wants to make, in one of ten strict shapes.
  * Unknown fields, unknown operations and unknown tool kinds are refused —
- * a call Legion cannot understand is a call Legion cannot approve.
+ * a call Argust cannot understand is a call Argust cannot approve.
  */
 
 export const TOOL_KINDS = ["browser", "http", "database", "files", "shell", "email", "github", "slack", "mcp", "cloud"] as const;

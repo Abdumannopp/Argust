@@ -4,7 +4,7 @@
  * Addresses only. The customer's own API key is sealed per connection and sent as the "Key" header to
  * api.abuseipdb.com. The verdict is AbuseIPDB's confidence score (0–100): 75 and above malicious, 25–74
  * suspicious. An address nobody reported is "nothing known" — not "safe": absence of reports proves nothing.
- * Nothing is reported TO AbuseIPDB: Legion only asks.
+ * Nothing is reported TO AbuseIPDB: Argust only asks.
  */
 import { z } from "zod";
 import { adapterFetch } from "./fetch.js";
@@ -30,7 +30,7 @@ export const abuseipdbAdapter: IntelAdapter = {
   manifest: {
     kind: "abuseipdb", displayName: "AbuseIPDB", vendor: "AbuseIPDB", status: "available", plane: "data", inbound: null, outbound: [], intel: true,
     egressHosts: ["api.abuseipdb.com"],
-    summary: "How often an address was reported for attacks, spam or scanning in the last 90 days, as a 0–100 score. Asked on demand; Legion reports nothing to it. Read only.",
+    summary: "How often an address was reported for attacks, spam or scanning in the last 90 days, as a 0–100 score. Asked on demand; Argust reports nothing to it. Read only.",
     auth: "Your AbuseIPDB API key, sealed per connection.",
   },
   configSchema: z.strictObject({}),

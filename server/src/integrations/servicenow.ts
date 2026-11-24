@@ -2,11 +2,11 @@
  * ServiceNow — opens one incident per alert (Table API). Outbound, ticket only.
  *
  * One incident per alert and connection: the incident carries correlation_id "legion-<alert id>", and before
- * creating, Legion looks it up by that field. The Table API reads the database directly (no search index), so a
+ * creating, Argust looks it up by that field. The Table API reads the database directly (no search index), so a
  * retry after a lost answer finds the first incident instead of opening a second; the new number is also stored
  * on the message at once (as for Jira, audit A-6). The instance is chosen by name (acme → acme.service-now.com),
  * never by URL; only *.service-now.com is reachable. The integration user needs the itil role (create incidents)
- * and nothing more; its password is sealed per connection. Legion creates incidents only; it never updates or
+ * and nothing more; its password is sealed per connection. Argust creates incidents only; it never updates or
  * closes them, and never touches other tables.
  */
 import { z } from "zod";
@@ -67,12 +67,12 @@ export const servicenowAdapter: OutboundAdapter = {
     if (existing) return { ref: existing };
     // 2. Create it.
     const level = LEVEL[msg.severity];
-    const description = [msg.summary, msg.target ? `Host: ${msg.target}` : "", msg.sourceIp ? `Source address: ${msg.sourceIp}` : "", `Open in Legion: ${msg.link}`].filter(Boolean).map((t) => clean(t, 3000)).join("\n\n");
+    const description = [msg.summary, msg.target ? `Host: ${msg.target}` : "", msg.sourceIp ? `Source address: ${msg.sourceIp}` : "", `Open in Argust: ${msg.link}`].filter(Boolean).map((t) => clean(t, 3000)).join("\n\n");
     const res = await adapterFetch(servicenowAdapter.manifest, `${base(conn)}/api/now/table/incident?sysparm_fields=number,sys_id`, {
       method: "POST", headers: headers(conn), signal, timeoutMs: 20_000, maxBytes: 64 * 1024,
       body: JSON.stringify({
         short_description: clean(`[${msg.severity.toUpperCase()}] ${msg.title}`, 160),
-        description, correlation_id: correlation, correlation_display: "Legion",
+        description, correlation_id: correlation, correlation_display: "Argust",
         impact: level.impact, urgency: level.urgency, category: "security",
         ...(conn.config.assignment_group ? { assignment_group: String(conn.config.assignment_group) } : {}),
       }),

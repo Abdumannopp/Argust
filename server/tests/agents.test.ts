@@ -3,7 +3,7 @@
  * their existing session; agents get their own credentials, read this
  * tenant's alerts and assets through the firewall, cannot act on text they
  * just read until a person reviews it, stop the moment they are suspended,
- * and run security skills over Legion's real data.
+ * and run security skills over Argust's real data.
  */
 import { afterAll, beforeAll, beforeEach, describe, expect, it } from "vitest";
 import request from "supertest";
@@ -99,7 +99,7 @@ describe("people manage agents with their existing session", () => {
   });
 });
 
-describe("agents use Legion's data through the agent API only", () => {
+describe("agents use Argust's data through the agent API only", () => {
   it("reads its own tenant's alerts, marked as untrusted content", async () => {
     const a = await agent(adminA, ["alerts:read"]);
     const res = await request(app).get("/agent/v1/alerts").set(...bearer(a.token));
@@ -167,7 +167,7 @@ describe("agents use Legion's data through the agent API only", () => {
   });
 });
 
-describe("security skills over Legion's own data", () => {
+describe("security skills over Argust's own data", () => {
   it("threat detection reads this tenant's real alerts", async () => {
     for (let i = 0; i < 5; i++) await alert(tenantA, `BF-${i}-${randomUUID().slice(0, 4)}`, { title: "sshd: authentication failure", mitre_technique: "T1110" });
     const a = await agent(adminA, ["alerts:read"]);
@@ -253,7 +253,7 @@ describe("security skills over Legion's own data", () => {
   });
 });
 
-describe("business skills over Legion's own data", () => {
+describe("business skills over Argust's own data", () => {
   it("Payment Fraud Review reads this tenant's real payment checks, and never an account number", async () => {
     const { checkPayment } = await import("../src/payments.js");
     await checkPayment(tenantA, { action: "payment-check", beneficiary: { account: "DE89 3704 0044 0532 0130 00", name: "Acme Supplies" }, amount: 12500, currency: "EUR", requestedBy: "dana@acme.example" });

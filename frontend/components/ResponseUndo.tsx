@@ -9,7 +9,7 @@ import { timeAgo } from "@/lib/i18n/format";
 
 import { OPPOSITE, stillInEffect } from "@/lib/response-undo";
 
-/** Releasing a host or restoring an account that Legion isolated or suspended. Administrators only. */
+/** Releasing a host or restoring an account that Argust isolated or suspended. Administrators only. */
 export default function ResponseUndo({ isAdmin }: { isAdmin: boolean }) {
   const { t, locale } = useLanguage();
   const m = t.protection.undo;

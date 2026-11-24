@@ -3,7 +3,7 @@
 ====================================================================
 
   This is a starting point written by a software assistant, not by a
-  lawyer. Before Legion is sold or given to anyone outside your own
+  lawyer. Before Argust is sold or given to anyone outside your own
   organisation, two things must happen:
 
     1. Every [BRACKETED] field below must be filled in with real
@@ -21,7 +21,7 @@
 ====================================================================
 
 
-LEGION SOFTWARE LICENCE AGREEMENT
+ARGUST SOFTWARE LICENCE AGREEMENT
 
 Version 1.0.0
 Copyright (c) [YEAR] [LEGAL ENTITY NAME], [COUNTRY OF REGISTRATION],
@@ -35,7 +35,7 @@ or use the Software.
 
 1. DEFINITIONS
 
-   "Software" means the Legion platform, including its source code,
+   "Software" means the Argust platform, including its source code,
    compiled artefacts, database schema, configuration scripts, and
    accompanying documentation, in each case as supplied by Licensor.
 

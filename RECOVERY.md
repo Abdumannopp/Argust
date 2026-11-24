@@ -1,4 +1,4 @@
-# Legion — Disaster recovery
+# Argust — Disaster recovery
 
 > A backup that has never been restored is a guess. Everything below is
 > exercised by `server/tests/disaster-recovery.test.ts` (see "The drill").
@@ -13,7 +13,7 @@
 | Sessions | refresh tokens in PostgreSQL, access tokens signed with `JWT_SECRET` | New `JWT_SECRET` ⇒ everyone signs in again. Nothing else is lost. |
 | Code | the release you deployed | Redeploy it. |
 
-Legion runs either under systemd (`deploy/legion.service`) behind nginx, or as the
+Argust runs either under systemd (`deploy/legion.service`) behind nginx, or as the
 containers of `docker-compose.pilot.yml` (PILOT.md). The backup and restore scripts
 are identical for both: run them on the host against the database (Postgres is not
 published, so use `docker compose exec postgres …` or a one-off container on the
@@ -26,7 +26,7 @@ audited actions fail by design (PILOT.md §6, §7).
 ## Architecture
 
 ```
- Legion server ──pg_dump──► plaintext dump (private temp dir, mode 700)
+ Argust server ──pg_dump──► plaintext dump (private temp dir, mode 700)
                                │  1. restore into a throwaway database, compare tables  ← every night
                                │  2. encrypt with age to PUBLIC key(s)                  ← key NOT on this server
                                ▼
@@ -71,7 +71,7 @@ audited actions fail by design (PILOT.md §6, §7).
 Have ready: the **private key**, the **secrets** (below), access to the off-server storage.
 Total hands-on time on a small database: minutes; the drill measures it.
 
-1. **New server.** Install PostgreSQL, Node, nginx, `age`, `postgresql-client`; deploy the same Legion
+1. **New server.** Install PostgreSQL, Node, nginx, `age`, `postgresql-client`; deploy the same Argust
    release into `/opt/legion` (`npm ci`, `npm run build`).
 2. **Secrets first.** Create `server/.env` and put in it, *before* running `npm run setup`
    (which keeps values that already exist): `LEGION_ENCRYPTION_KEYS` (the ORIGINAL keys — all of
@@ -178,5 +178,5 @@ sign-in works). `ops/tests/test-backup-restore.sh` is the same for the scripts a
   lock, and the external dead-man's switch, are what protect against that.
 * The restore test on the server needs a `CREATEDB` connection; without `DATABASE_ADMIN_URL` only the
   weekly external verification proves restorability (and `/health/backup` will say no restore was tested).
-* Off-server upload is your command (`BACKUP_UPLOAD_CMD`); Legion does not verify what the storage does with it.
+* Off-server upload is your command (`BACKUP_UPLOAD_CMD`); Argust does not verify what the storage does with it.
 * `age` must be installed on the recovery machine, and the private key must exist somewhere other than the server.

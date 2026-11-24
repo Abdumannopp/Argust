@@ -4,7 +4,7 @@ export const signup = defineMessages({
   en: {
     closed: {
       title: "Sign-up is closed",
-      body: "This Legion installation belongs to one organisation. Ask your administrator for an invitation.",
+      body: "This Argust installation belongs to one organisation. Ask your administrator for an invitation.",
     },
     checkEmail: {
       title: "Check your email",
@@ -16,7 +16,7 @@ export const signup = defineMessages({
     },
     title: "Start your free trial",
     trialNote: (days: number) =>
-      `${plural("en", days, { one: `${days} day`, other: `${days} days` })} free, no card needed. You choose a plan only if you decide to keep Legion.`,
+      `${plural("en", days, { one: `${days} day`, other: `${days} days` })} free, no card needed. You choose a plan only if you decide to keep Argust.`,
     companyLabel: "Company or team name",
     emailLabel: "Work email",
     /** "I agree to the {Terms} and {Privacy Policy}." — the two links sit between these parts. */

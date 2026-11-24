@@ -38,7 +38,7 @@ describe("recording flagged content", () => {
     const res = await inspect(token, MALICIOUS, "email", { sourceId: "msg-17" });
     expect(res.status).toBe(200);
     expect(res.body).toMatchObject({ verdict: "malicious", eventId: expect.any(String) });
-    expect(res.body.envelope).toMatch(/^<<<EXTERNAL CONTENT LEGION-[0-9a-f]{24} source=email id=msg-17 trust=untrusted verdict=malicious/);
+    expect(res.body.envelope).toMatch(/^<<<EXTERNAL CONTENT ARGUST-[0-9a-f]{24} source=email id=msg-17 trust=untrusted verdict=malicious/);
     expect(res.body.consequence).toMatch(/blocked until an administrator reviews/);
   });
 
@@ -89,7 +89,7 @@ describe("recording flagged content", () => {
     }
   });
 
-  it("Legion's own prompts record what reached the model, and refuse to send if recording fails", async () => {
+  it("Argust's own prompts record what reached the model, and refuse to send if recording fails", async () => {
     const analyst: HumanPrincipal = { type: "human", id: "anna", tenantId: TENANT_A, role: "analyst", displayName: "anna" };
     const a = t.identity.contentGuard.createAssembly({ tenantId: TENANT_A, principal: analyst }, "oracle.explain_alert");
     a.setUserIntent("Explain this alert");

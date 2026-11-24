@@ -5,7 +5,7 @@ const THREATS = ["ransomware", "bec", "phishing", "ddos", "ai_deception", "espio
 const RULES = ["rapid_chain", "wide_sweep", "swarm", "velocity", "ai_manipulation", "ransomware", "mailbox_takeover", "phishing_execution", "supply_chain", "slow_intrusion", "credential_attack", "account_compromise", "multi_platform"];
 
 describe("Defense page text", () => {
-  it.each(["en"] as const)("%s: every attack type has a name, what Legion does, and what to connect", (l) => {
+  it.each(["en"] as const)("%s: every attack type has a name, what Argust does, and what to connect", (l) => {
     const c = defense[l].coverage;
     for (const t of THREATS) {
       expect(c.names[t], t).toBeTruthy();

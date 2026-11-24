@@ -81,7 +81,7 @@ export const genericWebhookAdapter: PushAdapter = {
   manifest: {
     kind: "generic_webhook", displayName: "Generic JSON webhook", vendor: "Any (Elastic Security, Splunk, custom)", status: "available", plane: "data",
     inbound: "push", outbound: [], egressHosts: [],
-    summary: "Any system that can POST JSON signed with a Legion sensor credential: custom tools, Elastic Security alerts, Splunk webhook alert actions. Up to 200 events per request.",
+    summary: "Any system that can POST JSON signed with a Argust sensor credential: custom tools, Elastic Security alerts, Splunk webhook alert actions. Up to 200 events per request.",
     auth: "Per-credential HMAC-SHA256 over timestamp, nonce and raw body (Settings → Sensor credentials); replay-protected. POST /security-events/webhook/generic.",
   },
   normalize(body: unknown): NormalizeResult {

@@ -4,7 +4,7 @@
  * (NODE_ENV=production, hosted sign-up, Secure cookies, real SMTP delivery to
  * a local sink). It attacks the running process over HTTP and WebSocket the
  * way an outsider or a malicious customer would, and reads the database and
- * the process log afterwards for leaked secrets. No Legion code is imported.
+ * the process log afterwards for leaked secrets. No Argust code is imported.
  *
  *   npm --prefix server run build
  *   E2E_ADMIN_DATABASE_URL=postgresql://…/postgres node ops/tests/production-probe.mjs [--json out.json]
@@ -52,7 +52,7 @@ async function main() {
     NODE_ENV: "production", DEPLOYMENT_MODE: "saas", DATABASE_URL: db.url,
     JWT_SECRET: SECRETS.JWT_SECRET, PAYMENT_HASH_KEY: SECRETS.PAY, SOC_AUDIT_KEY: SECRETS.AUDIT, LEGION_ENCRYPTION_KEYS: `probe:${SECRETS.ENC}`,
     FRONTEND_URL: FRONTEND, COOKIE_SECURE: "true", SMTP_HOST: "127.0.0.1", SMTP_PORT: String(smtp.port),
-    SMTP_FROM: "Legion <no-reply@legion.test>", HEALTH_METRICS_TOKEN: SECRETS.METRICS, SEED_DEMO_DATA: "true",
+    SMTP_FROM: "Argust <no-reply@legion.test>", HEALTH_METRICS_TOKEN: SECRETS.METRICS, SEED_DEMO_DATA: "true",
   };
   section("boot");
   api = await startApi(env, { port });

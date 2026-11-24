@@ -1,7 +1,7 @@
 import { THREAT_SIGNS, THREAT_SOURCES, THREATS, type Threat } from "./threats.js";
 
 /*
- * Threat coverage: for each of the seven attack types, did Legion see signs of
+ * Threat coverage: for each of the seven attack types, did Argust see signs of
  * it, is it watching (the right data arrives but nothing was found), or is it
  * blind (the data it would need never arrives)? Saying "blind" plainly is the
  * point: a quiet dashboard means nothing if the data is not there.
@@ -24,7 +24,7 @@ export interface ThreatCoverage {
 
 /**
  * `aiTextAttempts`: events whose text tried to instruct an AI (prompt
- * injection), which Legion detects on every event whatever the source.
+ * injection), which Argust detects on every event whatever the source.
  */
 export function assessCoverage(events: CoverageEvent[], opts: { aiTextAttempts?: string[] } = {}): ThreatCoverage[] {
   return THREATS.map((threat) => {
@@ -51,7 +51,7 @@ export function assessCoverage(events: CoverageEvent[], opts: { aiTextAttempts?:
     const lastSeen = hits.map((h) => h.createdAt).sort().pop() ?? null;
     const status: CoverageStatus = hits.length
       ? "detected"
-      // Deepfake calls and videos never reach Legion: at best it sees what follows them.
+      // Deepfake calls and videos never reach Argust: at best it sees what follows them.
       : threat === "ai_deception" ? "partial"
       : sourceSeen ? "watching" : "blind";
     const labels = new Map<string, string>([...signs.map((s) => [s.id, s.label] as const), ["ai_instruction_text", "Text written to instruct an AI"]]);

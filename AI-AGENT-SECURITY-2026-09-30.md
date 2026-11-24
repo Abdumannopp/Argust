@@ -1,4 +1,4 @@
-# Legion — AI Agent Security (Phase 4) — 2026-09-30
+# Argust — AI Agent Security (Phase 4) — 2026-09-30
 
 Branch `claude/laughing-clarke-cmfudk`. Scope: `packages/agent-identity` (the agent
 identity / firewall / tool-security module) and its wiring into `server/`.
@@ -35,7 +35,7 @@ permissions, tool families and assigned skills, tools actually used
 servers, other agents it reached), risk (declared level, the baseline its
 permissions imply, behaviour level/score, refusals, containments, pending
 approvals, an overall rating used for sorting), and last activity. Computed
-from Legion's own records (identities, grants, decision log, behaviour
+from Argust's own records (identities, grants, decision log, behaviour
 state, approvals) — never from what an agent reports. People only
 (admin/analyst); tenant-scoped.
 
@@ -57,7 +57,7 @@ state, approvals) — never from what an agent reports. People only
   - `quarantineOn` — default: `tenant.mismatch`, `a2a.cross_tenant`,
     `sql.foreign_tenant`, `a2a.laundering`, `a2a.injection_payload`,
     `a2a.hidden_tool_request`, `egress.secret_in_payload`, `a2a.secret_in_payload`.
-  - `killOn` — default: `http.legion_secret` (sending Legion's own credentials out).
+  - `killOn` — default: `http.legion_secret` (sending Argust's own credentials out).
 - Monitor mode still observes: soft refusals → WARN (`would_block`), and it
   never quarantines or kills; hard rules still refuse; a hard CONFIRM is not waived.
 - Order inside `evaluate()`: rules → responses → advisors (can only escalate)
@@ -85,7 +85,7 @@ state, approvals) — never from what an agent reports. People only
   content between approval and retry still stops the action.
 - Nested checks of the *same* approved execution (the egress of an approved
   HTTP call, the write of an approved files call) are covered through a
-  Legion-internal `ctx.confirmed` that is never read from a request
+  Argust-internal `ctx.confirmed` that is never read from a request
   (`tools/gateway.ts executionContext`).
 - `GET /agent/v1/approvals/:id` lets an agent see only its own request's status.
 
@@ -133,7 +133,7 @@ the hash, verdict and findings before they pin a tool.
 ### MCP / A2A
 
 Tool identity = server + name + sha256 of the live definition (computed by
-Legion, never trusted from the caller); authorization per tool in policy;
+Argust, never trusted from the caller); authorization per tool in policy;
 trust boundary = tool output and tool descriptions are untrusted content;
 input validation per tool spec (declared args, size, secrets, URL egress);
 A2A: allowlisted pairs, no laundering, depth/fan-out/budget limits, hidden
@@ -153,7 +153,7 @@ firewall (QUARANTINE/KILL) and `/kill-switch/all` with service accounts.
 `tests/ai-output-is-data.test.ts` "an obedient model still changes nothing").
 Skills pass their model only assembled prompts and are read-only. Agents
 that *do* act are machine identities behind the firewall, where state
-changes that leave Legion now need a person's approval per action by default.
+changes that leave Argust now need a person's approval per action by default.
 
 ### SOC visibility — **new** (`server/src/agent-alerts.ts`)
 
@@ -191,7 +191,7 @@ advisory lock).
    | Cross-tenant data: SQL on another org | **QUARANTINE** | `sql.foreign_tenant` |
    | Dangerous chaining: pipeline hidden in args | BLOCK | `shell.shell_syntax` |
    | Policy bypass: state change without a person | **CONFIRM** | `confirm.permission` |
-   | Credential theft: Legion token sent out | **KILL** | `http.legion_secret` |
+   | Credential theft: Argust token sent out | **KILL** | `http.legion_secret` |
 
 3. **Approval bypass attempts**: changed argument, replay, other agent,
    forged id, malformed id, expired, denied, agent approving itself,
@@ -203,7 +203,7 @@ advisory lock).
    resolving an alert waits for a person — the alert row is untouched until
    approval, changes once after, and a replay changes nothing; cross-tenant
    SQL quarantines before the answer (next request 401) and raises a high
-   alert only in the agent's own tenant; Legion-token exfiltration kills
+   alert only in the agent's own tenant; Argust-token exfiltration kills
    (credential can no longer mint tokens) with a critical alert.
 6. **Attack assessment** (pinned scenarios, run in CI with provenance): new
    category *Policy enforcement* PE-1…PE-7.
@@ -283,7 +283,7 @@ advisory lock).
 - `packages/agent-identity/src/registry.ts` — agent registry
 - `packages/agent-identity/test/policy-responses.test.ts` — adversarial / evidence suite (33 tests)
 - `packages/agent-identity/assessment/14-policy-enforcement.assess.ts` — PE-1…PE-7
-- `server/src/agent-alerts.ts` — agent security → Legion alerts
+- `server/src/agent-alerts.ts` — agent security → Argust alerts
 - `server/tests/agent-security.test.ts` — end-to-end through the server (7 tests)
 
 **Changed (package)** — `firewall/types.ts` (decisions, `permits()`), `firewall/engine.ts`

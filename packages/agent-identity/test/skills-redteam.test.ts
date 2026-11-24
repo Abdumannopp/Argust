@@ -54,7 +54,7 @@ describe("the red-team skill", () => {
     expect(calls()).toBe(1);
   });
 
-  it("runs every category against Legion's own defences and reports each case; all are caught", async () => {
+  it("runs every category against Argust's own defences and reports each case; all are caught", async () => {
     env = await skillEnv();
     await env.assign("ai_security_red_team");
     const calls = watchNetwork();

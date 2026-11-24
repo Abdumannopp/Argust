@@ -1,5 +1,5 @@
 [Unit]
-Description=Weekly refresh of the Cloudflare ranges trusted by Legion's nginx
+Description=Weekly refresh of the Cloudflare ranges trusted by Argust's nginx
 
 [Timer]
 OnCalendar=weekly

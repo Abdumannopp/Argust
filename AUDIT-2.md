@@ -1,4 +1,4 @@
-# Legion — follow-up audit
+# Argust — follow-up audit
 
 **Date:** 2026-08-25
 **Scope:** everything changed since the last audit — self-hosted mode, the new

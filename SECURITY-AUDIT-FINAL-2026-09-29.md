@@ -1,4 +1,4 @@
-# Legion — final security audit (2026-09-29)
+# Argust — final security audit (2026-09-29)
 
 Scope: the whole repository — the API (`server/`), dashboard (`frontend/`),
 agent layer (`packages/agent-identity/`), Wazuh integration (`integrations/`),
@@ -14,7 +14,7 @@ Each Critical and High candidate was then re-verified against the code, and
 probed where cheap, before anything was changed. Only the Critical and High
 issues were fixed in this pass.
 
-Passing tests do not make Legion secure. The tests prove the specific
+Passing tests do not make Argust secure. The tests prove the specific
 properties listed under each fix. They do not prove the absence of other
 flaws. See "Recommended penetration-test scope".
 
@@ -74,7 +74,7 @@ flaws. See "Recommended penetration-test scope".
   2. Sets `notification_email` to the victim's address and creates a sensor credential.
   3. Posts unlimited signed "critical" events carrying phishing text.
 
-  Legion then emails the victim from the vendor's own SPF/DKIM-aligned domain.
+  Argust then emails the victim from the vendor's own SPF/DKIM-aligned domain.
 - **Business impact:** Phishing under the vendor's brand. The shared mail domain or ESP account gets blocklisted, which breaks password reset, verification and invitations for every customer. It also means unbounded cost.
 - **Fix:**
   - A new address goes into `notification_email_pending`. Its owner receives a confirmation email that says, in their language, "ignore this if you didn't expect it". The address becomes active only after the owner confirms on a dashboard page with an explicit button, so a mail scanner that opens links cannot confirm it.

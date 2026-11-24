@@ -1,7 +1,7 @@
 /**
- * Fortinet FortiGate — security events the firewall SENDS to Legion (push).
+ * Fortinet FortiGate — security events the firewall SENDS to Argust (push).
  *
- * A FortiGate is a device on the customer's network: Legion never calls into it. Instead, a FortiOS
+ * A FortiGate is a device on the customer's network: Argust never calls into it. Instead, a FortiOS
  * "automation stitch" (trigger: a log event; action: Webhook) posts each matching event to
  *   POST /security-events/webhook/fortigate?connection=<id>      Authorization: Bearer <token>
  * FortiOS cannot sign a request, so the proof is a long random token that belongs to one connection, sent in a
@@ -11,7 +11,7 @@
  *
  * Accepted bodies: the JSON object described in INTEGRATIONS.md (built from %%log.…%% variables), an array of
  * them, or raw FortiOS log lines (key=value). Routine traffic and notice-level lines are skipped on purpose.
- * Legion cannot change anything on the FortiGate.
+ * Argust cannot change anything on the FortiGate.
  */
 import { z } from "zod";
 import { cleanText, mitreIn, parseTime, pickIp, sha } from "./shared.js";
@@ -69,7 +69,7 @@ export const fortigateAdapter: PushAdapter & { configSchema: z.ZodType<Record<st
   manifest: {
     kind: "fortigate", displayName: "Fortinet FortiGate", vendor: "Fortinet", status: "available", plane: "data", inbound: "push", outbound: [],
     egressHosts: [],
-    summary: "Intrusion, virus, anomaly and other warning-or-worse events your FortiGate sends through an automation stitch webhook. Legion never connects to the firewall. Read only.",
+    summary: "Intrusion, virus, anomaly and other warning-or-worse events your FortiGate sends through an automation stitch webhook. Argust never connects to the firewall. Read only.",
     auth: "A long random token of one connection, sent as Authorization: Bearer by the FortiGate webhook action. POST /security-events/webhook/fortigate?connection=<id>.",
   },
   configSchema: z.strictObject({}),

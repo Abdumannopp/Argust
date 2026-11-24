@@ -6,7 +6,7 @@
  * behind a load balancer, an attacker gets three times the allowance, because
  * each replica only sees the requests it happened to receive.
  *
- * Postgres made Legion horizontally scalable, so the limiter has to be shared
+ * Postgres made Argust horizontally scalable, so the limiter has to be shared
  * state too. Redis is that shared state — but it is NOT allowed to be a hard
  * dependency:
  *

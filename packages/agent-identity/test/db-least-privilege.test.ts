@@ -61,7 +61,7 @@ afterAll(async () => {
 describe("assertIdentifier", () => {
   it("accepts a plain lowercase identifier and rejects everything that could break out of DDL text", () => {
     expect(assertIdentifier("legion_agent_sql")).toBe("legion_agent_sql");
-    for (const bad of ['legion"; DROP TABLE users; --', "Legion", "1role", "a b", "", "a".repeat(64)]) {
+    for (const bad of ['legion"; DROP TABLE users; --', "Argust", "1role", "a b", "", "a".repeat(64)]) {
       expect(() => assertIdentifier(bad)).toThrow();
     }
   });
@@ -266,7 +266,7 @@ describe("row-level tenant isolation, enforced independently of the query text",
   });
 });
 
-describe("tables shaped like Legion's own (uuid tenant_id)", () => {
+describe("tables shaped like Argust's own (uuid tenant_id)", () => {
   const A = "11111111-1111-4111-8111-111111111111";
   const B = "22222222-2222-4222-8222-222222222222";
   let pool: pg.Pool;

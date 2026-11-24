@@ -1,5 +1,5 @@
 [Unit]
-Description=Hourly Legion backup health check
+Description=Hourly Argust backup health check
 
 [Timer]
 OnCalendar=hourly

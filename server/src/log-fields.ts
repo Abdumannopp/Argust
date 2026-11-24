@@ -1,7 +1,7 @@
-/** Fields Legion reads out of a sensor's log line. */
+/** Fields Argust reads out of a sensor's log line. */
 
 /**
- * Who a log line is about. Legion stores no separate user field, but the
+ * Who a log line is about. Argust stores no separate user field, but the
  * sensor's log line names the account (sshd, sudo, PAM, Windows). This reads
  * the common forms and nothing else; anything it does not recognise stays
  * unknown rather than guessed. The text comes from whoever wrote the log, so

@@ -5,7 +5,7 @@ export const copilot = defineMessages({
     title: "AI Copilot",
     subtitle: "Grounded in your live alert data",
     greeting:
-      "Hi, I'm Legion's AI Copilot. Ask me anything about your current alerts — I'll only answer from real data in your system, not guesses.",
+      "Hi, I'm Argust's AI Copilot. Ask me anything about your current alerts — I'll only answer from real data in your system, not guesses.",
     /** Example questions shown before the first message; sent as-is when clicked. */
     suggestions: [
       "What are my critical alerts right now?",
@@ -17,7 +17,7 @@ export const copilot = defineMessages({
     hello: "What are we investigating?",
     helloBody: "Ask about alerts, suspicious activity, hosts or what changed recently.",
     newConversation: "New conversation",
-    assistantName: "Legion Copilot",
+    assistantName: "Argust Copilot",
     assistantRole: "AI security assistant",
     contextTitle: "Investigation context",
     contextSubtitle: "Open alerts in this workspace",

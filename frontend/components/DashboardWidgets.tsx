@@ -7,7 +7,7 @@ import { useLanguage } from "@/lib/i18n/LanguageContext";
 import { palette, severityColor } from "@/lib/theme";
 
 /**
- * The dashboard's headline numbers, from GET /overview only. Nothing here is a sample: a number Legion does not
+ * The dashboard's headline numbers, from GET /overview only. Nothing here is a sample: a number Argust does not
  * have is shown as "none yet", never invented (there is deliberately no "security score").
  */
 export function KpiRow({ data }: { data: Overview }) {

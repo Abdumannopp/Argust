@@ -16,12 +16,12 @@ export const termsContent: Record<Locale, LegalDoc> = {
     title: "Terms of Use",
     effectiveDate: "August 25, 2026",
     intro:
-      "This is a Legion installation operated by {operator}. These terms govern your use of it as someone {operator} has given an account. They are not an agreement with the company that makes Legion — that company does not run this system and is not a party to your use of it.",
+      "This is a Argust installation operated by {operator}. These terms govern your use of it as someone {operator} has given an account. They are not an agreement with the company that makes Argust — that company does not run this system and is not a party to your use of it.",
     sections: [
       {
         heading: "1. What This Is",
         body: [
-          "Legion is a security platform that collects alerts from your organisation's monitoring systems, groups and prioritises them, and helps analysts decide what to act on.",
+          "Argust is a security platform that collects alerts from your organisation's monitoring systems, groups and prioritises them, and helps analysts decide what to act on.",
           "It is a tool for trained people, not a replacement for them. Its analysis — including anything produced with AI assistance — can be incomplete or wrong, and no security product can guarantee that every threat is detected. Decisions remain yours.",
         ],
       },
@@ -52,13 +52,13 @@ export const termsContent: Record<Locale, LegalDoc> = {
         heading: "5. Availability",
         body: [
           "This installation runs on {operator}'s own infrastructure. Its uptime, backups, and maintenance windows are {operator}'s responsibility, and no availability is guaranteed here.",
-          "Legion should not be relied on as the only means of detecting a security incident.",
+          "Argust should not be relied on as the only means of detecting a security incident.",
         ],
       },
       {
         heading: "6. The Software Itself",
         body: [
-          "The Legion software is licensed to {operator} by its vendor under a separate agreement, which is supplied with the software as the LICENSE file. That agreement governs {operator}'s right to run, copy, and modify Legion.",
+          "The Argust software is licensed to {operator} by its vendor under a separate agreement, which is supplied with the software as the LICENSE file. That agreement governs {operator}'s right to run, copy, and modify Argust.",
           "Nothing on this page grants you any right in the software beyond using this installation as {operator} permits.",
         ],
       },

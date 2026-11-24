@@ -18,7 +18,7 @@ describe("Kill switch bypass attempts", () => {
     id: "KSB-1",
     category: "Kill switch bypass",
     title: "A confirmed kill must revoke every credential the agent holds, not only the one most recently used",
-    attackPath: "An agent legitimately holds two active credentials at once (Legion allows up to two, for rotation). A confirmed-compromise kill switch is issued. The attacker, holding the *other* (not most-recently-used) credential, tries to mint a fresh token with it.",
+    attackPath: "An agent legitimately holds two active credentials at once (Argust allows up to two, for rotation). A confirmed-compromise kill switch is issued. The attacker, holding the *other* (not most-recently-used) credential, tries to mint a fresh token with it.",
     expectedDefense: "A confirmed compromise revokes every active credential belonging to the identity, not just one.",
   }, async (ev) => {
     const a = await mkAgent(w, ["alerts:read"]);

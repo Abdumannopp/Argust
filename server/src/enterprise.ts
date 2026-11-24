@@ -31,7 +31,7 @@ export interface ExternalIdentity {
   /** OIDC `sub` / SAML NameID (persistent): the stable key, not the email. */
   subject: string;
   email: string;
-  /** Only a verified email may be matched to an existing Legion account. */
+  /** Only a verified email may be matched to an existing Argust account. */
   emailVerified: boolean;
   displayName?: string;
   /** Group claims, mapped to a workspace role by the workspace's SSO policy. */

@@ -2,7 +2,7 @@
  * TEST HARNESS for Task 11 — not production code.
  *
  * Plays the SOC investigation the way the five agents would, using only
- * Legion's real interfaces: the signed Wazuh webhook, the agent API with each
+ * Argust's real interfaces: the signed Wazuh webhook, the agent API with each
  * agent's own least-privilege token and assigned skills, then the policy,
  * approval, action and audit engines. Every step is timed and recorded in a
  * trace. The conductor itself holds no authority: Vanguard's proposal goes
@@ -21,7 +21,7 @@ import { randomUUID } from "node:crypto";
 import type { User } from "../../src/types.js";
 import type { Agent } from "../../src/types.js";
 
-export interface TraceStep { n: number; ms: number; agent: Agent | "Legion" | "Human"; step: string; ok: boolean; summary: string }
+export interface TraceStep { n: number; ms: number; agent: Agent | "Argust" | "Human"; step: string; ok: boolean; summary: string }
 export type AgentSession = { id: string; token: string; agent: Agent };
 
 const bearer = (t: string) => ["Authorization", `Bearer ${t}`] as const;
@@ -99,7 +99,7 @@ export async function investigate(opts: {
   const { agents, alertId, sourceIp, asset, tenantId } = opts;
   const trace = new Trace();
 
-  const wz = await trace.step("Legion", "wazuh event stored as alert", async () => (await query("SELECT id, severity, title FROM alerts WHERE tenant_id = $1 AND id = $2", [tenantId, alertId])).rows[0],
+  const wz = await trace.step("Argust", "wazuh event stored as alert", async () => (await query("SELECT id, severity, title FROM alerts WHERE tenant_id = $1 AND id = $2", [tenantId, alertId])).rows[0],
     (r) => (r ? `${r.id} [${r.severity}] ${String(r.title).slice(0, 60)}` : "missing"));
   if (!wz) throw new Error("alert not found in tenant");
 
@@ -152,7 +152,7 @@ export async function investigate(opts: {
 
 /** Verifies an action's outcome the way an operator would; records the verification in the trace. */
 export async function verify(trace: Trace, tenantId: string, actionId: string, ip: string) {
-  return trace.step("Legion", "verify result", async () => {
+  return trace.step("Argust", "verify result", async () => {
     const a = (await query("SELECT status, result, approval_id, policy_decision FROM action_requests WHERE tenant_id = $1 AND id = $2", [tenantId, actionId])).rows[0];
     const blocks = (await query("SELECT count(*)::int AS n FROM ip_blocks WHERE tenant_id = $1 AND ip = $2", [tenantId, ip])).rows[0].n as number;
     const events = (await query("SELECT to_status FROM action_events WHERE tenant_id = $1 AND action_id = $2 ORDER BY seq", [tenantId, actionId])).rows.map((r) => r.to_status as string);

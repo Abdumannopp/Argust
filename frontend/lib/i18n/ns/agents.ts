@@ -2,17 +2,17 @@ import { defineMessages } from "../core";
 
 /**
  * AI agents, in plain words: what an agent may do, what it must ask about
- * first, what it can never do, what Legion stopped and why, and the controls
+ * first, what it can never do, what Argust stopped and why, and the controls
  * (approve, pause, emergency stop). Rule explanations are grouped by kind in
  * `rules` (lib/agentRules.ts maps a rule id to its group).
  */
 export const agents = defineMessages({
   en: {
     title: "AI agents",
-    intro: "Legion checks every action your AI agents take before it happens. Give each agent only what it needs — risky actions wait for you.",
+    intro: "Argust checks every action your AI agents take before it happens. Give each agent only what it needs — risky actions wait for you.",
     add: "Add an agent",
     empty: "No AI agents yet",
-    emptyHint: "Add an agent to give it its own key and a clear list of what it may do. Legion checks every action it takes, and you can pause it at any time.",
+    emptyHint: "Add an agent to give it its own key and a clear list of what it may do. Argust checks every action it takes, and you can pause it at any time.",
     adminOnly: "Only workspace admins can add agents or change what they may do.",
     back: "All agents",
     lastActive: (s: string) => `Last active ${s}`,
@@ -25,7 +25,7 @@ export const agents = defineMessages({
       identity_suspended: "Paused — it can't do anything until an admin resumes it.",
       identity_revoked: "Stopped for good — its keys no longer work.",
       identity_expired: "Its access has expired.",
-      risk_hold: "On hold: Legion saw high-risk behaviour and stopped it until someone checks.",
+      risk_hold: "On hold: Argust saw high-risk behaviour and stopped it until someone checks.",
       owner_inactive: "The person responsible for it no longer has an active account, so it can't act.",
     } as Record<string, string>,
     risk: { low: "Low risk", medium: "Some risk", high: "High risk", critical: "Needs attention now" },
@@ -50,7 +50,7 @@ export const agents = defineMessages({
     created: {
       title: "Agent added",
       keyTitle: "Its secret key — shown only once",
-      keyHint: "Put the agent ID and secret into the agent's configuration now. Legion keeps only a fingerprint of the secret and can't show it again. If it's lost, an admin can issue a new one.",
+      keyHint: "Put the agent ID and secret into the agent's configuration now. Argust keeps only a fingerprint of the secret and can't show it again. If it's lost, an admin can issue a new one.",
       idLabel: "Agent ID",
       secretLabel: "Secret",
       signInAt: "The agent signs in at",
@@ -68,7 +68,7 @@ export const agents = defineMessages({
 
     tier: {
       0: { label: "Read-only", hint: "Looks at information. Changes nothing." },
-      1: { label: "Reaches outside", hint: "Reads from services outside Legion, or writes notes." },
+      1: { label: "Reaches outside", hint: "Reads from services outside Argust, or writes notes." },
       2: { label: "Makes changes", hint: "Changes data or systems. Choose carefully." },
     },
     canDo: "Can do",
@@ -90,7 +90,7 @@ export const agents = defineMessages({
       "vulnerabilities:read": "Check for known vulnerabilities",
       "payments:read": "See payments held for confirmation (never account numbers)",
       "intel:read": "Look up threat information online",
-      "security:self_test": "Test Legion's own defences",
+      "security:self_test": "Test Argust's own defences",
       "alerts:comment": "Comment on alerts",
       "alerts:update_status": "Change alert status (for example, resolve)",
       "assets:update": "Edit computer and device details",
@@ -114,7 +114,7 @@ export const agents = defineMessages({
       "tool.cloud:read": "Read cloud accounts",
       "tool.cloud:write": "Change cloud accounts",
     } as Record<string, string>,
-    groups: { legion: "In Legion", tools: "Tools and outside services" },
+    groups: { legion: "In Argust", tools: "Tools and outside services" },
 
     tabs: { permissions: "What it can do", skills: "Skills", activity: "What it did", approvals: "Waiting for you" },
     edit: "Change",
@@ -124,7 +124,7 @@ export const agents = defineMessages({
     ownerLimit: "An agent can never do more than the person responsible for it.",
 
     activity: {
-      empty: "Nothing yet. When this agent connects and acts, every decision Legion makes appears here.",
+      empty: "Nothing yet. When this agent connects and acts, every decision Argust makes appears here.",
       why: "Why",
       next: "What to do",
       destination: (d: string) => `To: ${d}`,
@@ -141,19 +141,19 @@ export const agents = defineMessages({
     approvedHint: "Someone approved exactly this action, so it went ahead once.",
     decisionHint: {
       ALLOW: "It was within the agent's permissions and looked normal.",
-      WARN: "It was allowed, but looked unusual, so Legion noted it.",
+      WARN: "It was allowed, but looked unusual, so Argust noted it.",
       CONFIRM: "It needed a person's yes before it could happen, so the agent stopped and asked.",
-      BLOCK: "Legion refused this action. The agent can keep working otherwise.",
-      QUARANTINE: "Legion refused it and paused the agent, because the action looked like an attack or a leak.",
-      KILL: "Legion refused it and stopped the agent at once, because it tried to use Legion's own secret keys.",
+      BLOCK: "Argust refused this action. The agent can keep working otherwise.",
+      QUARANTINE: "Argust refused it and paused the agent, because the action looked like an attack or a leak.",
+      KILL: "Argust refused it and stopped the agent at once, because it tried to use Argust's own secret keys.",
     } as Record<string, string>,
     rules: {
-      otherWorkspace: { what: "It tried to reach data that belongs to another workspace.", next: "Legion stopped it automatically. If you didn't expect this, keep the agent paused and check who controls it." },
+      otherWorkspace: { what: "It tried to reach data that belongs to another workspace.", next: "Argust stopped it automatically. If you didn't expect this, keep the agent paused and check who controls it." },
       secret: { what: "It tried to send a password, key or other secret somewhere.", next: "Keep the agent paused. Change any secret it may have seen, then check what it was asked to do." },
       injection: { what: "It was following instructions hidden in something it read — an attack known as prompt injection.", next: "Nothing was done. Check where that content came from before resuming the agent." },
       toolDefinition: { what: "A connected tool described itself in a way that looks tampered with.", next: "Check that tool's server. The agent can't use it until it's trusted again." },
       destination: { what: "It tried to contact an address it isn't allowed to reach.", next: "If the address is legitimate, an admin can allow it in the firewall policy." },
-      database: { what: "It tried a database query that isn't allowed.", next: "If the agent needs this, give it a narrower task. Legion never allows unrestricted database changes." },
+      database: { what: "It tried a database query that isn't allowed.", next: "If the agent needs this, give it a narrower task. Argust never allows unrestricted database changes." },
       command: { what: "It tried to run a command that isn't allowed.", next: "If the command is safe and needed, an admin can allow it in the firewall policy." },
       files: { what: "It tried to use a file or folder it isn't allowed to touch.", next: "Check which file it wanted. Sensitive files stay off limits." },
       notPermitted: { what: "It doesn't have permission to do this.", next: "If it should, change what it can do. Otherwise, nothing to do." },
@@ -161,7 +161,7 @@ export const agents = defineMessages({
       unusual: { what: "This was unusual for this agent — too much, too fast, or new and risky.", next: "Look at what it did recently. Resume or keep it paused." },
       notActive: { what: "The agent is paused or stopped.", next: "An admin can resume it once it's safe." },
       agentToAgent: { what: "It asked another agent to do something outside the rules.", next: "Check both agents' activity." },
-      unknownTool: { what: "It tried to use a tool Legion doesn't know.", next: "Only tools Legion knows can be used. Nothing to do unless you're adding a new tool." },
+      unknownTool: { what: "It tried to use a tool Argust doesn't know.", next: "Only tools Argust knows can be used. Nothing to do unless you're adding a new tool." },
       policy: { what: "A workspace security rule stopped it.", next: "An admin can review the rule in the firewall policy." },
     },
 

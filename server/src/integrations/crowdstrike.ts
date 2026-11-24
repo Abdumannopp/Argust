@@ -4,8 +4,8 @@
  * API client with the single scope "Alerts: Read" (OAuth2 client credentials); the client secret is sealed per
  * connection. The cloud is chosen from a fixed list (us-1, us-2, eu-1, us-gov-1), never typed as a URL, so only
  * CrowdStrike's API hosts are reachable. Cursor: the newest updated_timestamp; the filter is ">=", so the boundary
- * alert comes again and is dropped as a duplicate — or, if CrowdStrike raised its severity, the Legion alert is
- * raised too (audit A-9). An alert is stored once, by its composite id. Legion never contains, isolates or changes
+ * alert comes again and is dropped as a duplicate — or, if CrowdStrike raised its severity, the Argust alert is
+ * raised too (audit A-9). An alert is stored once, by its composite id. Argust never contains, isolates or changes
  * anything in Falcon.
  */
 import { z } from "zod";

@@ -57,7 +57,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - name: Install Legion the way DOCKER-WINDOWS.md describes
+      - name: Install Argust the way DOCKER-WINDOWS.md describes
         run: bash install.sh
       - name: The API and the dashboard answer
         run: |
@@ -504,7 +504,7 @@ jobs:
           # F-04: the API runs with row-level security enforced; a code path without a workspace context fails the step.
           DB_RLS: enforce
         run: node ops/tests/production-probe.mjs
-      # Protection modes (manual / hybrid / automatic): Legion acts on its own only after an administrator
+      # Protection modes (manual / hybrid / automatic): Argust acts on its own only after an administrator
       # allowed it, only as far as they allowed, never on a private or allowlisted address, stops at the
       # emergency stop, and tells the administrators. Real API, separate database roles, RLS enforced.
       # See ops/tests/e2e-protection.mjs and PROTECTION.md.

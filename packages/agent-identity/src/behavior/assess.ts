@@ -30,7 +30,7 @@ export interface AssessInput {
   content?: { malicious: number; suspicious: number };
 }
 
-/** Does this action change state or act outside Legion (as opposed to reading)? */
+/** Does this action change state or act outside Argust (as opposed to reading)? */
 export function isUnsafeAction(action: string): boolean {
   if (action.startsWith("egress:") || action === "agents:message") return true;
   const m = /^tool:(\w+)\.(.+)$/.exec(action);

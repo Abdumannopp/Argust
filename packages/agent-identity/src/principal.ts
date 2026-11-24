@@ -149,7 +149,7 @@ export function createPrincipalResolver(deps: {
   }
 
   return async function resolvePrincipal(req: Request, res: Response, next: NextFunction) {
-    // The host may already have assigned one (Legion's access log does); keep it,
+    // The host may already have assigned one (Argust's access log does); keep it,
     // so the log line and the agent audit record carry the same id.
     req.requestId ??= randomUUID();
     res.setHeader("x-request-id", req.requestId);
@@ -231,9 +231,9 @@ export function createPrincipalResolver(deps: {
       req.get("signature-agent") !== undefined ||
       (options.aiUserAgents?.test(ua) ?? false);
     if (declaredAgent) {
-      await auditFailure(req, anonymous(), "auth.agent_identity_required", "AI agent without a Legion identity");
+      await auditFailure(req, anonymous(), "auth.agent_identity_required", "AI agent without a Argust identity");
       return sendError(res, 401, "agent_identity_required",
-        "AI agents must authenticate with a registered Legion agent identity.");
+        "AI agents must authenticate with a registered Argust agent identity.");
     }
 
     req.principal = anonymous();

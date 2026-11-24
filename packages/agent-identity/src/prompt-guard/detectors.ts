@@ -16,7 +16,7 @@ import {
  *   1. Normalisation (normalize.ts) removes the evasion tricks first.
  *   2. Structural signals that don't depend on wording: invisible and
  *      smuggled characters, lookalike letters, chat-template tokens,
- *      attempts to close Legion's wrapper, content whose shape doesn't fit
+ *      attempts to close Argust's wrapper, content whose shape doesn't fit
  *      its field, hidden HTML, encoded blobs that decode to directives.
  *   3. A statistical signal: how much the text addresses its reader.
  *   4. Directive patterns: overriding instructions, claiming authority,
@@ -112,7 +112,7 @@ const DIRECTIVES: Pattern[] = [
 ];
 
 /**
- * "Ignore previous instructions" in the languages Legion's customers write in.
+ * "Ignore previous instructions" in the languages Argust's customers write in.
  * Run on text that has NOT had lookalike letters folded to Latin, or Cyrillic
  * words would be mangled before they are matched.
  */

@@ -1,4 +1,4 @@
-# Legion — CONTROLLED PILOT stack (one workspace, simulation only).
+# Argust — CONTROLLED PILOT stack (one workspace, simulation only).
 #
 # Not started by anything automatically. Use it only after the checklist in
 # PILOT.md, and only with explicit approval:
@@ -157,7 +157,7 @@ services:
       SMTP_PORT: ${SMTP_PORT:-587}
       SMTP_USER: ${SMTP_USER:-}
       SMTP_PASSWORD: ${SMTP_PASSWORD:-}
-      SMTP_FROM: ${SMTP_FROM:-Legion Pilot <no-reply@example.com>}
+      SMTP_FROM: ${SMTP_FROM:-Argust Pilot <no-reply@example.com>}
       ALERT_EMAIL_MIN_SEVERITY: ${ALERT_EMAIL_MIN_SEVERITY:-high}
       # Finished SOC history older than this is deleted (0 = keep forever and let the disk fill).
       SOC_RETENTION_DAYS: ${SOC_RETENTION_DAYS:-365}

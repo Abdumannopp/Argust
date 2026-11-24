@@ -1,5 +1,5 @@
 /**
- * What the public pages need to know about how this Legion is offered.
+ * What the public pages need to know about how this Argust is offered.
  * All build-time (NEXT_PUBLIC_*): `npm run setup -- --saas` writes them into
  * frontend/.env.local, and the dashboard must be rebuilt after changing them.
  */

@@ -64,13 +64,13 @@ export interface FirewallContext {
    */
   approvalId?: string;
   /**
-   * Set by Legion's own executors inside an execution whose approval was
+   * Set by Argust's own executors inside an execution whose approval was
    * already consumed, so the nested checks of that same action (the egress
    * request of an approved HTTP call, the write of an approved file call)
    * are not asked again. Never set from anything an agent sends.
    */
   confirmed?: { approvalId: string; decisionId: string };
-  /** Agents already in this request's chain, oldest first. Set by Legion from a relayed message, never from a header. */
+  /** Agents already in this request's chain, oldest first. Set by Argust from a relayed message, never from a header. */
   chain?: string[];
   /** The relayed agent message this action answers (x-legion-message-id), verified to be addressed to this agent. */
   viaMessage?: RelayedMessage;
@@ -79,7 +79,7 @@ export interface FirewallContext {
 }
 
 /**
- * Whose authority an agent-to-agent request runs under. Set by Legion when
+ * Whose authority an agent-to-agent request runs under. Set by Argust when
  * the request is sent and carried unchanged down the chain; never supplied
  * by an agent.
  *  - agent: the originating agent's own grants (answerable to its owner);
@@ -90,7 +90,7 @@ export type Authority =
   | { kind: "agent"; agentId: string; ownerUserId: string }
   | { kind: "delegation"; userId: string; grantId: string; agentId: string };
 
-/** A relayed request, as Legion stored it. */
+/** A relayed request, as Argust stored it. */
 export interface RelayedMessage {
   id: string;
   fromAgentId: string;
@@ -149,7 +149,7 @@ export interface EgressRequest extends Base {
   surface: "egress";
   url: string;
   method: string;
-  /** Body or payload leaving Legion, scanned for secrets. */
+  /** Body or payload leaving Argust, scanned for secrets. */
   payload?: unknown;
 }
 
@@ -188,7 +188,7 @@ export interface AgentMessageRequest extends Base {
 
 /**
  * A tool call already analysed by the tool gateway (src/tools). The analysis
- * is computed by Legion from the call; callers never supply it.
+ * is computed by Argust from the call; callers never supply it.
  */
 export interface ToolCallRequest extends Base {
   surface: "tool_call";
@@ -237,7 +237,7 @@ export interface FirewallDecision {
   riskFactors: RiskFactor[];
   hits: RuleHit[];
   policyVersion: number;
-  /** Normalised destination, when the action leaves Legion or touches a path/table. */
+  /** Normalised destination, when the action leaves Argust or touches a path/table. */
   destination: string | null;
   sensitivity: Sensitivity;
   delegation: { userId: string; grantId: string } | null;

@@ -38,7 +38,7 @@ export const DEFAULT_QUARANTINE_RULES: readonly string[] = [
   "egress.secret_in_payload", "a2a.secret_in_payload",
 ];
 
-/** Trying to send Legion's own credentials out: treated as a confirmed compromise. */
+/** Trying to send Argust's own credentials out: treated as a confirmed compromise. */
 export const DEFAULT_KILL_RULES: readonly string[] = ["http.legion_secret"];
 
 const permission = z.enum(ALL_PERMISSIONS as unknown as [Permission, ...Permission[]]);
@@ -270,7 +270,7 @@ export const policySchema = z.strictObject({
       suspiciousWindowSeconds: z.number().int().min(60).max(7 * 86_400).default(3_600),
       /**
        * After an agent reads ANY external content, how long it may only read
-       * — not change state, act outside Legion, touch confidential data or
+       * — not change state, act outside Argust, touch confidential data or
        * message other agents — unless a person reviews what it read. Applies
        * whatever the classifier said: a word list cannot be what stands
        * between attacker-written text and an agent's permissions.

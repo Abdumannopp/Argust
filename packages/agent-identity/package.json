@@ -2,7 +2,7 @@
   "name": "@legion/agent-identity",
   "version": "0.1.0",
   "private": true,
-  "description": "Identities, credentials, authorization and a tamper-evident audit trail for AI agents and service accounts in Legion. express and pg are supplied by the host server.",
+  "description": "Identities, credentials, authorization and a tamper-evident audit trail for AI agents and service accounts in Argust. express and pg are supplied by the host server.",
   "type": "module",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",

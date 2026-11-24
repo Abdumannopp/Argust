@@ -5,7 +5,7 @@
  * "Microsoft Sentinel Reader" on the workspace. Hosts: login.microsoftonline.com and management.azure.com only.
  * Cursor: the newest lastModifiedTimeUtc; the filter is "ge", so an updated incident comes again — a duplicate, or
  * a raised severity (audit A-9). Closed incidents are skipped. An incident is stored once, by its name (a GUID).
- * Legion never changes, closes or assigns incidents in Sentinel.
+ * Argust never changes, closes or assigns incidents in Sentinel.
  */
 import { z } from "zod";
 import { adapterFetch } from "./fetch.js";

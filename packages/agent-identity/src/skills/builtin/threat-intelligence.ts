@@ -32,11 +32,11 @@ type Output = z.infer<typeof output>;
 
 /**
  * The verdict comes only from intelligence sources. No source, no opinion:
- * the indicator is "unknown", never guessed from its shape or from Legion's
+ * the indicator is "unknown", never guessed from its shape or from Argust's
  * own sightings (being seen in an alert is not being malicious).
  */
 function verdictFrom(results: IntelResult[]): { verdict: (typeof VERDICTS)[number]; reasons: string[] } {
-  if (!results.length) return { verdict: "unknown", reasons: ["No threat-intelligence source returned information for this indicator. Legion does not guess."] };
+  if (!results.length) return { verdict: "unknown", reasons: ["No threat-intelligence source returned information for this indicator. Argust does not guess."] };
   const mal = results.filter((r) => r.verdict === "malicious").map((r) => r.source);
   const sus = results.filter((r) => r.verdict === "suspicious").map((r) => r.source);
   const ben = results.filter((r) => r.verdict === "benign").map((r) => r.source);
@@ -51,7 +51,7 @@ export const threatIntelligence: SkillDefinition<Input, Output> = {
   name: "threat_intelligence",
   agent: "Hunter",
   title: "Threat Intelligence",
-  description: "Enriches IPs, domains, URLs, file hashes, CVEs and email addresses with the configured threat-intelligence provider and Legion's own sightings, classifying each as known malicious, suspicious, unknown or known safe.",
+  description: "Enriches IPs, domains, URLs, file hashes, CVEs and email addresses with the configured threat-intelligence provider and Argust's own sightings, classifying each as known malicious, suspicious, unknown or known safe.",
   version: "1.0.0",
   input,
   output,
@@ -59,7 +59,7 @@ export const threatIntelligence: SkillDefinition<Input, Output> = {
   auditEvents: ["skill.invoke"],
   example: { indicators: [{ value: "203.0.113.7" }, { value: "CVE-2021-44228", type: "cve" }] },
   limitations: [
-    "Legion has no intelligence of its own: without a configured provider every verdict is 'unknown'.",
+    "Argust has no intelligence of its own: without a configured provider every verdict is 'unknown'.",
     "The skill never resolves, fetches or connects to an indicator; lookups happen only in the host's provider.",
     "Provider notes are untrusted text and are withheld when they look like instructions.",
   ],
@@ -96,7 +96,7 @@ export const threatIntelligence: SkillDefinition<Input, Output> = {
       const { verdict, reasons } = verdictFrom(mine);
       if (providerStatus !== "ok") reasons.push(providerStatus === "not_configured" ? "No threat-intelligence provider is configured." : "The threat-intelligence provider could not be reached.");
       const hits = events ? events.filter((e) => mentions(e, ind.value)) : null;
-      if (hits?.length) reasons.push(`Seen in ${hits.length} Legion alert(s) in the last 30 days — context, not a verdict.`);
+      if (hits?.length) reasons.push(`Seen in ${hits.length} Argust alert(s) in the last 30 days — context, not a verdict.`);
       return {
         indicator: { type: ind.type, value: ind.value },
         verdict,

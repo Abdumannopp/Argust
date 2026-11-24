@@ -4,7 +4,7 @@ import type { Locale } from "./i18n.js";
 
 let transport: Transporter | null = null;
 
-/** SMTP is optional. Without a host, Legion keeps working and every send is
+/** SMTP is optional. Without a host, Argust keeps working and every send is
  *  reported as skipped rather than failing the request that triggered it. */
 export function mailEnabled(): boolean {
   return Boolean(config.smtpHost);
@@ -82,7 +82,7 @@ function layout(title: string, bodyHtml: string, locale: Locale): string {
   return `<!doctype html><html lang="${locale}"><body style="margin:0;background:#08060F;padding:24px;font-family:Segoe UI,Helvetica,Arial,sans-serif">
 <table role="presentation" width="100%" cellpadding="0" cellspacing="0"><tr><td align="center">
 <table role="presentation" width="520" cellpadding="0" cellspacing="0" style="max-width:520px;background:#140F24;border:1px solid #251C3D;border-radius:12px;padding:28px">
-<tr><td style="padding-bottom:18px"><span style="color:#F6F4FB;font-size:15px;letter-spacing:6px;text-transform:uppercase">Legion</span><br><span style="color:#A78BFA;font-size:9px;letter-spacing:4px;text-transform:uppercase">Cybersecurity Intelligence</span></td></tr>
+<tr><td style="padding-bottom:18px"><span style="color:#F6F4FB;font-size:20px;font-weight:600;letter-spacing:-0.5px">Argust</span><br><span style="color:#8CCBFF;font-size:9px;font-weight:600;letter-spacing:3px;text-transform:uppercase">Intelligent Cyber Defense</span></td></tr>
 <tr><td style="color:#F6F4FB;font-size:19px;font-weight:600;padding-bottom:14px">${escape(title)}</td></tr>
 <tr><td style="color:#B1A9CC;font-size:14px;line-height:1.6">${bodyHtml}</td></tr>
 </table></td></tr></table></body></html>`;
@@ -101,9 +101,9 @@ const ROLE: Record<Locale, Record<string, string>> = {
 export function passwordResetEmail(resetUrl: string, locale: Locale = "en") {
   const t = {
     en: {
-      subject: "Reset your Legion password",
+      subject: "Reset your Argust password",
       title: "Reset your password",
-      intro: "A password reset was requested for your Legion account.",
+      intro: "A password reset was requested for your Argust account.",
       valid: "Open this link to choose a new password (valid for 1 hour):",
       validHtml: "The link below is valid for one hour.",
       button: "Choose a new password",
@@ -120,13 +120,13 @@ export function passwordResetEmail(resetUrl: string, locale: Locale = "en") {
 export function verifyEmailEmail(verifyUrl: string, hours: number, locale: Locale = "en") {
   const t = {
     en: {
-      subject: "Confirm your email for Legion",
+      subject: "Confirm your email for Argust",
       title: "Confirm your email address",
-      welcome: "Welcome to Legion.",
+      welcome: "Welcome to Argust.",
       body: `Confirm your email address to finish creating your account. The link is valid for ${hours} hours.`,
       textBody: `Confirm your email address to finish creating your account (link valid for ${hours} hours):`,
       button: "Confirm email",
-      ignore: "If you didn't sign up for Legion, ignore this email — no account is activated without this step.",
+      ignore: "If you didn't sign up for Argust, ignore this email — no account is activated without this step.",
     },
   }[locale];
   return {
@@ -150,10 +150,10 @@ export function inviteEmail(params: {
   const days = `${expiresDays} ${expiresDays === 1 ? "day" : "days"}`;
   const t = {
     en: {
-      subject: `${invitedBy} invited you to ${tenantName} on Legion`,
+      subject: `${invitedBy} invited you to ${tenantName} on Argust`,
       title: `You've been invited to ${tenantName}`,
-      text: `${invitedBy} has invited you to join "${tenantName}" on Legion as ${role}.`,
-      html: `${escape(invitedBy)} has invited you to join ${strong(tenantName)} on Legion as ${strong(role)}.`,
+      text: `${invitedBy} has invited you to join "${tenantName}" on Argust as ${role}.`,
+      html: `${escape(invitedBy)} has invited you to join ${strong(tenantName)} on Argust as ${strong(role)}.`,
       set: `Set your password and get started (link valid for ${days}):`,
       button: "Set your password",
       valid: `This link is valid for ${days}. If you weren't expecting it, ignore this email — no account is created until you set a password.`,
@@ -168,11 +168,11 @@ export function inviteEmail(params: {
 }
 
 const ALERT_LABELS: Record<Locale, { alert: string; severity: string; confidence: string; sourceIp: string; target: string; view: string; open: string; sev: Record<string, string> }> = {
-  en: { alert: "Alert", severity: "Severity", confidence: "Confidence", sourceIp: "Source IP", target: "Target", view: "View in Legion", open: "Open in Legion", sev: { critical: "CRITICAL", high: "HIGH", medium: "MEDIUM", low: "LOW" } },
+  en: { alert: "Alert", severity: "Severity", confidence: "Confidence", sourceIp: "Source IP", target: "Target", view: "View in Argust", open: "Open in Argust", sev: { critical: "CRITICAL", high: "HIGH", medium: "MEDIUM", low: "LOW" } },
 };
 
 /** Alert notification. The title and summary come from the monitored system
- *  and stay as they are; only Legion's own labels are translated. */
+ *  and stay as they are; only Argust's own labels are translated. */
 export function alertEmail(alert: {
   id: string;
   title: string;
@@ -193,7 +193,7 @@ export function alertEmail(alert: {
     [l.target, alert.target || "—"],
   ];
   return {
-    subject: `[Legion ${sev}] ${alert.title}`,
+    subject: `[Argust ${sev}] ${alert.title}`,
     text: `${alert.title}
 
 ${rows.map(([k, v]) => `${k}: ${v}`).join("\n")}
@@ -219,7 +219,7 @@ ${rows
 }
 
 /**
- * What Legion did on its own (or needs a person to decide), for the workspace's administrators. Built from
+ * What Argust did on its own (or needs a person to decide), for the workspace's administrators. Built from
  * fixed templates plus a few short facts; every value is shown as text. The link goes to the dashboard
  * only (no one-click action: a copy of this mail must not be a way to approve anything).
  */
@@ -233,21 +233,21 @@ export function protectionEmail(params: {
   const locale = params.locale ?? "en";
   const t = {
     en: {
-      subject: { acted: "Legion acted on its own", failed: "Legion tried to act and could not", approval: "Legion needs your decision", notice: "Message from Legion" },
+      subject: { acted: "Argust acted on its own", failed: "Argust tried to act and could not", approval: "Argust needs your decision", notice: "Message from Argust" },
       footer: {
-        acted: "You allowed Legion to do this in Protection settings. Review it and undo it from the dashboard if it was wrong; you can switch to manual mode or press the emergency stop at any time.",
+        acted: "You allowed Argust to do this in Protection settings. Review it and undo it from the dashboard if it was wrong; you can switch to manual mode or press the emergency stop at any time.",
         failed: "Nothing more was done. Check the action in the dashboard before trying again.",
-        approval: "Legion will not do this until a signed-in administrator approves it in the dashboard.",
+        approval: "Argust will not do this until a signed-in administrator approves it in the dashboard.",
         notice: "",
       },
-      open: "Open in Legion",
+      open: "Open in Argust",
     },
   }[locale];
   const url = `${config.frontendUrl}${params.path}`;
   const rows = params.facts.map(([k, v]) => `<tr><td style="color:#857CA8;padding:3px 12px 3px 0">${escape(k)}</td><td style="color:#F6F4FB">${escape(v)}</td></tr>`).join("");
   const footer = t.footer[params.kind];
   return {
-    subject: `[Legion] ${t.subject[params.kind]}: ${params.title}`.slice(0, 200),
+    subject: `[Argust] ${t.subject[params.kind]}: ${params.title}`.slice(0, 200),
     text: `${params.title}\n\n${params.facts.map(([k, v]) => `${k}: ${v}`).join("\n")}\n\n${footer}\n\n${t.open}: ${url}`,
     html: layout(params.title, `<table role="presentation" cellpadding="0" cellspacing="0" style="width:100%;font-size:13px;margin-bottom:16px">${rows}</table>${footer ? para(escape(footer)) : ""}${button(url, t.open)}`, locale),
   };
@@ -262,9 +262,9 @@ export function notificationConfirmEmail(params: { url: string; tenantName: stri
   const locale = params.locale ?? "en";
   const t = {
     en: {
-      subject: "Confirm Legion security alert emails to this address",
+      subject: "Confirm Argust security alert emails to this address",
       title: "Confirm alert emails",
-      body: `${params.requestedBy} asked Legion to send security alert emails for the organisation "${params.tenantName}" to this address.`,
+      body: `${params.requestedBy} asked Argust to send security alert emails for the organisation "${params.tenantName}" to this address.`,
       action: `If you expect these alerts, confirm within ${params.hours} hours:`,
       button: "Confirm this address",
       ignore: "If you don't know this organisation or didn't expect this, ignore this email. Nothing will be sent to you.",
@@ -280,7 +280,7 @@ export function notificationConfirmEmail(params: { url: string; tenantName: stri
 /** Settings → Notifications → "Send test email". */
 export function testNotificationEmail(locale: Locale = "en") {
   const t = {
-    en: { subject: "Legion test notification", body: "This is a test notification from Legion. If you received it, alert emails are working.", open: "Open Legion" },
+    en: { subject: "Argust test notification", body: "This is a test notification from Argust. If you received it, alert emails are working.", open: "Open Argust" },
   }[locale];
   return { subject: t.subject, text: `${t.body}\n\n${t.open}: ${config.frontendUrl}` };
 }
@@ -297,15 +297,15 @@ export function securityNoticeEmail(kind: SecurityNoticeKind, params: { when: st
   const locale = params.locale ?? "en";
   const what: Record<Locale, Record<SecurityNoticeKind, string>> = {
     en: {
-      password_changed: "The password of your Legion account was changed.",
-      mfa_enabled: "Two-factor authentication was turned on for your Legion account. Every other session was signed out.",
-      mfa_disabled: "Two-factor authentication was turned OFF for your Legion account. Every other session was signed out.",
-      recovery_codes_regenerated: "New two-factor recovery codes were generated for your Legion account. The previous codes no longer work.",
-      new_device_login: "Your Legion account was signed in to from a device or browser it has not been used from before.",
+      password_changed: "The password of your Argust account was changed.",
+      mfa_enabled: "Two-factor authentication was turned on for your Argust account. Every other session was signed out.",
+      mfa_disabled: "Two-factor authentication was turned OFF for your Argust account. Every other session was signed out.",
+      recovery_codes_regenerated: "New two-factor recovery codes were generated for your Argust account. The previous codes no longer work.",
+      new_device_login: "Your Argust account was signed in to from a device or browser it has not been used from before.",
     },
   };
   const t = {
-    en: { subject: "Security notice for your Legion account", title: "Security notice", when: "When", details: "Details", notYou: "If this was you, no action is needed. If it was not, reset your password from the sign-in page right away and tell your Legion administrator." },
+    en: { subject: "Security notice for your Argust account", title: "Security notice", when: "When", details: "Details", notYou: "If this was you, no action is needed. If it was not, reset your password from the sign-in page right away and tell your Argust administrator." },
   }[locale];
   const lines = [what[locale][kind], `${t.when}: ${params.when}`, ...(params.detail ? [`${t.details}: ${params.detail}`] : [])];
   return {
@@ -324,9 +324,9 @@ export function workspaceDeletionNoticeEmail(params: { workspace: string; delete
   const locale = params.locale ?? "en";
   const t = {
     en: {
-      subject: `Your Legion workspace "${params.workspace}" will be deleted on ${params.deleteOn}`,
+      subject: `Your Argust workspace "${params.workspace}" will be deleted on ${params.deleteOn}`,
       title: "Your workspace will be deleted",
-      body: `The Legion workspace "${params.workspace}" has been locked for a long time. On ${params.deleteOn} it will be permanently erased: its alerts, agents, audit history, payment checks and accounts. This cannot be undone.`,
+      body: `The Argust workspace "${params.workspace}" has been locked for a long time. On ${params.deleteOn} it will be permanently erased: its alerts, agents, audit history, payment checks and accounts. This cannot be undone.`,
       keep: "To keep it, subscribe again before that date. The deletion is then cancelled automatically.",
       subscribe: "Open billing",
       exportNote: "To keep a copy of your data, an administrator can download it any time before then (Settings → Data export). Export works while the workspace is locked.",

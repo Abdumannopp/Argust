@@ -5,12 +5,12 @@
  * A Splunk authentication token of a user that can search that index, sealed per connection and sent as
  * "Authorization: Bearer …". The stack is chosen by name (acme → acme.splunkcloud.com, REST port 8089); only
  * *.splunkcloud.com is reachable. Splunk Cloud only accepts REST calls from addresses on its allow list: add the
- * Legion server's outbound address there. Self-managed Splunk: use the generic JSON webhook (a Splunk alert action),
- * because Legion never calls an address a customer typed.
+ * Argust server's outbound address there. Self-managed Splunk: use the generic JSON webhook (a Splunk alert action),
+ * because Argust never calls an address a customer typed.
  *
  * Cursor: index time. Each poll asks for events indexed in [cursor, now), so an event that arrives late at its
  * source is still read once. At most 1 000 events per poll. An event is stored once, by its event_id (Enterprise
- * Security) or a hash of its identity. Legion never changes anything in Splunk; the search is fixed, not user text.
+ * Security) or a hash of its identity. Argust never changes anything in Splunk; the search is fixed, not user text.
  */
 import { z } from "zod";
 import { adapterFetch } from "./fetch.js";
@@ -53,7 +53,7 @@ export const splunkAdapter: PullAdapter = {
     kind: "splunk", displayName: "Splunk Cloud", vendor: "Splunk (Cisco)", status: "available", plane: "data", inbound: "pull", outbound: [],
     egressHosts: ["*.splunkcloud.com"],
     summary: "Splunk Enterprise Security notable events (or another index you name) from Splunk Cloud, polled by index time. Read only. (Self-managed Splunk: use the generic JSON webhook.)",
-    auth: "Splunk authentication token of a user allowed to search the index, sealed per connection. Add Legion's address to Splunk Cloud's REST allow list.",
+    auth: "Splunk authentication token of a user allowed to search the index, sealed per connection. Add Argust's address to Splunk Cloud's REST allow list.",
   },
   configSchema: z.strictObject({
     stack: z.string().regex(/^[a-z0-9][a-z0-9-]{0,62}$/, "Your stack name: acme for acme.splunkcloud.com"),

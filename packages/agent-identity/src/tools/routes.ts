@@ -14,7 +14,7 @@ type Deps = { guards: ReturnType<typeof createGuards>; firewall: AgentFirewall; 
 export function toolAgentRouter(d: Deps): Router {
   const router = Router();
 
-  // An agent asks Legion before running a tool. Allowed calls get a
+  // An agent asks Argust before running a tool. Allowed calls get a
   // single-use ticket bound to the exact arguments.
   router.post("/tools/authorize", d.guards.requireMachine(["ai_agent", "service_account"]), async (req, res) => {
     const { ctx, extraHits } = await d.firewall.contextFromRequest(req);
@@ -48,7 +48,7 @@ export function toolAgentRouter(d: Deps): Router {
     res.json(body);
   });
 
-  // A tool server (service account) confirms Legion approved this exact call.
+  // A tool server (service account) confirms Argust approved this exact call.
   const verifyBody = z.strictObject({ ticket: z.string().max(200), call: z.unknown() });
   router.post("/tools/verify", d.guards.requireMachine(["service_account"]), d.guards.traced("tools:verify_ticket"), async (req, res) => {
     const parsed = verifyBody.safeParse(req.body ?? {});

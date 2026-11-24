@@ -1,7 +1,7 @@
 /**
  * THE RECOVERY DRILL. A real disaster, end to end, with nothing mocked:
  *
- *   seed a running Legion (users, MFA, alerts, webhook credential)
+ *   seed a running Argust (users, MFA, alerts, webhook credential)
  *   → encrypted backup with ops/backup.sh
  *   → the database is gone → restore into a brand-new one from the encrypted file
  *   → start the REAL server against it → prove people can sign in, MFA works,
@@ -141,7 +141,7 @@ afterAll(async () => {
 }, 60_000);
 
 describe("disaster recovery drill", () => {
-  it("1. a running Legion holds users, MFA, alerts and a webhook credential", async () => {
+  it("1. a running Argust holds users, MFA, alerts and a webhook credential", async () => {
     const hash = await bcrypt.hash(PASSWORD, 4);
     for (const [name, key] of [["Acme SOC", "tenantA"], ["Beta Corp", "tenantB"]] as const) {
       const id = randomUUID(); seeded[key] = id;

@@ -1,23 +1,33 @@
-# Legion
+# Argust
 
 **A security operations console that turns Wazuh alerts into clear decisions, and helps stop attacks before they cost money.**
 
-Legion runs on your own server. Your security data stays in your network unless you choose to connect an AI provider.
+Argust runs on your own server. Your security data stays in your network unless you choose to connect an AI provider.
 
 - Takes in Wazuh events in real time, ranks them, and explains each alert in plain language with the next step to take
 - Links separate events into one attack ("campaign"): brute force, account takeover, ransomware, mailbox takeover, phishing, supply-chain installs, slow intrusions, AI-driven attacks
 - Can block an attacker's IP automatically through Wazuh active response (off by default, with an allowlist, limits and expiry)
-- **Payment check:** your payment software asks Legion before paying, and a payment that looks like fraud is held until a person confirms it by phone
+- **Payment check:** your payment software asks Argust before paying, and a payment that looks like fraud is held until a person confirms it by phone
 - Five AI agents (Sentinel, Hunter, Guardian, Oracle, Vanguard) with read-only skills you can also give to your own AI agents
 - Security controls for AI agents: identity, permissions, prompt-injection detection and an audit trail for every tool call
 - Teams, roles (admin / analyst / viewer), two-factor sign-in (TOTP) and a full audit log
 - Self-hosted or run as a multi-tenant SaaS
 
+
+> **Name.** The product was called *Legion* and is now **Argust**. Everything a person reads — the dashboard,
+> e-mails, documentation, the licence — says Argust. Technical names that existing installations, sensors and
+> scripts already depend on keep the old spelling on purpose, so an upgrade breaks nothing: environment variables
+> (`LEGION_*`), HTTP headers (`x-legion-*`), database and role names, the `@legion/agent-identity` package, alert
+> sources such as `legion-correlation`, file names (`start-legion.ps1`, `custom-legion.py`),
+> the demo account (`admin@legion.demo`), Prometheus alert names (`LegionApiDown`…, which alert routing may match) and the Wazuh integration's User-Agent (`Legion-Wazuh-Integration`, which
+> Cloudflare rules may match). The repository itself is renamed in GitHub's settings. Logo files: `frontend/public/brand/argust-*.svg`
+> (the Argust brand kit; the original is kept in `docs/design/argust-brand-kit`).
+
 ---
 
-## What Legion protects against
+## What Argust protects against
 
-| Threat | What Legion does |
+| Threat | What Argust does |
 |---|---|
 | Brute force, stolen passwords | Detects many failed sign-ins and a success after failures, and can block the source IP |
 | Account takeover | Flags an account used from many addresses or after a password-guessing attack |
@@ -28,13 +38,13 @@ Legion runs on your own server. Your security data stays in your network unless 
 | AI-driven and automated attacks | Detects attack chains that move faster than a person could, and attempts to manipulate AI agents |
 | Data theft | Detects data being collected and then sent out |
 
-The dashboard's **Defense** page shows, for each threat, what Legion detected, what it is watching, and where it is blind because the data it needs never arrives.
+The dashboard's **Defense** page shows, for each threat, what Argust detected, what it is watching, and where it is blind because the data it needs never arrives.
 
 **Limits:**
 - Blocking an IP does not stop an attack spread across thousands of addresses (a botnet).
 - A DDoS on your own website needs an edge service such as Cloudflare.
-- The payment check works only when your payment software asks Legion before paying.
-- Legion does not filter email. Stopping the phishing message itself is your mail gateway's job.
+- The payment check works only when your payment software asks Argust before paying.
+- Argust does not filter email. Stopping the phishing message itself is your mail gateway's job.
 
 ---
 
@@ -49,7 +59,7 @@ npm run setup      # creates the database, writes secrets, applies the schema
 npm run build && npm start
 ```
 
-`npm run setup` finds PostgreSQL on its own. If it cannot, it asks for the host and the superuser password. Legion then creates its own restricted database role and does not run as a superuser.
+`npm run setup` finds PostgreSQL on its own. If it cannot, it asks for the host and the superuser password. Argust then creates its own restricted database role and does not run as a superuser.
 
 When it finishes, open http://localhost:3000 and **create the first administrator account straight away**. Until it exists, the first person to reach the page becomes the admin. After that, sign-up closes automatically and others join only by invitation (Settings → Team).
 
@@ -65,9 +75,9 @@ Full guide for customers: [INSTALL.md](INSTALL.md).
 
 | Task | Guide |
 |---|---|
-| Try Legion on your own computer | [TRY-LOCALLY.md](TRY-LOCALLY.md) · Docker: [DOCKER-WINDOWS.md](DOCKER-WINDOWS.md) · Windows: [WINDOWS-NODE.md](WINDOWS-NODE.md) |
-| Install and run Legion (full customer guide) | [INSTALL.md](INSTALL.md) |
-| Put Legion online (VPS + domain + HTTPS + Cloudflare) | [DEPLOY-ONLINE.md](DEPLOY-ONLINE.md) |
+| Try Argust on your own computer | [TRY-LOCALLY.md](TRY-LOCALLY.md) · Docker: [DOCKER-WINDOWS.md](DOCKER-WINDOWS.md) · Windows: [WINDOWS-NODE.md](WINDOWS-NODE.md) |
+| Install and run Argust (full customer guide) | [INSTALL.md](INSTALL.md) |
+| Put Argust online (VPS + domain + HTTPS + Cloudflare) | [DEPLOY-ONLINE.md](DEPLOY-ONLINE.md) |
 | Plans, prices and what each plan includes | [PRICING.md](PRICING.md) |
 | Run it as a paid SaaS (sign-up, trial, Paddle, email) | [SAAS.md](SAAS.md) · [EMAIL-PADDLE.md](EMAIL-PADDLE.md) |
 | Connect Wazuh (events in, automatic blocking out) | [WAZUH.md](WAZUH.md) |
@@ -80,7 +90,7 @@ Full guide for customers: [INSTALL.md](INSTALL.md).
 | Data retention, export and deletion | [DATA-RETENTION.md](DATA-RETENTION.md) · [LEGAL-DECISIONS.md](LEGAL-DECISIONS.md) |
 | Backup and disaster recovery | [RECOVERY.md](RECOVERY.md) · [BACKUP.md](BACKUP.md) |
 | Architecture decisions | [ADR.md](ADR.md) |
-| Questions for a lawyer before selling Legion | [LEGAL-QUESTIONS.md](LEGAL-QUESTIONS.md) |
+| Questions for a lawyer before selling Argust | [LEGAL-QUESTIONS.md](LEGAL-QUESTIONS.md) |
 | Security re-audit: the real status of every finding | [REAUDIT-2026-11.md](REAUDIT-2026-11.md) |
 | CI and the release security gate | [.github/CI.md](.github/CI.md) |
 
@@ -107,7 +117,7 @@ Check what is active: `curl http://localhost:8000/health` → `ai_provider`.
 
 ## Day-to-day operation
 
-Run Legion under a process supervisor. A systemd example is in [deploy/legion.service](deploy/legion.service).
+Run Argust under a process supervisor. A systemd example is in [deploy/legion.service](deploy/legion.service).
 
 ```bash
 sudo systemctl status legion
@@ -175,7 +185,7 @@ legion/
 └── NOTICE                     licences of the open-source packages used
 ```
 
-## Before giving Legion to a customer
+## Before giving Argust to a customer
 
 1. Read the warning block at the top of `LICENSE`. Its `[BRACKETED]` fields are filled in once the company is registered, and a lawyer must review it.
 2. `NEXT_PUBLIC_OPERATOR_NAME` and `NEXT_PUBLIC_SUPPORT_EMAIL` in `.env` are filled in by the **customer**. If they are empty, the privacy page says so openly.

@@ -52,7 +52,7 @@ afterAll(async () => {
 });
 
 describe("fresh install", () => {
-  it("creates a role that is not a superuser and can run Legion's migrations and queries", async () => {
+  it("creates a role that is not a superuser and can run Argust's migrations and queries", async () => {
     const r = await asAdmin(DBS.fresh, (c) => provisionAppRole(c, { appUser: ROLE, appPassword: PASSWORD }));
     expect(r.created).toBe(true);
     await asApp(DBS.fresh, async (c) => {

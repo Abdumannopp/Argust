@@ -1,6 +1,6 @@
 # Integrations — what is built, what is not
 
-Legion takes security data in through **adapters** (`server/src/integrations/`): one file per source, one `register()` call. Every adapter produces the same `Finding`; one shared path stores it (idempotent, tenant-isolated, with mail and realtime). Nothing outside `src/integrations` knows a vendor's format.
+Argust takes security data in through **adapters** (`server/src/integrations/`): one file per source, one `register()` call. Every adapter produces the same `Finding`; one shared path stores it (idempotent, tenant-isolated, with mail and realtime). Nothing outside `src/integrations` knows a vendor's format.
 
 | # | Integration | Status | How it connects |
 |---|---|---|---|
@@ -27,7 +27,7 @@ Legion takes security data in through **adapters** (`server/src/integrations/`):
 | 19 | **Google Workspace** (sign-in security) | **built, simulated provider** | pull, service account, domain-wide delegation, audit read-only scope |
 | 20 | **ServiceNow** (incident) | **built, simulated provider** | outbound, *itil* user, one incident per alert |
 | 21 | **Opsgenie** (on-call) | **built, simulated provider** | outbound, API integration key (dedup by alias) |
-| 5 | Self-managed Elastic / Splunk | through the generic JSON webhook (a Kibana webhook connector / Splunk alert action), because Legion never calls an address a customer typed | |
+| 5 | Self-managed Elastic / Splunk | through the generic JSON webhook (a Kibana webhook connector / Splunk alert action), because Argust never calls an address a customer typed | |
 
 **Firewalls, IDS and other tools with syslog** (Palo Alto, Fortinet, Check Point, Cisco, Sophos, pfSense, Suricata, Zeek…) connect through **Syslog / CEF** or the **generic JSON webhook**; no vendor-specific code is needed for them.
 
@@ -56,7 +56,7 @@ An event with no title is skipped, never invented.
 
 ## Syslog / CEF
 
-Legion **does not open a syslog port**: an unauthenticated UDP/TCP listener would be a new attack surface. Run a collector you already have (rsyslog `omhttp`, syslog-ng `http()`, Vector, Fluent Bit, Logstash) that batches lines and POSTs them as `text/plain`, one event per line (up to 200 lines of 4 KB).
+Argust **does not open a syslog port**: an unauthenticated UDP/TCP listener would be a new attack surface. Run a collector you already have (rsyslog `omhttp`, syslog-ng `http()`, Vector, Fluent Bit, Logstash) that batches lines and POSTs them as `text/plain`, one event per line (up to 200 lines of 4 KB).
 
 - **CEF** (with or without a syslog header): `CEF:0|vendor|product|version|signature|name|severity|extension`. Severity 0–3 low, 4–6 medium, 7–8 high, 9–10 critical. Escaped `\|` and `\=` are handled. Used: `src`, `dst`, `dhost`/`shost`, `msg`, `act`, `suser`, `duser`, `rt`/`end`/`start`, `externalId`.
 - **Plain syslog** (`<PRI>…`): kept only when syslog severity is *error or worse* (0–3); routine lines are skipped on purpose.
@@ -100,15 +100,15 @@ Legion **does not open a syslog port**: an unauthenticated UDP/TCP listener woul
 
 Secrets are sealed (AES-256-GCM, bound to the workspace and connection), never returned, never logged, and an error that echoes one is scrubbed before it is stored. `min_severity` defaults to `high`. At most `ALERT_EMAIL_HOURLY_CAP` (default 100) messages per connection per hour.
 
-**SaaS vs self-hosted:** no new environment variables. The Legion server must reach `hooks.slack.com:443` and `*.atlassian.net:443` over HTTPS; on a self-hosted install with an egress firewall, allow exactly those. Legion calls no other host and never a URL a customer typed (redirects are refused, the site is a name, not a URL).
+**SaaS vs self-hosted:** no new environment variables. The Argust server must reach `hooks.slack.com:443` and `*.atlassian.net:443` over HTTPS; on a self-hosted install with an egress firewall, allow exactly those. Argust calls no other host and never a URL a customer typed (redirects are refused, the site is a name, not a URL).
 
 **Health:** the connection shows `last_success_at`, `last_error` and `failures`; after 10 consecutive failures it goes to `error` and stops receiving until resumed. Queue depth, retries and dead letters appear in `/metrics` under the outbox kind `integration_message`.
 
 **Provider downtime:** messages wait in the outbox and are retried with exponential backoff (cap 1 h) up to `NOTIFY_MAX_ATTEMPTS`; then they are dead-lettered, never silently dropped. A revoked Slack webhook or a Jira 401/403/404 is not retried (retrying cannot help). A removed connection drops its pending messages without error; a paused one keeps them until the retry budget ends.
 
-**Tickets are idempotent:** before creating, Legion searches the project for the label `legion-<alert id>`; a retry or a crash after creation finds the first ticket. Jira's search index can lag by seconds, so a retry within that window can, rarely, open a second ticket.
+**Tickets are idempotent:** before creating, Argust searches the project for the label `legion-<alert id>`; a retry or a crash after creation finds the first ticket. Jira's search index can lag by seconds, so a retry within that window can, rarely, open a second ticket.
 
-**They cannot act:** these connectors only notify or open tickets. A test fails if an outbound adapter declares a "respond" capability or imports blocklist/action/approval code. The only things Legion can do in a customer's environment remain the two executors in [PROTECTION.md](PROTECTION.md), which need an administrator's opt-in, and everything privileged still waits for a person.
+**They cannot act:** these connectors only notify or open tickets. A test fails if an outbound adapter declares a "respond" capability or imports blocklist/action/approval code. The only things Argust can do in a customer's environment remain the two executors in [PROTECTION.md](PROTECTION.md), which need an administrator's opt-in, and everything privileged still waits for a person.
 
 **Verified:** `tests/integrations-outbound.test.ts` (17 tests, simulated Slack/Jira): delivery, filtering by severity, duplicate suppression, markup/mention neutralisation, 503→retry→delivered, 429 retry, revoked webhook dead-lettered with health shown, paused/removed connections, secrets never in responses/URLs/rows/errors, tenant isolation (workspace B's channel never receives A's alerts; A cannot touch B's connection), idempotent tickets.
 **Not verified:** a real Slack workspace or Jira Cloud site (only simulated providers), Jira Data Center / Server, Slack bot tokens (only incoming webhooks), 
@@ -123,17 +123,17 @@ Added in the dashboard under **Connect → Connections** (administrators), or `P
 | Vendor side | Entra ID → App registration → API permission **SecurityAlert.Read.All** (application) → grant admin consent → create a client secret | IAM user with only the policy below; create an access key |
 | `config` | `{"directory_id":"<GUID>","client_id":"<GUID>"}` | `{"regions":["eu-west-1"],"role_arn":"arn:aws:iam::<account>:role/LegionGuardDutyRead","external_id":"…"}` (`role_arn`/`external_id` optional, recommended) |
 | `secrets` | `{"client_secret":"…"}` | `{"access_key_id":"…","secret_access_key":"…"}` |
-| Hosts Legion calls | `login.microsoftonline.com`, `graph.microsoft.com` | `guardduty.<region>.amazonaws.com`, `sts.amazonaws.com` (with a role) |
+| Hosts Argust calls | `login.microsoftonline.com`, `graph.microsoft.com` | `guardduty.<region>.amazonaws.com`, `sts.amazonaws.com` (with a role) |
 | Reads | Graph `security/alerts_v2`, by `lastUpdateDateTime` | detectors → findings by `updatedAt` |
 
 GuardDuty IAM policy (read only): `guardduty:ListDetectors`, `guardduty:ListFindings`, `guardduty:GetFindings` on `*`.
 
-**Cross-account role (recommended):** put that policy on a role in the customer's account whose trust policy allows Legion's IAM user with a condition `sts:ExternalId = <external_id>`; the stored key then needs only `sts:AssumeRole` on that role. Legion assumes it for 15 minutes per poll (`sts.amazonaws.com`) and never stores the session credentials.
+**Cross-account role (recommended):** put that policy on a role in the customer's account whose trust policy allows Argust's IAM user with a condition `sts:ExternalId = <external_id>`; the stored key then needs only `sts:AssumeRole` on that role. Argust assumes it for 15 minutes per poll (`sts.amazonaws.com`) and never stores the session credentials.
 
 Firewall for self-hosted installs: allow outbound 443 to the hosts above, plus `hooks.slack.com` and `*.atlassian.net` for Slack and Jira. No other environment variable is needed.
 
 **Verified (simulated providers):** field mapping, severity bands, cursor and paging, a paging link to any host but Graph is refused, wrong secret / missing consent / 403 give a clear error that never contains the secret, an outage backs off and recovers, alerts land only in the owning workspace, secrets are sealed and never returned, region names cannot inject hosts (`tests/integrations-cloud.test.ts`).
-**Not verified:** a real Entra tenant or AWS account. Limits: a Microsoft alert or GuardDuty finding is stored once by its id (a later update with a **higher** severity raises the existing Legion alert — see "Vendor updates" below; an update never creates a second alert); Defender severity "high" is the top Microsoft level, so Defender alerts are never "critical". Security Hub is built (see below).
+**Not verified:** a real Entra tenant or AWS account. Limits: a Microsoft alert or GuardDuty finding is stored once by its id (a later update with a **higher** severity raises the existing Argust alert — see "Vendor updates" below; an update never creates a second alert); Defender severity "high" is the top Microsoft level, so Defender alerts are never "critical". Security Hub is built (see below).
 
 ## Definition of done: where each item stands
 
@@ -157,41 +157,41 @@ Firewall for self-hosted installs: allow outbound 443 to the hosts above, plus `
 
 All added in **Connect → Connections** (or `POST /integrations`). Same rules as the others: secrets sealed per connection and never returned, egress pinned to the vendor's hosts (a paging link to another host is refused), errors scrubbed of secrets, an outage backs off and recovers, one alert per finding, alerts only in the owning workspace.
 
-| Kind | Vendor side | `config` | `secrets` | Hosts Legion calls |
+| Kind | Vendor side | `config` | `secrets` | Hosts Argust calls |
 |---|---|---|---|---|
 | `azure` | Entra app registration; **Reader** role on the subscription | `directory_id`, `client_id`, `subscription_id` | `client_secret` | `login.microsoftonline.com`, `management.azure.com` |
 | `gcp` | Service account with **Security Center Findings Viewer** on the organisation | `organization_id` (digits) | `service_account_json` (its JSON key) | `oauth2.googleapis.com`, `securitycenter.googleapis.com` |
 | `okta` | API token of a **read-only administrator** | `domain` (e.g. `acme.okta.com`) | `api_token` | your `*.okta.com` / `*.oktapreview.com` / `*.okta-emea.com` org only |
-| `github` | Repository or organisation **webhook**, content type `application/json`, events: *Secret scanning alerts*, *Code scanning alerts*, *Dependabot alerts* | none | `webhook_secret` (you choose; the same text in GitHub) | none (it calls Legion) |
+| `github` | Repository or organisation **webhook**, content type `application/json`, events: *Secret scanning alerts*, *Code scanning alerts*, *Dependabot alerts* | none | `webhook_secret` (you choose; the same text in GitHub) | none (it calls Argust) |
 | `pagerduty` | Service → Integrations → *Events API v2* | `min_severity` (default `critical`) | `routing_key` (32 characters) | `events.pagerduty.com` |
 | `teams` | Channel → Workflows → *Post to a channel when a webhook request is received* | `min_severity` (default `high`) | `webhook_url` | the webhook's own Microsoft host (`*.webhook.office.com`, `*.logic.azure.com`, `*.powerplatform.com`) |
 
-**GitHub address:** after saving, the dashboard shows `https://<your-legion>/api/security-events/webhook/github?connection=<id>`. Legion verifies GitHub's `X-Hub-Signature-256` (HMAC-SHA256 of the raw body) in constant time before parsing; an unknown connection, a wrong or missing signature, and a paused connection all answer the same 401 and count as failures for the sender's address. The connection (not the request) decides the workspace. Only *new or reopened* alerts become Legion alerts; closing and fixing do not. A secret-scanning alert records the kind of secret and the repository, **never the secret value**.
+**GitHub address:** after saving, the dashboard shows `https://<your-legion>/api/security-events/webhook/github?connection=<id>`. Argust verifies GitHub's `X-Hub-Signature-256` (HMAC-SHA256 of the raw body) in constant time before parsing; an unknown connection, a wrong or missing signature, and a paused connection all answer the same 401 and count as failures for the sender's address. The connection (not the request) decides the workspace. Only *new or reopened* alerts become Argust alerts; closing and fixing do not. A secret-scanning alert records the kind of secret and the repository, **never the secret value**.
 
 **PagerDuty** uses the alert id as `dedup_key`, so PagerDuty itself collapses repeats. **Teams** and **Slack** send alert text as plain text (no mentions, links or markup from an alert).
 
 **Verified (simulated providers/deliveries):** field mapping and severity, paging and cursors, the Google JWT is a valid RS256 signature, SSWS/Bearer auth on the right hosts only, foreign paging links not followed, refused credentials give clear errors without the secret, GitHub signature cases (valid, tampered, missing, wrong secret, unknown/other-workspace/paused connection), PagerDuty dedup and severity, Teams host validation, plain-text cards (`tests/integrations-platforms.test.ts`, 20 tests).
-**Not verified:** a real Azure subscription, Google Cloud organisation, Okta org, GitHub repository, PagerDuty service or Teams channel. The Azure, SCC and Okta request shapes follow the vendors' documentation; confirm each against a sandbox account before relying on it. Limits: an Azure alert, SCC finding or Okta event is stored once by its id; Azure lists current alerts and Legion filters by time itself; Okta ingests warnings and errors only; GitHub delivers at least once and failed deliveries are redelivered by GitHub, not queued by Legion.
+**Not verified:** a real Azure subscription, Google Cloud organisation, Okta org, GitHub repository, PagerDuty service or Teams channel. The Azure, SCC and Okta request shapes follow the vendors' documentation; confirm each against a sandbox account before relying on it. Limits: an Azure alert, SCC finding or Okta event is stored once by its id; Azure lists current alerts and Argust filters by time itself; Okta ingests warnings and errors only; GitHub delivers at least once and failed deliveries are redelivered by GitHub, not queued by Argust.
 
 ## EDR, SIEM, cloud, identity, edge and ticketing (second wave)
 
-| Kind | Vendor side | `config` | `secrets` | Hosts Legion calls |
+| Kind | Vendor side | `config` | `secrets` | Hosts Argust calls |
 |---|---|---|---|---|
 | `crowdstrike` | Falcon → API clients → new client with **Alerts: Read** only | `cloud` (`us-1`, `us-2`, `eu-1`, `us-gov-1`), `client_id` | `client_secret` | that cloud's API host only (`api.crowdstrike.com`, `api.us-2…`, `api.eu-1…`, `api.laggar.gcw…`) |
 | `sentinelone` | Service user with the **Viewer** role → API token | `console` (`acme` = acme.sentinelone.net) | `api_token` | `<console>.sentinelone.net` |
 | `msentinel` | Entra app registration; **Microsoft Sentinel Reader** on the workspace | `directory_id`, `client_id`, `subscription_id`, `resource_group`, `workspace` | `client_secret` | `login.microsoftonline.com`, `management.azure.com` |
 | `securityhub` | IAM policy `securityhub:GetFindings` (on a role assumed with an external id, recommended) | `regions`, `role_arn`, `external_id`, `include_guardduty` (default `false`) | `access_key_id`, `secret_access_key` | `securityhub.<region>.amazonaws.com`, `sts.amazonaws.com` |
 | `elastic` | API key with read access to the security alerts (viewer) | `kibana_host` (an Elastic Cloud Kibana host), `space` (default `default`) | `api_key` | `*.kb.<region>.<provider>.elastic-cloud.com` / `.cloud.es.io` / `.elastic.cloud` |
-| `splunk` | Authentication token of a user who may search the index; **add Legion's outbound address to Splunk Cloud's REST allow list** | `stack` (`acme` = acme.splunkcloud.com), `index` (default `notable`) | `token` | `<stack>.splunkcloud.com:8089` |
+| `splunk` | Authentication token of a user who may search the index; **add Argust's outbound address to Splunk Cloud's REST allow list** | `stack` (`acme` = acme.splunkcloud.com), `index` (default `notable`) | `token` | `<stack>.splunkcloud.com:8089` |
 | `cloudflare` | API token with **Zone · Analytics · Read** on the zone | `zone_id`, `min_events` (default 50 per address per hour) | `api_token` | `api.cloudflare.com` |
-| `gworkspace` | Service account; Admin console → domain-wide delegation for **`https://www.googleapis.com/auth/admin.reports.audit.readonly`** only | `admin_email` (the administrator Legion acts as) | `service_account_json` | `oauth2.googleapis.com`, `admin.googleapis.com` |
+| `gworkspace` | Service account; Admin console → domain-wide delegation for **`https://www.googleapis.com/auth/admin.reports.audit.readonly`** only | `admin_email` (the administrator Argust acts as) | `service_account_json` | `oauth2.googleapis.com`, `admin.googleapis.com` |
 | `servicenow` | Integration user with the **itil** role | `instance` (`acme` = acme.service-now.com), `assignment_group` (sys_id, optional), `min_severity` (default `high`) | `username`, `password` | `<instance>.service-now.com` |
 | `opsgenie` | Opsgenie → Integrations → **API** | `region` (`us`/`eu`), `min_severity` (default `high`) | `api_key` | `api.opsgenie.com` / `api.eu.opsgenie.com` |
 
 What each reads, and how repeats are handled:
 
-- **CrowdStrike** — Alerts API v2, by `updated_timestamp`; one Legion alert per composite id. Severity from `severity_name` (or the 1–100 score).
-- **SentinelOne** — threats, by `updatedAt`. SentinelOne has no severity field, so Legion derives it: *malicious and not mitigated* → critical, *malicious* → high, *suspicious* → medium.
+- **CrowdStrike** — Alerts API v2, by `updated_timestamp`; one Argust alert per composite id. Severity from `severity_name` (or the 1–100 score).
+- **SentinelOne** — threats, by `updatedAt`. SentinelOne has no severity field, so Argust derives it: *malicious and not mitigated* → critical, *malicious* → high, *suspicious* → medium.
 - **Microsoft Sentinel** — incidents by `lastModifiedTimeUtc`; **closed incidents are skipped**.
 - **Security Hub** — ACTIVE findings with workflow NEW or NOTIFIED, by `UpdatedAt`. GuardDuty's own findings are skipped unless `include_guardduty` is true, so a workspace with both connections does not get each GuardDuty finding twice.
 - **Elastic** — Kibana detection engine, open alerts by `@timestamp`, `search_after` paging. Only Elastic Cloud hosts are accepted (an internal or typed address is refused when saving — tested).
@@ -201,7 +201,7 @@ What each reads, and how repeats are handled:
 - **ServiceNow** — one incident per alert: `correlation_id = legion-<alert id>` is looked up first (the Table API reads the database, so there is no index lag), and the incident number is stored on the message the moment it is created. The incident link is shown on the alert page.
 - **Opsgenie** — `alias = legion-<alert id>`, so Opsgenie collapses repeats. Atlassian has announced the end of Opsgenie as a separate product; its alerting API lives on in Jira Service Management.
 
-**Vendor updates (audit A-9):** every pull connector above, and Defender XDR, GuardDuty and Okta, reads by *update* time. When an item Legion already stored comes again with a **higher** severity, the Legion alert is raised to it, a dated line ("The source raised the severity to …") is added to its text, the change is written to the audit log, and dashboards see it at once. A source never **lowers** a severity and never changes an alert's status: closing or downgrading stays a person's decision. Outbound connections are told about the raise once per severity (title prefixed "[Severity raised]"): a connection whose threshold the alert did not reach before — PagerDuty at `critical` when the alert arrived as `medium` — now pages; Jira, ServiceNow, PagerDuty and Opsgenie collapse it onto the ticket or page they already have (the existing Jira ticket's text is not rewritten); Slack and Teams post a second message. **Limit:** a resolved alert that a source raises stays resolved (it is raised, noted and audited, and the connections are told) — reopening is a person's decision.
+**Vendor updates (audit A-9):** every pull connector above, and Defender XDR, GuardDuty and Okta, reads by *update* time. When an item Argust already stored comes again with a **higher** severity, the Argust alert is raised to it, a dated line ("The source raised the severity to …") is added to its text, the change is written to the audit log, and dashboards see it at once. A source never **lowers** a severity and never changes an alert's status: closing or downgrading stays a person's decision. Outbound connections are told about the raise once per severity (title prefixed "[Severity raised]"): a connection whose threshold the alert did not reach before — PagerDuty at `critical` when the alert arrived as `medium` — now pages; Jira, ServiceNow, PagerDuty and Opsgenie collapse it onto the ticket or page they already have (the existing Jira ticket's text is not rewritten); Slack and Teams post a second message. **Limit:** a resolved alert that a source raises stays resolved (it is raised, noted and audited, and the connections are told) — reopening is a person's decision.
 
 **Verified (simulated providers):** field mapping and severity, auth header and host of each vendor, cursors and paging, filters sent to each API, only the configured cloud/console/instance/stack is called, refused credentials and outages give clear errors without the secret, Elastic/Splunk/SentinelOne/ServiceNow/CrowdStrike configs refuse a URL or injected text, Cloudflare's hourly grouping and 24-hour cap, Google's delegated JWT (`sub`, read-only scope), ServiceNow one-incident-per-alert and dead-lettering of bad credentials, Opsgenie alias and priority, tenant isolation, an end-to-end CrowdStrike poll through the worker, and the severity-raise rule (`tests/integrations-edr-siem.test.ts`).
 **Not verified:** real CrowdStrike, SentinelOne, Sentinel, Security Hub, Elastic Cloud, Splunk Cloud, Cloudflare, Google Workspace, ServiceNow or Opsgenie accounts. The request shapes follow each vendor's API documentation; run each connector once against a sandbox account before relying on it (audit A-1).
@@ -210,7 +210,7 @@ Firewall for self-hosted installs: allow outbound 443 to the hosts in the table 
 
 ## Third wave: Entra ID, Cortex XDR, Tenable, Qualys, AbuseIPDB, FortiGate
 
-| Kind | What it brings | What you create at the source | Settings | Secret | Hosts Legion calls |
+| Kind | What it brings | What you create at the source | Settings | Secret | Hosts Argust calls |
 |---|---|---|---|---|---|
 | `entra_id` | identity risk detections (leaked password, impossible travel, anonymous or malicious address, password spray, token theft) | app registration, application permission **IdentityRiskEvent.Read.All**, admin consent; needs Entra ID P1/P2 | `directory_id`, `client_id` | `client_secret` | `login.microsoftonline.com`, `graph.microsoft.com` |
 | `cortex_xdr` | Cortex XDR incidents | API key with the **Viewer** role (Advanced recommended) | `api_host` (`api-<name>.xdr.<region>.paloaltonetworks.com`), `api_key_id`, `key_type` | `api_key` | your `api_host` |
@@ -226,17 +226,17 @@ How each behaves:
   separate `entra_response` connection and two approvals.
 - **Cortex XDR.** One alert per incident, about its first host. Resolved incidents are skipped. With an Advanced
   key the key itself is never sent: each request carries SHA-256(key + nonce + timestamp).
-- **Tenable.** Tenable prepares bulk data as an export that takes minutes. Legion asks for it in one poll and reads
+- **Tenable.** Tenable prepares bulk data as an export that takes minutes. Argust asks for it in one poll and reads
   it in a later one, so the first results arrive a few minutes after connecting. One alert per (asset, plugin).
 - **Qualys.** Host detections joined with the knowledge base (name, CVEs, fix). Only **Confirmed** detections;
-  "Potential" ones are skipped. Qualys answers in XML: Legion reads only the tags it needs and expands nothing.
-- **Vulnerabilities** from both scanners are written as `CVE-… affects <component> on <host>`, the form Legion's
+  "Potential" ones are skipped. Qualys answers in XML: Argust reads only the tags it needs and expands nothing.
+- **Vulnerabilities** from both scanners are written as `CVE-… affects <component> on <host>`, the form Argust's
   `vulnerability_analysis` and `exposure_review` skills already read. A weakness is not an attack: scanner findings
   never start or join an attack campaign.
 - **AbuseIPDB.** Addresses only. 75+ malicious, 25–74 suspicious; an address with no reports is "nothing known",
-  not "safe". Legion never reports an address to AbuseIPDB.
-- **FortiGate.** The firewall **sends** its events; Legion never connects to it. Add the `fortigate` connection
-  (see "FortiGate webhook" below). A collector posting CEF to Legion's CEF route still works too, and FortiOS CEF
+  not "safe". Argust never reports an address to AbuseIPDB.
+- **FortiGate.** The firewall **sends** its events; Argust never connects to it. Add the `fortigate` connection
+  (see "FortiGate webhook" below). A collector posting CEF to Argust's CEF route still works too, and FortiOS CEF
   is recognised there.
 
 Honest limits:
@@ -251,7 +251,7 @@ Honest limits:
 - Entra ID: risk detections only — not the full sign-in or audit log.
 - FortiGate: only the events your automation stitch sends. Its proof is a bearer token, which is weaker than the
   signed sensor webhook: someone who captured a request could re-send it (it would be dropped as a duplicate), so
-  keep the token secret and rotate it by replacing the connection. Legion cannot change a FortiGate rule; firewall
+  keep the token secret and rotate it by replacing the connection. Argust cannot change a FortiGate rule; firewall
   blocking stays the blocklist enforced by your Wazuh manager.
 
 ## FortiGate webhook
@@ -275,10 +275,10 @@ unknown address all answer 401 and count against the sender's address.
 
 ## Threat intelligence: VirusTotal, MISP, OpenCTI
 
-Sources Legion **asks** about an indicator ("what is known about this address?"). They bring in no alerts and
+Sources Argust **asks** about an indicator ("what is known about this address?"). They bring in no alerts and
 change nothing. Add them on Dashboard → **Connect** like any other connection (administrators only).
 
-| Kind | What you create at the source | Settings | Secret | Hosts Legion calls |
+| Kind | What you create at the source | Settings | Secret | Hosts Argust calls |
 |---|---|---|---|---|
 | `virustotal` | A VirusTotal account's API key | — | `api_key` | `www.virustotal.com` |
 | `misp` | API key of a **read-only** MISP user | `host` (DNS name of your MISP) | `api_key` | your `host`, port 443 |
@@ -291,7 +291,7 @@ Where it is used:
 - **Hunter's `threat_intelligence` skill** — an AI agent with `intel:read` gets the same answers for addresses,
   domains, URLs, file hashes and e-mail addresses.
 
-How a verdict is reached (each source is shown separately; Legion does not blend them into one score):
+How a verdict is reached (each source is shown separately; Argust does not blend them into one score):
 
 | Source | Malicious | Suspicious | No detections / no verdict |
 |---|---|---|---|
@@ -301,14 +301,14 @@ How a verdict is reached (each source is shown separately; Legion does not blend
 
 Rules that cannot be changed:
 
-- **Only on demand.** Legion never sends an indicator to a third party by itself; a person presses the button or
+- **Only on demand.** Argust never sends an indicator to a third party by itself; a person presses the button or
   an agent calls the skill. Every lookup from the dashboard is written to the audit log.
 - **Private addresses never leave.** A private, loopback, link-local or reserved address (and a URL on one) is
   not sent to any source.
 - **No source, no opinion.** An indicator nobody has information on is "unknown" — never guessed, and never "safe".
-- **Your own server, guarded.** MISP and OpenCTI are servers you run, so this is the one place Legion calls a host
+- **Your own server, guarded.** MISP and OpenCTI are servers you run, so this is the one place Argust calls a host
   you typed. It must be a DNS name (not an address), on HTTPS port 443 with a valid certificate; the name must
-  resolve only to public internet addresses, and Legion connects to exactly the address it checked. Redirects are
+  resolve only to public internet addresses, and Argust connects to exactly the address it checked. Redirects are
   not followed.
 - A source's text is untrusted data: bounded, shown as text, never followed as an instruction.
 - Each connection's key is sealed and sent only to its own source. Errors are scrubbed of it.
@@ -317,13 +317,13 @@ Honest limits:
 
 - **Tested against simulated answers only**, written from each vendor's API documentation — not yet against a real
   VirusTotal account, MISP or OpenCTI server (audit A-1 applies here too).
-- A MISP or OpenCTI that is reachable **only inside your network** cannot be connected to hosted Legion.
+- A MISP or OpenCTI that is reachable **only inside your network** cannot be connected to hosted Argust.
 - VirusTotal's free key allows 4 lookups a minute: one call spends at most 4, and the rest are answered on a later
   call. Answers are remembered for 12 hours per workspace and source (per server instance), so a verdict can be
   up to 12 hours old.
 - VirusTotal is not asked about e-mail addresses or CVEs (it has no such lookup). CVEs are not sent to any source.
 - A reputation is a hint, not proof: addresses change hands and can be forged in a log.
-- Legion does **not** import indicator feeds or match every incoming event against them; it enriches on request.
+- Argust does **not** import indicator feeds or match every incoming event against them; it enriches on request.
 
 ## One view of every connection (integration engine)
 
@@ -334,17 +334,17 @@ Dashboard → **Connect** → Connections shows, for every connection, whether i
 | Working | the last attempt succeeded |
 | Waiting for its first success | saved, nothing has succeeded yet |
 | Failing | the last attempts failed (the error is shown, with the credential removed) |
-| Not checked for too long | Legion polls it, and the poll is more than three intervals (at least 15 minutes) late |
+| Not checked for too long | Argust polls it, and the poll is more than three intervals (at least 15 minutes) late |
 | Stopped after repeated errors | 10 failures in a row; an administrator must resume it |
 | Paused | an administrator paused it |
 
 Each row also shows its direction (brings alerts in / receives alerts / threat intelligence / acts when people
 approve), the alerts that vendor brought in over 24 hours, and for chat and ticket connections how many messages
-are still waiting or could not be delivered. **Check now** asks Legion to poll a working connection within a minute.
+are still waiting or could not be delivered. **Check now** asks Argust to poll a working connection within a minute.
 API: `GET /integrations/health`, `POST /integrations/:id/check` (administrators).
 
 Honest limits: the 24-hour alert count is per vendor, not per connection (two Okta connections share one number).
-"Check now" exists only for connections Legion polls; a webhook source is checked by its own next delivery.
+"Check now" exists only for connections Argust polls; a webhook source is checked by its own next delivery.
 
 ## Asset intelligence: one inventory
 
@@ -358,22 +358,22 @@ Dashboard → **Assets** lists servers, endpoints, user accounts and cloud resou
 - A user account is an asset but not a machine: it does not count against the plan's endpoint limit.
 
 Honest limits: assets are matched **by name, exactly**. `web-1` and `web-1.corp.example.com` are two assets, and an
-account is not linked to the laptop its owner uses. Legion learns of an asset only when an alert mentions it — it
+account is not linked to the laptop its owner uses. Argust learns of an asset only when an alert mentions it — it
 does not import the full device or user list from a platform, so a quiet machine is not in the inventory.
 
 ## Correlation across platforms
 
 When two or more **different** platforms report the same attacking address — or high/critical alerts on the same
-host or account — within 60 minutes, Legion records one campaign (`multi_platform`) and one alert from Hunter that
+host or account — within 60 minutes, Argust records one campaign (`multi_platform`) and one alert from Hunter that
 names the platforms. It is evidence joined, not a verdict: it never triggers automatic blocking.
 
 Honest limits: this is a fixed rule, not a model; it joins alerts that share an **exact** address or name. An attack
 whose stages use different addresses and different names in each tool is not joined by this rule (the other
-campaign rules in WAZUH.md look at techniques and timing). Legion's own alerts do not count as a platform.
+campaign rules in WAZUH.md look at techniques and timing). Argust's own alerts do not count as a platform.
 
 ## Response: acting in your systems (people approve first)
 
-Six **response connections** let Legion change something in your environment. They are separate from the
+Six **response connections** let Argust change something in your environment. They are separate from the
 read-only connections, with their own credential:
 
 | Kind | What it can do | What you create | Hosts |
@@ -391,12 +391,12 @@ How one action happens:
 2. Someone asks: an administrator on the alert's page (**Respond in your systems**), or the Vanguard agent.
 3. Isolating a host or suspending an account is **critical**: two administrators — not the one who asked — approve
    that exact action on the Defense page, each with a current two-factor code. The request expires in an hour.
-4. Legion looks again (protection still on, the connection present, the target not on the never-touch list),
+4. Argust looks again (protection still on, the connection present, the target not on the never-touch list),
    finds **exactly one** matching device or account, acts, writes the audit log and tells the administrators.
 
 Rules that cannot be changed:
 
-- These actions can **never** be pre-authorised: no protection mode, policy or setting lets Legion isolate a host or
+- These actions can **never** be pre-authorised: no protection mode, policy or setting lets Argust isolate a host or
   suspend an account on its own. The database refuses to store them in a workspace's automatic list.
 - No connection, more than one possible connection, no such device, two devices with the name, or a protected
   target: nothing is done, and the request ends "not done" with the reason.
@@ -411,19 +411,19 @@ Honest limits:
 - Hosts: CrowdStrike, SentinelOne, Defender for Endpoint, Cortex XDR. Accounts: Okta, Entra ID. Google Workspace
   accounts are not connected for response. Entra ID refuses to block an administrator's account with this
   permission; that is Microsoft's rule.
-- With more than one EDR response connection, Legion does not choose: the request names one ("Through which EDR"
+- With more than one EDR response connection, Argust does not choose: the request names one ("Through which EDR"
   on the alert page, `via` in the API). Without it the action ends "not done".
 - Hosts are matched by exact name. Defender for Endpoint matches the full DNS name (`laptop-7.corp.example.com`),
   so an alert that carries only the short name will find no device there.
-- Firewall: blocking an address is the existing blocklist, enforced by your Wazuh manager (WAZUH.md). Legion does not
+- Firewall: blocking an address is the existing blocklist, enforced by your Wazuh manager (WAZUH.md). Argust does not
   push rules to Cloudflare or to a network firewall.
-- Undo: Dashboard → **Defense** → *Isolated hosts and suspended accounts* lists what Legion did and has not
-  undone, with **Release** / **Restore** (administrators; it runs at once and is recorded). The list is Legion's own
+- Undo: Dashboard → **Defense** → *Isolated hosts and suspended accounts* lists what Argust did and has not
+  undone, with **Release** / **Restore** (administrators; it runs at once and is recorded). The list is Argust's own
   record: something isolated or released in the vendor's console is not known to it.
 - Three administrators are needed when a person asks (the asker cannot approve): a team of one or two cannot use
   this by hand. A request from the Vanguard agent needs two.
 - Suspending an Okta account does not sign the person out of other systems where they already have a session.
 
-## What Legion can DO in these systems today
+## What Argust can DO in these systems today
 
-Everything above **reads, notifies or opens tickets**, except the two response connections described in "Response: acting in your systems". What Legion can really do: (a) block a public address (enforced by the Wazuh manager's active response) and (b) e-mail administrators — both can be allowed to run on their own, opt-in per workspace ([PROTECTION.md](PROTECTION.md)); (c) isolate or release a host through CrowdStrike, SentinelOne, Defender for Endpoint or Cortex XDR and (d) suspend or restore an Okta or Entra ID account — only after people approve each one. Disabling a Google account, changing a Cloudflare or FortiGate rule and similar actions are **simulation only**: they are not built.
+Everything above **reads, notifies or opens tickets**, except the two response connections described in "Response: acting in your systems". What Argust can really do: (a) block a public address (enforced by the Wazuh manager's active response) and (b) e-mail administrators — both can be allowed to run on their own, opt-in per workspace ([PROTECTION.md](PROTECTION.md)); (c) isolate or release a host through CrowdStrike, SentinelOne, Defender for Endpoint or Cortex XDR and (d) suspend or restore an Okta or Entra ID account — only after people approve each one. Disabling a Google account, changing a Cloudflare or FortiGate rule and similar actions are **simulation only**: they are not built.

@@ -134,7 +134,7 @@ export async function proposeAction(tenantId: string, p: Proposal): Promise<{ ac
     action_id: p.action_id, actor: p.actor, origin: p.origin, mode: p.mode,
     protection: live ? policyView(await getProtection(tenantId)) : undefined,
   }, active?.document ?? null);
-  // A ceiling on what Legion does on its own per hour: past it, a person decides. Counts what machines
+  // A ceiling on what Argust does on its own per hour: past it, a person decides. Counts what machines
   // did without an approval (so a person's own actions and approved ones never use it up).
   if (live && outcome.decision === "ALLOW" && p.actor.kind !== "human") {
     const used = await queryOne<{ n: number }>(
@@ -308,7 +308,7 @@ async function noLongerAuthorized(tenantId: string, row: Row): Promise<string | 
 
 const FINISHED_NOTICE = (a: Row, result: Record<string, unknown> | null, error: string | null) => {
   const entry = catalogEntry(a.action_id);
-  const by = a.actor.kind === "agent" ? `${a.actor.agent} (automatic)` : a.actor.kind === "human" ? "a person" : "Legion (automatic)";
+  const by = a.actor.kind === "agent" ? `${a.actor.agent} (automatic)` : a.actor.kind === "human" ? "a person" : "Argust (automatic)";
   return {
     kind: (error ? "failed" : "acted") as "failed" | "acted",
     title: error ? `${entry?.summary ?? a.action_id}: not done` : (entry?.summary ?? a.action_id),
@@ -365,7 +365,7 @@ async function runLive(tenantId: string, actionId: string): Promise<ActionReques
     )).rows[0];
     if (!r) return null;
     await event(client, tenantId, actionId, "running", to, system, error ?? undefined);
-    // Whatever Legion did (or failed to do) on its own is told to the administrators, in this same commit.
+    // Whatever Argust did (or failed to do) on its own is told to the administrators, in this same commit.
     // A person's own action is not mailed to them, nor is the mail action itself.
     if (r.actor.kind !== "human" && r.action_id !== "notify.admins") await enqueueProtectionNotice(client, tenantId, `done:${actionId}`, FINISHED_NOTICE(r, result, error));
     return toAction(r);

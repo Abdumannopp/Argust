@@ -3,13 +3,13 @@
  * a pull integration over Microsoft Graph security alerts_v2.
  *
  * Authentication: an Entra app registration with the application permission SecurityAlert.Read.All
- * (client credentials). Legion asks login.microsoftonline.com for a token and then reads
+ * (client credentials). Argust asks login.microsoftonline.com for a token and then reads
  * graph.microsoft.com; no other host is reachable. The client secret is sealed per connection.
- * Read only: Legion never writes to the tenant.
+ * Read only: Argust never writes to the tenant.
  *
  * Cursor: the newest lastUpdateDateTime seen. The filter is "ge", so the boundary alert comes again and is
  * dropped as a duplicate (ingest is idempotent). An alert is stored once, by its id: later updates of the
- * same Microsoft alert do not create a second Legion alert.
+ * same Microsoft alert do not create a second Argust alert.
  */
 import { z } from "zod";
 import { cleanText, mitreIn, parseTime, pickIp, severityOf } from "./shared.js";

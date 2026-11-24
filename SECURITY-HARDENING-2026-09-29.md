@@ -1,4 +1,4 @@
-# Legion — Security Hardening (2026-09-29)
+# Argust — Security Hardening (2026-09-29)
 
 This is phase 2 of the production-readiness audit (`PRODUCTION-READINESS-AUDIT-2026-09-29.md`). Every change
 below has a regression test. No existing security control was relaxed, and no test was disabled or weakened to

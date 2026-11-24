@@ -1,6 +1,6 @@
 /**
- * "LEGION" as set in the official logo (public/brand/legion-cybersecurity-intelligence.svg): heavy sans-serif
- * capitals, wide letter-spacing. Colour is currentColor.
+ * "Argust" as set in the brand kit (public/brand/argust-logo*.svg): a clean semibold sans-serif with tight
+ * tracking (Inter / SF Pro, the system font otherwise). Colour is currentColor.
  */
 export default function LegionWordmark({
   height = 16,
@@ -10,24 +10,26 @@ export default function LegionWordmark({
   /** Cap height in px, roughly. */
   height?: number;
   className?: string;
-  /** True when the text "Legion" is already provided nearby for screen readers. */
+  /** True when the text "Argust" is already provided nearby for screen readers. */
   decorative?: boolean;
 }) {
-  // The logo's wordmark box: 112 px type with 12 px tracking, about 560 × 84 of ink.
+  // The kit's wordmark: 142 px type with -6 px tracking. The box reaches below the baseline so the tail of
+  // the "g" is not cut off (without it the word reads "Arqust").
+  const h = (height * 1.3 * 146) / 112;
   return (
     <svg
-      viewBox="0 0 560 84"
-      height={height}
-      width={(height * 560) / 84}
+      viewBox="0 0 440 146"
+      height={h}
+      width={(h * 440) / 146}
       className={className}
       role={decorative ? undefined : "img"}
-      aria-label={decorative ? undefined : "Legion"}
+      aria-label={decorative ? undefined : "Argust"}
       aria-hidden={decorative || undefined}
       xmlns="http://www.w3.org/2000/svg"
     >
-      <text x="0" y="82" fill="currentColor" fontFamily="Arial, Helvetica, sans-serif" fontSize="112" fontWeight="800" letterSpacing="12" textLength="552" lengthAdjust="spacingAndGlyphs">
+      <text x="0" y="104" fill="currentColor" fontFamily="Inter, 'SF Pro Display', -apple-system, BlinkMacSystemFont, 'Segoe UI', Arial, sans-serif" fontSize="142" fontWeight="620" letterSpacing="-6" textLength="432" lengthAdjust="spacingAndGlyphs">
         {/* i18n-ignore: brand name */}
-        LEGION
+        Argust
       </text>
     </svg>
   );

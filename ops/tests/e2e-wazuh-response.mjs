@@ -3,13 +3,13 @@
  * Automatic response, end to end, with a REAL Wazuh manager:
  *
  *   automated SSH password guessing (35 attempts from one address in seconds)
- *     → Wazuh manager rules → custom-legion.py → Legion webhook
- *     → Legion recognises the burst as a campaign (velocity) and, with
+ *     → Wazuh manager rules → custom-legion.py → Argust webhook
+ *     → Argust recognises the burst as a campaign (velocity) and, with
  *       automatic response on, blocks the address (audited, expiring)
  *     → the manager's command wodle runs custom-legion.py --sync-blocklist
  *     → JSON line in /var/ossec/logs/legion-blocklist.log → rule 100950
  *     → Wazuh active response firewall-drop for that address
- *   and Legion's own block event does NOT come back as an alert; an
+ *   and Argust's own block event does NOT come back as an alert; an
  *   administrator's unblock stops the re-announcement and Wazuh lifts the
  *   block at its timeout.
  *
@@ -59,7 +59,7 @@ async function main() {
   const port = await freePort();
   api = await startApi({
     NODE_ENV: "development", DEPLOYMENT_MODE: "self-hosted", DATABASE_URL: db.url,
-    // The manager runs in its own network namespace and reaches Legion through the bridge.
+    // The manager runs in its own network namespace and reaches Argust through the bridge.
     LEGION_BIND_ADDRESS: "0.0.0.0",
     JWT_SECRET: randomBytes(48).toString("hex"), PAYMENT_HASH_KEY: randomBytes(32).toString("hex"), LEGION_ENCRYPTION_KEYS: `wzr:${randomBytes(32).toString("hex")}`,
     FRONTEND_URL: FRONTEND, COOKIE_SECURE: "true",
@@ -75,7 +75,7 @@ async function main() {
   const auto = await c.call("/security/auto-response", { method: "PATCH", body: { mode: "auto", minutes: 30 } });
   check("automatic response switched on by the administrator", auto.status === 200 && auto.body.mode === "auto", auto.text);
 
-  section("Wazuh manager with Legion's response configuration");
+  section("Wazuh manager with Argust's response configuration");
   docker("run", "-d", "--name", NAME, IMAGE);
   const ready = await until(async () => /wazuh-analysisd is running/.test(dexec("/var/ossec/bin/wazuh-control status").stdout), 240_000, 3000);
   check(`real Wazuh manager running (${IMAGE})`, Boolean(ready));
@@ -139,7 +139,7 @@ async function main() {
     const list = (await c.call("/security/campaigns")).body?.campaigns ?? [];
     return list.find((x) => x.subject === ATTACKER) ?? null;
   }, 180_000, 2000);
-  check("Legion recognised the attack as a campaign", Boolean(campaign), dexec("tail -5 /var/ossec/logs/integrations.log").stdout);
+  check("Argust recognised the attack as a campaign", Boolean(campaign), dexec("tail -5 /var/ossec/logs/integrations.log").stdout);
   if (!campaign) return;
   note("campaign", { rule: campaign.rule, alerts: campaign.alert_count, techniques: campaign.techniques, seconds_after_attack_began: Math.round((Date.now() - t0) / 1000) });
   const alerts = (await c.call("/alerts")).body;
@@ -166,12 +166,12 @@ async function main() {
   check("Wazuh EXECUTED firewall-drop for that address (active response)", Boolean(ar), dexec("tail -20 /var/ossec/logs/active-responses.log 2>/dev/null; tail -5 /var/ossec/logs/ossec.log").stdout);
   if (ar) note("active-responses.log", ar.split("\n").filter((l) => l.includes(ATTACKER)).slice(0, 2).map((l) => l.slice(0, 220)));
   await sleep(5000);
-  const echoed = ((await c.call("/alerts")).body ?? []).filter((a) => /Legion automatic response/i.test(a.title));
-  check("Legion's own block event did not come back as an alert", echoed.length === 0, JSON.stringify(echoed).slice(0, 300));
+  const echoed = ((await c.call("/alerts")).body ?? []).filter((a) => /Argust automatic response/i.test(a.title));
+  check("Argust's own block event did not come back as an alert", echoed.length === 0, JSON.stringify(echoed).slice(0, 300));
 
   section("an administrator unblocks it");
   const un = await c.call(`/security/blocks/${ATTACKER}`, { method: "DELETE" });
-  check("unblocked in Legion", un.status === 200, un.text);
+  check("unblocked in Argust", un.status === 200, un.text);
   const forgotten = await until(async () => {
     const state = dexec("cat /var/ossec/tmp/legion-blocklist-state.json 2>/dev/null").stdout;
     return state && !state.includes(ATTACKER) ? state : null;

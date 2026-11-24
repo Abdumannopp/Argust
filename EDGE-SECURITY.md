@@ -1,6 +1,6 @@
 # Network edge: proxies, origins, cookies, headers
 
-What Legion believes about a request's origin, and how to configure it.
+What Argust believes about a request's origin, and how to configure it.
 
 ## Client address and trusted proxies
 
@@ -65,11 +65,11 @@ already served a request and WebSocket upgrades are not affected.
 
 ## Behind a CDN (Cloudflare)
 
-Per-address limits only work if the real visitor address reaches Legion.
+Per-address limits only work if the real visitor address reaches Argust.
 `ops/update-cloudflare-ips.sh` writes an nginx snippet that believes
 `CF-Connecting-IP` only from Cloudflare's published ranges (validated before use;
 a poisoned or truncated list is refused); nginx then sets `X-Forwarded-For` from
-that address and Legion needs no configuration change (it trusts only the local
+that address and Argust needs no configuration change (it trusts only the local
 nginx). Setup, origin lockdown and dashboard rules: `DEPLOY-ONLINE.md` §12.
 `ops/check-cloudflare-setup.sh` verifies a live setup (DNS proxied, answers via
 Cloudflare, webhook not challenged, origin closed, real addresses in the log).
@@ -118,10 +118,10 @@ Dashboard (`frontend/next.config.mjs`): CSP limited to itself, the API/WS origin
 from `NEXT_PUBLIC_API_URL` and Paddle; HSTS when that URL is https.
 The dashboard CSP keeps `'unsafe-inline'` for scripts (Next.js bootstrap); nonces would need per-request rendering.
 
-## Attacks on the networks Legion watches
+## Attacks on the networks Argust watches
 
-The sections above protect Legion itself. For the customer's own servers,
-Legion links related alerts into attack campaigns and can block a single
+The sections above protect Argust itself. For the customer's own servers,
+Argust links related alerts into attack campaigns and can block a single
 attacking address through the customer's Wazuh manager (`firewall-drop`,
 expiring, audited, off by default). Many-address attacks (botnets, DDoS) are
 reported but not blocked by IP; that remains the job of an edge service like

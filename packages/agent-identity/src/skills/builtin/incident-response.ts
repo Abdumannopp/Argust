@@ -52,7 +52,7 @@ export const incidentResponse: SkillDefinition<Input, Output> = {
   example: { alertIds: ["SEC-1A2B3C4D5E6F7A8B"], status: "suspected" },
   limitations: [
     "Nothing in the plan is executed. Containment actions such as isolating a host, disabling an account or suspending an agent are for a person to take.",
-    "Actions an agent could take through Legion (e.g. updating an alert's status) still go through the agent firewall and need their own permission when requested.",
+    "Actions an agent could take through Argust (e.g. updating an alert's status) still go through the agent firewall and need their own permission when requested.",
     "The plan is built from alert data an attacker may influence; every step says so in its review.",
   ],
   async handler(ctx, q) {
@@ -139,7 +139,7 @@ export const incidentResponse: SkillDefinition<Input, Output> = {
         users, sourceIps,
       },
       plan: { containment, investigation, recovery },
-      notice: "Legion has not performed any of these actions. Each one must be carried out, or approved, by a person; actions an agent can request still pass the agent firewall.",
+      notice: "Argust has not performed any of these actions. Each one must be carried out, or approved, by a person; actions an agent can request still pass the agent firewall.",
       narrative,
       untrusted: ctx.untrusted(),
     };

@@ -9,7 +9,7 @@ export const nav = defineMessages({
     assets: "Assets",
     incidents: "Incidents",
     defense: "Defense",
-    team: "Legion team",
+    team: "Argust team",
     copilot: "AI Copilot",
     reports: "Reports",
     billing: "Billing",

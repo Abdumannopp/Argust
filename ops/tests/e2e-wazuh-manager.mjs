@@ -4,11 +4,11 @@
  *
  *   sshd log lines → Wazuh manager (analysisd rules, integratord)
  *     → integrations/custom-legion(.py) inside the manager
- *     → Legion webhook (built API, NODE_ENV=production) → PostgreSQL
+ *     → Argust webhook (built API, NODE_ENV=production) → PostgreSQL
  *     → outbox → worker → email (SMTP sink) + realtime frame (WebSocket) → API/UI
  *
- * then Legion is stopped while the manager keeps firing: the integration
- * spools, and once Legion is back every spooled event lands exactly once.
+ * then Argust is stopped while the manager keeps firing: the integration
+ * spools, and once Argust is back every spooled event lands exactly once.
  *
  * Needs Docker (wazuh/wazuh-manager image) and host networking.
  *   E2E_ADMIN_DATABASE_URL=postgresql://…/postgres node ops/tests/e2e-wazuh-manager.mjs [--json out.json]
@@ -103,7 +103,7 @@ async function main() {
 `;
   dexec(`cat >> /var/ossec/etc/ossec.conf <<'EOF'${block}EOF`);
   const restart = dexec("/var/ossec/bin/wazuh-control restart");
-  check("manager restarted with the Legion integration configured", restart.status === 0, restart.stderr || restart.stdout);
+  check("manager restarted with the Argust integration configured", restart.status === 0, restart.stderr || restart.stdout);
   await until(async () => /wazuh-integratord is running/.test(dexec("/var/ossec/bin/wazuh-control status").stdout), 120_000, 2000);
   check("integratord running", /wazuh-integratord is running/.test(dexec("/var/ossec/bin/wazuh-control status").stdout));
   await sleep(5000);
@@ -115,7 +115,7 @@ async function main() {
     const list = (await c.call("/alerts")).body;
     return Array.isArray(list) ? list.find((a) => a.source === "wazuh" && /brute force|authentication fail/i.test(a.title)) : null;
   }, 120_000, 1000);
-  check("the manager's brute-force alert reached Legion's API", Boolean(alert), dexec("tail -20 /var/ossec/logs/integrations.log; tail -5 /var/ossec/logs/alerts/alerts.json").stdout);
+  check("the manager's brute-force alert reached Argust's API", Boolean(alert), dexec("tail -20 /var/ossec/logs/integrations.log; tail -5 /var/ossec/logs/alerts/alerts.json").stdout);
   if (!alert) return;
   note("manager → API latency", `${Date.now() - t0} ms (includes the manager's log polling)`);
   note("alert", { title: alert.title, severity: alert.severity, source_ip: alert.source_ip, mitre: alert.mitre_technique });
@@ -133,7 +133,7 @@ async function main() {
   const integLog = dexec("cat /var/ossec/logs/integrations.log 2>/dev/null; cat /var/ossec/logs/integrations-legion.log 2>/dev/null").stdout;
   check("the integration log on the manager carries no secret", !integLog.includes(cred.body.secret));
 
-  section("Legion down: the manager keeps firing, the integration spools, nothing is lost");
+  section("Argust down: the manager keeps firing, the integration spools, nothing is lost");
   const before = (await c.call("/alerts")).body.length;
   // Wazuh's brute-force rule (5712) has ignore="60": after it fires, the manager
   // itself stays quiet for a minute. Wait it out so the outage burst really fires.
@@ -141,14 +141,14 @@ async function main() {
   await api.stop();
   inject(bruteForce("203.0.113.77"));
   const fired = await until(async () => Number(dexec("grep -c '203.0.113.77' /var/ossec/logs/alerts/alerts.json || true").stdout.trim()) > 0, 90_000, 2000);
-  check("the manager fired its alert while Legion was down", Boolean(fired));
+  check("the manager fired its alert while Argust was down", Boolean(fired));
   const spooled = await until(async () => {
     const r = dexec("ls /var/ossec/tmp/legion-spool/*/ 2>/dev/null | grep -c json || true");
     return Number(r.stdout.trim()) > 0;
   }, 120_000, 2000);
-  check("while Legion is down, the integration spools the event on the manager", Boolean(spooled), dexec("tail -5 /var/ossec/logs/integrations.log").stdout);
+  check("while Argust is down, the integration spools the event on the manager", Boolean(spooled), dexec("tail -5 /var/ossec/logs/integrations.log").stdout);
   api = await startApi(env, { port });
-  check("Legion restarted", api.up);
+  check("Argust restarted", api.up);
   // The next alert's delivery drains the spool first (oldest first).
   await sleep(65_000);
   inject(bruteForce("192.0.2.99"));

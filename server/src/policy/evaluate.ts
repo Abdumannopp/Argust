@@ -83,7 +83,7 @@ export function evaluatePolicy(req: PolicyRequest, policy: PolicyDocument | null
     agent = named as Agent;
     if (!entry.agents.includes(agent)) return outcome(req, "DENY", ["AGENT_NOT_ALLOWED"], base);
   }
-  // Live: only what Legion can really do, and only where an administrator opted in. A policy document
+  // Live: only what Argust can really do, and only where an administrator opted in. A policy document
   // cannot grant either; it can still refuse or require approval below.
   const live = req.mode === "live";
   if (live) {

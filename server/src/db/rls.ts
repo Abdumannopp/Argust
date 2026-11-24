@@ -1,5 +1,5 @@
 /**
- * F-04 (PR-3a): row-level security for the tables Legion only ever reaches workspace-first.
+ * F-04 (PR-3a): row-level security for the tables Argust only ever reaches workspace-first.
  *
  * Isolation between workspaces was enforced by the application alone: every query carries
  * `tenant_id = $1`, and a static guard (tests/tenant-query-guard.test.ts) checks that it does.

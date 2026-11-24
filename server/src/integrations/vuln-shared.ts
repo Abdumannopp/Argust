@@ -1,7 +1,7 @@
 /**
- * Vulnerability findings from scanners (Tenable, Qualys), in the one shape the rest of Legion already reads.
+ * Vulnerability findings from scanners (Tenable, Qualys), in the one shape the rest of Argust already reads.
  *
- * Legion's vulnerability skills recognise a finding by its title: "CVE-… affects <component>" (the form Wazuh's
+ * Argust's vulnerability skills recognise a finding by its title: "CVE-… affects <component>" (the form Wazuh's
  * vulnerability detector uses). Scanner findings are written the same way, so exposure_review and
  * vulnerability_analysis see them with no change. A weakness with no CVE keeps the scanner's own name; it is an
  * alert, but not a "vulnerability finding" for those skills.

@@ -1,5 +1,5 @@
 /**
- * Live executors: the actions Legion can really carry out, and the checks that run AT THE MOMENT it does.
+ * Live executors: the actions Argust can really carry out, and the checks that run AT THE MOMENT it does.
  *
  * Reaching here already means the policy engine and the workspace's protection settings agreed. These
  * executors do not trust that: each one checks the facts again (plan, address, allowlist), because the
@@ -60,7 +60,7 @@ const EXECUTORS: Record<string, Executor> = {
   "notify.admins": async (tenantId, input, ctx) => {
     const subject = String(input.subject);
     const queued = await transaction((client) => enqueueProtectionNotice(client, tenantId, `notify:${ctx.actionId}`, {
-      kind: "notice", title: subject, facts: [["Alert", String(input.alert_id ?? "—")], ["Sent by", "Legion (protection)"]],
+      kind: "notice", title: subject, facts: [["Alert", String(input.alert_id ?? "—")], ["Sent by", "Argust (protection)"]],
       path: input.alert_id ? `/incident/${encodeURIComponent(String(input.alert_id))}` : "/",
     }));
     // dedupe_key makes a repeat queue nothing, so "0" after a retry is fine; with no mail server it is not "sent".
@@ -79,7 +79,7 @@ async function respondThrough(tenantId: string, action: ResponseAction, target: 
   const conns = kinds.length ? await queryAll<{ id: string; tenant_id: string; kind: string; name: string; config: Record<string, unknown> | null; secrets_enc: string | null }>(
     "SELECT id, tenant_id, kind, name, config, secrets_enc FROM integration_connections WHERE tenant_id = $1 AND status = 'active' AND kind = ANY($2::text[]) ORDER BY created_at LIMIT 2", [tenantId, kinds]) : [];
   if (!conns.length) throw new LiveRefused("no_connector", "No response connection for this is set up in the workspace (Connect page)");
-  if (conns.length > 1) throw new LiveRefused("no_connector", "More than one response connection could do this; say which one to act through (Legion does not choose between them)");
+  if (conns.length > 1) throw new LiveRefused("no_connector", "More than one response connection could do this; say which one to act through (Argust does not choose between them)");
   const c = conns[0]!;
   if (c.tenant_id !== tenantId) throw new LiveRefused("no_connector", "No response connection for this workspace");
   const adapter = responseAdapter(c.kind)!;

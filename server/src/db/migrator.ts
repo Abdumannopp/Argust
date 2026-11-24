@@ -1,5 +1,5 @@
 /**
- * Applying Legion's schema: the base schema files (schema.sql + the agent schema) and the
+ * Applying Argust's schema: the base schema files (schema.sql + the agent schema) and the
  * versioned migrations in db/migrations. Separate from pool.ts so that the provisioning step
  * (provision-cli.ts) can run it as the schema owner without loading config.ts and the API's
  * secrets. The API calls it through pool.ts migrate(), which only migrates when its own role

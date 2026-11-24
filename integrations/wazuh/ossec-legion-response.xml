@@ -1,5 +1,5 @@
 <!--
-  Legion automatic response — add these three blocks inside <ossec_config> in
+  Argust automatic response — add these three blocks inside <ossec_config> in
   /var/ossec/etc/ossec.conf on the Wazuh manager, then restart it:
     systemctl restart wazuh-manager
 
@@ -14,7 +14,7 @@
     chown wazuh:wazuh /var/ossec/logs/legion-blocklist.log
 -->
 
-<!-- 1. Every minute, fetch Legion's blocklist (custom-legion.py ‐‐sync-blocklist). -->
+<!-- 1. Every minute, fetch Argust's blocklist (custom-legion.py ‐‐sync-blocklist). -->
 <wodle name="command">
   <disabled>no</disabled>
   <tag>legion-blocklist</tag>
@@ -32,7 +32,7 @@
 </localfile>
 
 <!-- 3. Block the address on every agent; lifted after <timeout> seconds unless
-        Legion still lists it (the script re-announces it every 5 minutes). -->
+        Argust still lists it (the script re-announces it every 5 minutes). -->
 <active-response>
   <command>firewall-drop</command>
   <location>all</location>

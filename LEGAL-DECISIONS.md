@@ -1,6 +1,6 @@
 # Legal answers: what was adopted
 
-Source: "Legion Global Legal Answers", a counsel-review **draft**. It is **not** approved by a lawyer.
+Source: "Argust Global Legal Answers", a counsel-review **draft**. It is **not** approved by a lawyer.
 Every item below must be confirmed by one before it is relied on. See LEGAL-QUESTIONS.md for the questions.
 
 ## Built

@@ -1,5 +1,5 @@
 /**
- * Adversarial tests for Legion's AI (ai.ts, ai-safety.ts, ai-policy.ts).
+ * Adversarial tests for Argust's AI (ai.ts, ai-safety.ts, ai-policy.ts).
  *
  * The provider is replaced by a fake that records exactly what would have left
  * the server, and answers however the test wants — obediently, maliciously,
@@ -528,7 +528,7 @@ describe("AI provider failure", () => {
     await alert("E-5");
     reply = () => new Response("down", { status: 500 });
     for (let i = 0; i < 4; i++) await explain(analyst, "E-5").expect(200);
-    expect(logged.filter((l) => l.includes("Legion AI:")).length).toBeLessThanOrEqual(1);
+    expect(logged.filter((l) => l.includes("Argust AI:")).length).toBeLessThanOrEqual(1);
   });
 
   it("with no provider configured, nothing is sent and everything still works", async () => {

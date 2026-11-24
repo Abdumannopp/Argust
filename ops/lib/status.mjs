@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-// Backup status file: a small JSON document that answers "is Legion's backup
+// Backup status file: a small JSON document that answers "is Argust's backup
 // healthy?" without anyone reading logs. Written by ops/backup.sh and
 // ops/verify-backup.sh, read by ops/check-backup.sh and GET /health/backup.
 //

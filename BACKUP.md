@@ -1,4 +1,4 @@
-# Legion — Backup and disaster recovery
+# Argust — Backup and disaster recovery
 
 > **Update:** backups are now **encrypted** (age, with a public key), copied off
 > the server, test-restored every time, and monitored with alerts.

@@ -176,7 +176,7 @@ export function managementRouter(
       credential: {
         ...out.credential,
         secret: out.secret,
-        notice: "Store this secret now. Legion keeps only a hash and cannot show it again.",
+        notice: "Store this secret now. Argust keeps only a hash and cannot show it again.",
       },
     });
   }));
@@ -187,7 +187,7 @@ export function managementRouter(
 
   // The registry: identity, owner, lifecycle, permissions, tools and skills,
   // connected systems, risk and last activity for every identity of this
-  // kind — computed from Legion's own records. Before "/:id".
+  // kind — computed from Argust's own records. Before "/:id".
   router.get("/registry", staff, handle(async (req, res) => {
     const days = Math.min(Math.max(Number(req.query.days) || 30, 1), 90);
     res.json({ windowDays: days, agents: await buildRegistry({ pool: deps.pool, store, host }, me(req).tenantId, kind, days) });
@@ -292,7 +292,7 @@ export function managementRouter(
       return created;
     });
     res.status(201).json({
-      credential: { ...out.credential, secret: out.secret, notice: "Store this secret now. Legion keeps only a hash." },
+      credential: { ...out.credential, secret: out.secret, notice: "Store this secret now. Argust keeps only a hash." },
     });
   }));
 

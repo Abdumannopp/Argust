@@ -70,7 +70,7 @@ const describe = (kind: string, host: string) => (input: Record<string, unknown>
 
 registerActionConnector({
   manifest: { kind: "wazuh", displayName: "Wazuh active response", status: "available", capabilities: [{ action_id: "ip.block", mode: "simulation_only" }, { action_id: "ip.unblock", mode: "simulation_only" }],
-    egressHosts: [], auth: "Wazuh pulls Legion's blocklist with a signed credential (WAZUH.md); Legion makes no outbound call" },
+    egressHosts: [], auth: "Wazuh pulls Argust's blocklist with a signed credential (WAZUH.md); Argust makes no outbound call" },
   preview: (input, actionId) => ({ ...describe("wazuh", "")(input, actionId), egress_host: null }),
 });
 registerActionConnector({

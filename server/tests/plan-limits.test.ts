@@ -118,7 +118,7 @@ describe("Paddle's webhook records the plan", () => {
     expect(sub).toMatchObject({ plan: "business", addons: ["payment_fraud"], paddle_price_id: "pri_biz_m" });
   });
 
-  it("only add-ons, or a price Legion does not sell, grant nothing", async () => {
+  it("only add-ons, or a price Argust does not sell, grant nothing", async () => {
     const t = await tenant(); const admin = await user(t, "admin");
     const token = (await checkout(admin, { plan: "starter" })).body.checkout_token;
     const noPlan = await paddle(event(["pri_addon_pay"], { custom_data: { checkout_token: token } }));
@@ -218,7 +218,7 @@ describe("Paddle's webhook records the plan", () => {
       reply = () => ({ status: 503, body: {} });
       expect((await change(admin, { plan: "business" })).status).toBe(502);
       expect((await ent(admin)).plan).toBe("starter");
-      // the provider answers with something else than was asked: Legion follows the provider, never the request
+      // the provider answers with something else than was asked: Argust follows the provider, never the request
       reply = () => ({ status: 200, body: { data: { items: [{ price: { id: "pri_pro_m" } }] } } });
       expect((await change(admin, { plan: "business" })).body.entitlements.plan).toBe("professional");
       reply = () => ({ status: 200, body: { data: { items: [{ price: { id: "pri_mystery" } }] } } });

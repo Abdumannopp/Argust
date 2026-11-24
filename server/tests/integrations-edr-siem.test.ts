@@ -327,7 +327,7 @@ describe("end to end through the worker", () => {
   });
 });
 
-describe("audit A-9: a vendor raising an alert's severity raises the Legion alert", () => {
+describe("audit A-9: a vendor raising an alert's severity raises the Argust alert", () => {
   it("raises (never lowers), notes it in the text, audits it, and keeps the status", async () => {
     await ingestFindings(tA, "crowdstrike", [finding("v1", { severity: "medium" })]);
     const id = findingAlertId(tA, "crowdstrike", "v1");
@@ -382,7 +382,7 @@ describe("ServiceNow", () => {
     const post = calls.find((c) => c.method === "POST")!;
     expect(post.headers.authorization).toBe(`Basic ${Buffer.from("legion.int:sn-pass-VERY-secret").toString("base64")}`);
     const sent = JSON.parse(post.body);
-    expect(sent).toMatchObject({ impact: "1", urgency: "1", correlation_display: "Legion" });
+    expect(sent).toMatchObject({ impact: "1", urgency: "1", correlation_display: "Argust" });
     expect(sent.correlation_id).toMatch(/^legion-SEC-[A-F0-9]{16}$/);
     expect(new URL(calls.find((c) => c.method === "GET")!.url).searchParams.get("sysparm_query")).toBe(`correlation_id=${sent.correlation_id}`);
     const id = findingAlertId(tA, "wazuh", "sn1");
@@ -422,7 +422,7 @@ describe("Opsgenie", () => {
     expect(calls).toHaveLength(1);
     expect(calls[0]!.url).toBe("https://api.eu.opsgenie.com/v2/alerts");
     expect(calls[0]!.headers.authorization).toBe(`GenieKey ${KEY}`);
-    expect(JSON.parse(calls[0]!.body)).toMatchObject({ alias: `legion-${findingAlertId(tA, "wazuh", "og1")}`, priority: "P1", source: "Legion" });
+    expect(JSON.parse(calls[0]!.body)).toMatchObject({ alias: `legion-${findingAlertId(tA, "wazuh", "og1")}`, priority: "P1", source: "Argust" });
   });
   it("a key that is not an Opsgenie key is refused when saving", async () => {
     expect((await create(adminA, { ...body, secrets: { api_key: "nope" } })).status).toBe(400);

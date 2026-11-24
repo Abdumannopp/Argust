@@ -1,5 +1,5 @@
 /**
- * AI agents in Legion: the @legion/agent-identity module, wired to this
+ * AI agents in Argust: the @legion/agent-identity module, wired to this
  * server.
  *
  * What it adds: registered identities for AI agents and service accounts,
@@ -53,7 +53,7 @@ export interface AgentLayerDeps {
 }
 
 /**
- * What Legion can say about an asset's reachability. A public address is
+ * What Argust can say about an asset's reachability. A public address is
  * directly reachable from the internet. A private address says nothing: the
  * asset may sit behind NAT, a load balancer or a port forward, so it stays
  * "unknown" instead of being called internal (which would reassure wrongly).
@@ -62,7 +62,7 @@ export function exposureOf(ip: string | null | undefined): "internet" | "unknown
   return ip && isPublicAddress(ip) ? "internet" : "unknown";
 }
 
-/** A Legion alert in the shape the security skills read. */
+/** A Argust alert in the shape the security skills read. */
 export function toSecurityEvent(a: Alert): SecurityEvent {
   return {
     id: a.id,
@@ -258,7 +258,7 @@ const STOP_ACTIONS: Array<[method: string, path: RegExp]> = [
   ["POST", /^\/agent\/v1\/token\/revoke$/],
 ];
 const READ = new Set(["GET", "HEAD", "OPTIONS"]);
-/** The Legion team's skills; everything else on the agent surface is agent security. */
+/** The Argust team's skills; everything else on the agent surface is agent security. */
 const SKILLS_SURFACE = /^\/skills(\/|$)/;
 
 /**
@@ -296,7 +296,7 @@ export function subscriptionGate(deps: Pick<AgentLayerDeps, "accessState">) {
       const state = await deps.accessState(tenantId);
       if (state === "ok" || (state === "readonly" && READ.has(req.method))) {
         // The plan decides whether this surface is included at all: the five
-        // Legion agents' skills (Professional+), identities/firewall for the
+        // Argust agents' skills (Professional+), identities/firewall for the
         // customer's own agents (AI Agent Security: Professional+, or the add-on).
         // Stopping agents was let through above; nothing a plan removes can strand a running agent.
         const plan = await resolvePlan(tenantId);
@@ -306,10 +306,10 @@ export function subscriptionGate(deps: Pick<AgentLayerDeps, "accessState">) {
       }
       return res.status(402).json({
         detail: state === "readonly"
-          ? "Your subscription payment is past due. Legion is read-only until it is settled."
-          : "This workspace does not have an active Legion subscription.",
+          ? "Your subscription payment is past due. Argust is read-only until it is settled."
+          : "This workspace does not have an active Argust subscription.",
         access_state: state,
-        error: { code: "subscription_inactive", message: "This workspace does not have an active Legion subscription.", access_state: state },
+        error: { code: "subscription_inactive", message: "This workspace does not have an active Argust subscription.", access_state: state },
       });
     } catch (error) {
       next(error);
@@ -347,7 +347,7 @@ function agentAlert(a: Alert) {
 }
 
 /**
- * The agent API over Legion's own data: the same store functions the
+ * The agent API over Argust's own data: the same store functions the
  * dashboard uses, each behind the firewall (permission, tenant, suspension,
  * risk, prompt-injection hold) and the principal audit trail.
  */
@@ -367,7 +367,7 @@ function agentRoutes(identity: Identity, deps: AgentLayerDeps): Router {
   async function allowed(req: Request, res: import("express").Response, write: boolean): Promise<boolean> {
     const state = await deps.accessState(me(req).tenantId);
     if (state === "ok" || (state === "readonly" && !write)) return true;
-    res.status(402).json({ error: { code: "subscription_inactive", message: "This workspace does not have an active Legion subscription.", access_state: state } });
+    res.status(402).json({ error: { code: "subscription_inactive", message: "This workspace does not have an active Argust subscription.", access_state: state } });
     return false;
   }
 
@@ -421,7 +421,7 @@ function agentRoutes(identity: Identity, deps: AgentLayerDeps): Router {
       throw error;
     }
     if (!alert) return res.status(404).json({ error: { code: "not_found", message: "Alert not found." } });
-    // Legion's own audit log, next to the people's changes: who (the agent) and on whose behalf (its owner).
+    // Argust's own audit log, next to the people's changes: who (the agent) and on whose behalf (its owner).
     await store.audit({
       tenant_id: p.tenantId, user_id: null, user_email: null, action: "alert.status_updated", resource_type: "alert",
       resource_id: alert.id, detail: `${body.data.status}${body.data.reason ? `: ${body.data.reason}` : ""} (by ${p.type} ${p.displayName} ${p.id}, owner ${p.ownerUserId})`, ip_address: req.ip || null,

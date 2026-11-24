@@ -1,7 +1,7 @@
 /**
  * Where a piece of content came from. Everything here is untrusted by
- * default: it was written by someone other than Legion and the person or
- * agent Legion is working for.
+ * default: it was written by someone other than Argust and the person or
+ * agent Argust is working for.
  */
 export const CONTENT_SOURCES = [
   "email",

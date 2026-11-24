@@ -20,7 +20,7 @@ export function destinationKey(destination: string | null | undefined): string |
   return destination;
 }
 
-/** Destinations outside Legion: the web, mail, chat, code hosting, cloud, MCP servers. */
+/** Destinations outside Argust: the web, mail, chat, code hosting, cloud, MCP servers. */
 export function isExternal(key: string | null): boolean {
   return !!key && /^(?:url|email|slack|github|cloud|mcp):/.test(key) && key !== "email:mailbox";
 }

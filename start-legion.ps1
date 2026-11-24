@@ -1,10 +1,10 @@
-# Legion — Windows launcher (no Docker required).
+# Argust — Windows launcher (no Docker required).
 #
 #   Set-ExecutionPolicy -Scope Process Bypass
 #   .\start-legion.ps1
 #
 # Checks Node.js, installs dependencies, runs setup the first time, and starts
-# Legion. Safe to run again — setup keeps existing secrets and data.
+# Argust. Safe to run again — setup keeps existing secrets and data.
 
 $ErrorActionPreference = "Stop"
 Set-Location $PSScriptRoot
@@ -26,7 +26,7 @@ if ($nodeMajor -lt 20) {
 Ok "Node.js $(node --version)"
 
 # --- PostgreSQL --------------------------------------------------------------
-# Legion runs on PostgreSQL. Windows installer:
+# Argust runs on PostgreSQL. Windows installer:
 #   https://www.postgresql.org/download/windows/
 # Remember the superuser password the installer asks for — setup will ask for it.
 
@@ -68,13 +68,13 @@ if (-not (Test-Path "server\.env")) {
 
 # --- Build and run -----------------------------------------------------------
 
-Say "Building Legion..."
+Say "Building Argust..."
 npm run build
 if ($LASTEXITCODE -ne 0) { Fail "Build failed." }
 
 Write-Host ""
 Write-Host "────────────────────────────────────────────────" -ForegroundColor DarkGray
-Write-Host "  Legion:  http://localhost:3000" -ForegroundColor Magenta
+Write-Host "  Argust:  http://localhost:3000" -ForegroundColor Magenta
 Write-Host "  API:     http://localhost:8000" -ForegroundColor Magenta
 Write-Host ""
 Write-Host "  Open it in a browser and create the first" -ForegroundColor Gray

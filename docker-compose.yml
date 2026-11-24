@@ -1,8 +1,8 @@
-# Legion — self-hosted deployment with Docker.
+# Argust — self-hosted deployment with Docker.
 #
 # Start it with ./install.sh (Linux/macOS) or .\start-docker.ps1 (Windows).
 # Those generate the secrets this file expects and then run docker compose.
-# Values with no default here are deliberate: Legion must never start with a
+# Values with no default here are deliberate: Argust must never start with a
 # guessable secret.
 
 # Container logs are rotated (5 × 20 MB per service): without a limit Docker's json-file logs grow
@@ -113,7 +113,7 @@ services:
       SMTP_PORT: ${SMTP_PORT:-587}
       SMTP_USER: ${SMTP_USER:-}
       SMTP_PASSWORD: ${SMTP_PASSWORD:-}
-      SMTP_FROM: ${SMTP_FROM:-Legion <no-reply@example.com>}
+      SMTP_FROM: ${SMTP_FROM:-Argust <no-reply@example.com>}
       ALERT_EMAIL_MIN_SEVERITY: ${ALERT_EMAIL_MIN_SEVERITY:-high}
       # A self-hosted install is single-tenant in practice; no demo workspace.
       SEED_DEMO_DATA: "false"

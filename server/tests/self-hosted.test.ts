@@ -1,5 +1,5 @@
 /**
- * Self-hosted mode: the customer runs Legion on their own server.
+ * Self-hosted mode: the customer runs Argust on their own server.
  *
  * The behaviours here are the ones that differ from the hosted service, and
  * each exists because the hosted assumptions actively harm a self-hosted

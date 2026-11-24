@@ -1,5 +1,5 @@
 /**
- * Requirement 4, the Legion server's side: alert text is data for the AI, and
+ * Requirement 4, the Argust server's side: alert text is data for the AI, and
  * the AI's answer is advice for a person — neither can change anything.
  *
  * This already held when reviewed; these tests pin it, so a future

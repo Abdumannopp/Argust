@@ -1,6 +1,6 @@
 /**
  * The universal event envelope (v1): one strict shape for anything a source
- * tells Legion, whatever the vendor. Adapters already produce a Finding;
+ * tells Argust, whatever the vendor. Adapters already produce a Finding;
  * `fromFinding` lifts it into the envelope that the SOC core (orchestrator,
  * memory, audit) consumes, so nothing downstream learns a vendor's format.
  *

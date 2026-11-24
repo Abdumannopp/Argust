@@ -256,7 +256,7 @@ describe("Paddle turns a payment into access", () => {
     expect((await store.getSubscription(payer.user.tenant_id))?.status).toBe("canceled");
   });
 
-  it("audit P1-4: a subscription for a price Legion does not offer is recorded but grants no access", async () => {
+  it("audit P1-4: a subscription for a price Argust does not offer is recorded but grants no access", async () => {
     const saved = config.paddlePriceIds;
     (config as { paddlePriceIds: Record<string, string> }).paddlePriceIds = { USD: "pri_01test" };
     try {
@@ -272,7 +272,7 @@ describe("Paddle turns a payment into access", () => {
       const audit = await query("SELECT detail FROM audit_log WHERE tenant_id = $1 AND action = 'billing.unrecognised_price'", [payer.user.tenant_id]);
       expect(audit.rows[0]?.detail).toBe("pri_99cheaper");
 
-      // The price Legion does offer still works.
+      // The price Argust does offer still works.
       const ok = await paddleEvent(subscriptionEvent("subscription.created", {
         id: "sub_right", items: [{ price: { id: "pri_01test" } }], custom_data: { checkout_token: ctx.body.checkout_token },
       }));

@@ -333,7 +333,7 @@ function startDashboardStub() {
   });
 }
 
-/** nginx's own refusal is an HTML page; Legion's refusals are JSON. */
+/** nginx's own refusal is an HTML page; Argust's refusals are JSON. */
 const byNginx = (r) => r.status === 429 && /html/.test(r.headers.get("content-type") ?? "");
 const byLegion = (r) => r.status === 429 && /json/.test(r.headers.get("content-type") ?? "");
 
@@ -390,20 +390,20 @@ async function partB() {
 
     section("B3. the real client address behind a CDN");
     // Exhaust the address's nginx bucket again right before probing it: the bursts above took seconds, and nginx
-    // refills one token every 2 s (30/min), so on a slow runner a lone probe could pass nginx and meet Legion's
+    // refills one token every 2 s (30/min), so on a slow runner a lone probe could pass nginx and meet Argust's
     // own limiter instead. The assertion below stays strict: this address must be refused by nginx.
     await burst(cf.base, 60, login);
     const a = await burst(cf.base, 1, login);
     const b = await burst(cf.base, 1, { ...login, headers: { ...login.headers, "cf-connecting-ip": "198.51.100.2" } });
     check("trusted CDN: the visitor already throttled stays throttled …", byNginx(a[0]), String(a[0].status));
     check("… and a different visitor behind the same CDN is unaffected (own bucket, reaches the API)", b[0].status === 401, String(b[0].status));
-    // Legion itself must see the real address too: its own per-address sign-in limit (10 / min) is the proof.
+    // Argust itself must see the real address too: its own per-address sign-in limit (10 / min) is the proof.
     const mk = (ip) => ({ ...login, headers: { ...login.headers, "cf-connecting-ip": ip }, body: JSON.stringify({ username: `u${ip}@example.com`, password: "wrong-wrong-wrong" }) });
     const seq = async (base, ip, n) => { const out = []; for (let i = 0; i < n; i++) out.push((await burst(base, 1, mk(ip)))[0]); return out; };
     const x = await seq(cf.base, "198.51.100.50", 14);
     const y = await burst(cf.base, 1, mk("198.51.100.51"));
-    note("Legion's per-address sign-in limit through nginx (14 attempts from X, then 1 from Y)", { x: x.map((r) => r.status).join(","), y: y[0].status });
-    check("trusted CDN: Legion throttles visitor X on its own limit but still serves visitor Y (it sees the real addresses)", x.some(byLegion) && y[0].status === 401, `${x.map((r) => r.status)} / ${y[0].status}`);
+    note("Argust's per-address sign-in limit through nginx (14 attempts from X, then 1 from Y)", { x: x.map((r) => r.status).join(","), y: y[0].status });
+    check("trusted CDN: Argust throttles visitor X on its own limit but still serves visitor Y (it sees the real addresses)", x.some(byLegion) && y[0].status === 401, `${x.map((r) => r.status)} / ${y[0].status}`);
 
     // The same traffic through nginx that does NOT trust the sender (an attacker who reaches the origin directly, or a stale range list).
     const o1 = await burst(other.base, 80, login);

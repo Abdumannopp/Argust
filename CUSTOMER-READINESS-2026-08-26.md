@@ -17,7 +17,7 @@ When opened on a customer's server, the `/privacy` page claimed:
 - "we may disclose data if required by law"
 - "we may use limited analytics cookies"
 
-The code was checked: **none of this was true.** Legion has no analytics, no
+The code was checked: **none of this was true.** Argust has no analytics, no
 telemetry and no automatic update check. The whole code base sends data to only
 three destinations: Groq (only if the customer provides a key), Paddle (switched
 off entirely in self-hosted mode) and SMTP (the customer's own mail server).

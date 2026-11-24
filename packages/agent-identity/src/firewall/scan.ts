@@ -2,7 +2,7 @@ import { createHash } from "node:crypto";
 import { canonical } from "../chain.js";
 
 /*
- * Deterministic content checks on anything leaving Legion through an agent:
+ * Deterministic content checks on anything leaving Argust through an agent:
  * egress bodies, tool and MCP arguments, agent-to-agent messages.
  * High-confidence secret formats only — a match blocks outright.
  */

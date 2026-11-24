@@ -97,7 +97,7 @@ function capWarn(tenantId: string): void {
   if (Date.now() - last < 3_600_000) return;
   if (capWarned.size > 10_000) capWarned.clear();
   capWarned.set(tenantId, Date.now());
-  console.warn(`Legion: alert email cap (${config.alertEmailHourlyCap}/hour) reached for tenant ${tenantId}; further alerts this hour are not emailed.`);
+  console.warn(`Argust: alert email cap (${config.alertEmailHourlyCap}/hour) reached for tenant ${tenantId}; further alerts this hour are not emailed.`);
 }
 
 /** In the caller's transaction: queue the alert email if this alert needs one. */
@@ -175,7 +175,7 @@ export async function insertAlertAndNotify(alert: NewAlert, opts: IngestOptions 
     if (config.orchestratorAutoMode === "shadow") {
       await enqueueJob(client, inserted.tenant_id, "workflow.run", { workflow: "alert_response", alert_id: inserted.id, mode: "shadow" }, `alert_response:${inserted.id}:shadow`);
     }
-    // A workspace whose administrator allowed Legion to act: queue the live response in the same commit.
+    // A workspace whose administrator allowed Argust to act: queue the live response in the same commit.
     // The worker re-checks everything when it runs; this only skips workspaces in manual mode.
     if (await wantsLiveResponse(client, inserted.tenant_id, inserted.source)) {
       await enqueueJob(client, inserted.tenant_id, "workflow.run", { workflow: "alert_response", alert_id: inserted.id, mode: "live" }, `alert_response:${inserted.id}:live`);
@@ -204,7 +204,7 @@ interface OutboxRow {
 async function deadLetterAbandoned(kind: JobKind | null): Promise<number> {
   // Every workspace's rows: through the bounded owner function (migration 0014), not a direct statement.
   const res = await query<{ id: string }>("SELECT id FROM legion_outbox_dead_abandoned($1) AS id", [kind]);
-  for (const r of res.rows) console.error(`Legion: notification ${r.id} dead-lettered (worker stopped during final attempt)`);
+  for (const r of res.rows) console.error(`Argust: notification ${r.id} dead-lettered (worker stopped during final attempt)`);
   return res.rowCount ?? 0;
 }
 
@@ -231,7 +231,7 @@ async function renewLease(row: OutboxRow): Promise<boolean> {
 async function complete(row: OutboxRow, sql: string, params: unknown[]): Promise<boolean> {
   const res = await withTenant(row.tenant_id, () => query(`${sql} WHERE id = $1 AND status = 'sending' AND attempts = $2`, [row.id, row.attempts, ...params]));
   if ((res.rowCount ?? 0) === 1) return true;
-  console.warn(`Legion: notification ${row.id} attempt ${row.attempts} finished after losing its lease; outcome not recorded`);
+  console.warn(`Argust: notification ${row.id} attempt ${row.attempts} finished after losing its lease; outcome not recorded`);
   return false;
 }
 
@@ -353,7 +353,7 @@ export async function deliverDue(opts: DeliverOptions = {}): Promise<DeliveryRep
       if (row.attempts >= row.max_attempts || outcome.permanent) {
         sql = "UPDATE notification_outbox SET status = 'dead', locked_until = NULL, last_error = $3";
         params = [reason]; counts = "dead";
-        console.error(`Legion: notification ${row.id} (${row.kind}) gave up after ${row.attempts} attempts: ${reason}`);
+        console.error(`Argust: notification ${row.id} (${row.kind}) gave up after ${row.attempts} attempts: ${reason}`);
       } else {
         const base = row.kind === "realtime_alert" ? config.realtimeRetryBaseSeconds : config.notifyRetryBaseSeconds;
         sql = `UPDATE notification_outbox SET status = 'pending', locked_until = NULL, last_error = $3,
@@ -496,7 +496,7 @@ async function tick(): Promise<void> {
     const results = await Promise.allSettled([deliverDue({ kind: "realtime_alert" }), deliverDue({ kind: "alert_email" }), deliverDue({ kind: "protection_email" }), deliverDue({ kind: "integration_message" })]);
     for (const r of results) {
       if (r.status === "rejected") {
-        console.error("Legion: notification worker failed:", r.reason instanceof Error ? r.reason.message : "unknown error");
+        console.error("Argust: notification worker failed:", r.reason instanceof Error ? r.reason.message : "unknown error");
       }
     }
     if (Date.now() - lastPrune > 3_600_000) {
@@ -505,7 +505,7 @@ async function tick(): Promise<void> {
       await pruneDeliveredEmails();
     }
   } catch (error) {
-    console.error("Legion: notification worker failed:", error instanceof Error ? error.message : "unknown error");
+    console.error("Argust: notification worker failed:", error instanceof Error ? error.message : "unknown error");
   } finally {
     running = false;
     lastTickAt = Date.now();

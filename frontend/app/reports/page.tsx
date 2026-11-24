@@ -130,7 +130,7 @@ export default function ReportsPage() {
 
   const total = alerts.length;
 
-  // Where detections came from (Wazuh, an integration, Legion itself).
+  // Where detections came from (Wazuh, an integration, Argust itself).
   const sourceCounts = alerts.reduce<Record<string, number>>((acc, a) => {
     const label = sourceLabel(a.source, t) ?? t.reports.otherSource;
     acc[label] = (acc[label] || 0) + 1;

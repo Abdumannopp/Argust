@@ -9,7 +9,7 @@ const SKILLS = [
 ];
 const AGENTS = ["Sentinel", "Hunter", "Guardian", "Oracle", "Vanguard"];
 
-describe("Legion team page text", () => {
+describe("Argust team page text", () => {
   it.each(["en"] as const)("%s: every agent and every skill has text", (locale) => {
     const m = team[locale];
     expect(Object.keys(m.agents).sort()).toEqual([...AGENTS].sort());

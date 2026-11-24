@@ -4,10 +4,10 @@
  * An API token of a user (or service user) with the "Viewer" role is enough; it is sealed per connection and sent
  * as "Authorization: ApiToken …". The console is chosen by name (acme → acme.sentinelone.net), never typed as a URL;
  * only *.sentinelone.net is reachable. Cursor: the newest updatedAt; the filter is "updatedAt__gte", so an updated
- * threat comes again — a duplicate, or a raised severity (audit A-9). A threat is stored once, by its id. Legion
+ * threat comes again — a duplicate, or a raised severity (audit A-9). A threat is stored once, by its id. Argust
  * never mitigates, quarantines or disconnects anything.
  *
- * SentinelOne threats have no severity field. Legion derives it: malicious and not mitigated → critical,
+ * SentinelOne threats have no severity field. Argust derives it: malicious and not mitigated → critical,
  * malicious → high, suspicious → medium, anything else → medium (never silently low).
  */
 import { z } from "zod";

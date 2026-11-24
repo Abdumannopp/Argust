@@ -1,4 +1,4 @@
-# Trying Legion on your own computer
+# Trying Argust on your own computer
 
 This guide needs no technical knowledge. Each step says **what you should see** —
 if you see something different, stop there.
@@ -18,7 +18,7 @@ npm install
 npm run try
 ```
 
-The first time takes 2–3 minutes (it prepares the database and builds Legion);
+The first time takes 2–3 minutes (it prepares the database and builds Argust);
 after that, a few seconds.
 
 **You should see:**
@@ -28,13 +28,13 @@ OK  Database running on port 54329
 OK  Schema applied
 OK  Configuration written
 
-Legion is starting.
+Argust is starting.
   Dashboard:  http://localhost:3000
 ```
 
 **Open the address on the last line in a browser** and go to **step 5**.
 
-> **Note:** if port 3000 is used by another program, Legion finds a free port
+> **Note:** if port 3000 is used by another program, Argust finds a free port
 > itself and says so:
 > ```
 > Dashboard port 3000 is busy — using 3001 instead.
@@ -75,7 +75,7 @@ yourself and no script runs).
 
 ## A real installation
 
-You need Node.js and PostgreSQL. Docker is not required — Legion runs directly
+You need Node.js and PostgreSQL. Docker is not required — Argust runs directly
 on Node.js and stores data in the PostgreSQL you install.
 
 ---
@@ -88,7 +88,7 @@ https://nodejs.org — click "LTS" and install.
 
 ## Step 2. Install PostgreSQL
 
-This is the database where Legion keeps its data. You install it once and forget it.
+This is the database where Argust keeps its data. You install it once and forget it.
 
 **Windows, step by step:**
 
@@ -138,7 +138,7 @@ npm run setup
 > Always run `npm install` **first**. Without it `npm run setup` does not work
 > (it cannot find the packages it needs).
 
-`npm run setup` finds PostgreSQL, creates a database for Legion and generates
+`npm run setup` finds PostgreSQL, creates a database for Argust and generates
 the secrets.
 
 **If it asks for a password** — enter the one you wrote down in the Password
@@ -163,7 +163,7 @@ npm run build
 npm start
 ```
 
-**You should see:** `Legion Node API: http://localhost:8000`
+**You should see:** `Argust Node API: http://localhost:8000`
 
 On Windows, one file does it all instead:
 ```
@@ -178,7 +178,7 @@ Now go to **step 5** (open it in a browser).
 
 In a browser: **http://localhost:3000**
 
-**You should see:** the Legion logo and a sign-in window.
+**You should see:** the Argust logo and a sign-in window.
 
 Sign up — choose an email and password (a real email is not needed; for a test,
 `admin@test.example` is fine).
@@ -198,7 +198,7 @@ Sign out and sign in again. It should work.
 Open a new private (incognito) window, go to http://localhost:3000 again and
 try to sign up.
 
-**You should see:** *"This Legion installation is already set up"* — a stranger
+**You should see:** *"This Argust installation is already set up"* — a stranger
 cannot open an account. That is correct.
 
 ### 6.3 Invite a colleague
@@ -245,7 +245,7 @@ data must still be there. If they are gone, report it — that is a serious prob
 
 ## What next
 
-If these seven steps worked, Legion is running on your computer.
+If these seven steps worked, Argust is running on your computer.
 
 The next two tasks — **before your first customer**:
 

@@ -2,17 +2,17 @@
  * Automatic response: the addresses a workspace's Wazuh manager should block.
  *
  * AI-driven attacks move faster than a person reads an alert, so a defence that
- * waits for a person loses the race. Legion keeps a per-workspace blocklist;
+ * waits for a person loses the race. Argust keeps a per-workspace blocklist;
  * the Wazuh manager pulls it (integrations/custom-legion.py --sync-blocklist,
  * run by Wazuh's command wodle) and turns each entry into its own active
  * response (firewall-drop on every agent, undone after the configured timeout).
- * Nothing is pushed into the customer's network and Legion holds no Wazuh
+ * Nothing is pushed into the customer's network and Argust holds no Wazuh
  * credentials: the manager asks, signed with its existing sensor credential.
  *
  * Entries come from an administrator (any address, any time) or, when the
  * workspace switched it on, from a campaign (campaigns.ts). Automatic blocking
  * is where a defence can be turned against its owner — an attacker who can make
- * Legion block your partners, or exhaust the list — so it has hard limits:
+ * Argust block your partners, or exhaust the list — so it has hard limits:
  *
  *   - off unless an administrator turns it on ('auto'),
  *   - only campaigns that identify ONE attacking address (rapid_chain,
@@ -59,7 +59,7 @@ export interface Block {
 export interface AutoResponseSettings { mode: "off" | "auto"; minutes: number; allowlist: string; /** An administrator has accepted the current notice. */ acknowledged: boolean }
 
 /**
- * The notice an administrator accepts before Legion may block addresses on their
+ * The notice an administrator accepts before Argust may block addresses on their
  * own (the text is shown in the dashboard). Bump the version when its meaning
  * changes: everyone is asked again before turning automatic blocking on.
  */
@@ -189,7 +189,7 @@ export class BlockError extends Error {
 
 /**
  * Adds a block, or extends the active one for that address. `userId` null means
- * Legion decided (automatic). Returns the block, and whether it is new.
+ * Argust decided (automatic). Returns the block, and whether it is new.
  */
 export async function addBlock(
   tenantId: string, ipInput: string, opts: { minutes: number; reason: string; campaignId?: string | null; userId: string | null },

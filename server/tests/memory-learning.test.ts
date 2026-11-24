@@ -2,7 +2,7 @@
  * Task 10, module 7 — Memory and Learning foundation.
  *
  * Memory is written by people (never by a model), cleaned, bounded, expiring
- * and per workspace; it can only make Legion more careful. Learning counts
+ * and per workspace; it can only make Argust more careful. Learning counts
  * people's decisions on agents' proposals and only ever SUGGESTS.
  */
 import { describe, it, expect, beforeAll, beforeEach, afterAll } from "vitest";
@@ -92,7 +92,7 @@ describe("memory", () => {
     expect(results.filter((r) => r.status === 409)).toHaveLength(3);
   });
 
-  it("can only make Legion more careful: a harmless-marked address is not even proposed for blocking", async () => {
+  it("can only make Argust more careful: a harmless-marked address is not even proposed for blocking", async () => {
     await putPolicy(tenantA, { schema: 1, default_autonomy: "ASSIST", rules: [] }, { expectedVersion: 0, userId: admin.id });
     for (const [id, ip] of [["SEC-1", "185.220.101.4"], ["SEC-2", "185.220.101.5"]] as const) {
       await store.insertAlert({ id, tenant_id: tenantA, title: "Brute force", severity: "high", agent: "Sentinel", status: "open", summary: "s", confidence: 80,

@@ -24,7 +24,7 @@ const via = z.enum(["crowdstrike_response", "sentinelone_response", "defender_re
 export interface CatalogEntry {
   id: string;
   class: RiskClass;
-  /** read: changes nothing. write: changes Legion's or a customer system's state. */
+  /** read: changes nothing. write: changes Argust's or a customer system's state. */
   effect: "read" | "write";
   /** Which agents may propose it. Humans are governed by RBAC on the route. */
   agents: readonly Agent[];
@@ -101,7 +101,7 @@ const entries: CatalogEntry[] = [
 ];
 
 /**
- * The actions Legion can really carry out (actions/live.ts has an executor for each). Everything else
+ * The actions Argust can really carry out (actions/live.ts has an executor for each). Everything else
  * stays simulation-only, whatever a policy or a workspace says: there is nothing to call.
  * The same list is a CHECK on tenants.protection_auto_actions (migration 0012), so adding one needs
  * a migration as well as code, and a test (protection.test.ts) keeps the three in step.
@@ -113,10 +113,10 @@ export const LIVE_ACTION_IDS: readonly string[] = ["ip.block", "notify.admins"];
  * executor too, but they are a different thing from the list above: they can NEVER be pre-authorised. A machine's
  * proposal always waits for people (isolate and disable are critical: two people, each with a second-factor code),
  * and only an administrator can start one by hand. They are not in the database's list of actions a workspace may
- * let Legion take on its own, and policy/evaluate.ts never treats them as authorised by a protection setting.
+ * let Argust take on its own, and policy/evaluate.ts never treats them as authorised by a protection setting.
  */
 export const RESPONSE_LIVE_ACTION_IDS: readonly string[] = ["host.isolate", "host.release", "account.disable", "account.enable"];
-/** Everything Legion has an executor for. */
+/** Everything Argust has an executor for. */
 export const EXECUTABLE_ACTION_IDS: readonly string[] = [...LIVE_ACTION_IDS, ...RESPONSE_LIVE_ACTION_IDS];
 
 const byId = new Map(entries.map((e) => [e.id, Object.freeze(e)]));

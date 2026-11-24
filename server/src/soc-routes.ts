@@ -240,7 +240,7 @@ export function registerSocRoutes(app: Express, { requirePermission, parse, log,
     }
   });
 
-  // --- Protection modes: how much Legion may do on its own, because a person said so ------------
+  // --- Protection modes: how much Argust may do on its own, because a person said so ------------
 
   app.get("/soc/protection", requirePermission("actions:read"), async (req: AuthedRequest, res) => {
     const tenantId = req.user!.tenant_id;
@@ -291,7 +291,7 @@ export function registerSocRoutes(app: Express, { requirePermission, parse, log,
       connectors: connectorsFor(a.id).map((c) => c.manifest.kind),
       connected: await connectedFor(tenantId, a.id),
     })));
-    // live_actions: what Legion can really do, in a workspace whose administrator opted in (GET /soc/protection).
+    // live_actions: what Argust can really do, in a workspace whose administrator opted in (GET /soc/protection).
     // Everything else in `actions` stays simulation-only: there is no executor for it.
     res.json({ connectors: actionConnectors(), actions: actions.map((a) => ({ ...a, mode: LIVE_ACTION_IDS.includes(a.action_id) ? "live_if_enabled" as const : a.mode })), live_actions: LIVE_ACTION_IDS });
   });

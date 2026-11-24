@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 #
-# Back up Legion's database: dump → prove it restores → encrypt → copy off the
+# Back up Argust's database: dump → prove it restores → encrypt → copy off the
 # server → prune. Any failure exits non-zero, leaves no file that looks like a
 # good backup, records the failure in the status file and sends an alert.
 #
@@ -41,13 +41,13 @@ on_exit() {
     [[ -n "$REASON" ]] || REASON="unexpected error (exit $rc)"
     REASON="$(printf '%s' "$REASON" | scrub | tr '\n' ' ' | head -c 400)"
     status_set "last_attempt_at=$(now_iso)" "last_failure_at=$(now_iso)" "last_failure_stage=$STAGE" "last_failure_reason=$REASON"
-    send_alert "Legion backup FAILED on $(hostname)" "Stage: $STAGE. Reason: $REASON"
+    send_alert "Argust backup FAILED on $(hostname)" "Stage: $STAGE. Reason: $REASON"
     ping_monitor /fail
   fi
 }
 trap on_exit EXIT
 
-: "${DATABASE_URL:?DATABASE_URL must be set to the same value the Legion server uses}"
+: "${DATABASE_URL:?DATABASE_URL must be set to the same value the Argust server uses}"
 RETENTION_DAYS_LEGACY="${RETENTION_DAYS:-}"
 
 STAGE="preflight"

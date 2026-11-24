@@ -21,13 +21,13 @@ export async function seedDemoIfEmpty(): Promise<void> {
   if (Number(existing?.count ?? 0) > 0) return;
 
   if (!config.seedDemoData) {
-    console.info("Legion: empty database (demo seed disabled).");
+    console.info("Argust: empty database (demo seed disabled).");
     return;
   }
   // The demo login (admin@legion.demo / legion123) is published. It is created
   // only on a server nobody else can reach.
   if (!loopbackBind) {
-    console.warn(`Legion: SEED_DEMO_DATA=true ignored — the API listens on ${config.bindAddress}, and the demo login is public.`);
+    console.warn(`Argust: SEED_DEMO_DATA=true ignored — the API listens on ${config.bindAddress}, and the demo login is public.`);
     return;
   }
 
@@ -51,7 +51,7 @@ export async function seedDemoIfEmpty(): Promise<void> {
 
     await client.query(
       "INSERT INTO tenants (id, name, trial_ends_at) VALUES ($1, $2, $3)",
-      [tenantId, "Legion Demo", trialEnd()]
+      [tenantId, "Argust Demo", trialEnd()]
     );
     await client.query(
       // Verified: in hosted mode an unconfirmed address cannot sign in, and
@@ -92,7 +92,7 @@ export async function seedDemoIfEmpty(): Promise<void> {
     return true;
   }));
 
-  if (seeded) console.info("Legion: demo workspace seeded (admin@legion.demo / legion123).");
+  if (seeded) console.info("Argust: demo workspace seeded (admin@legion.demo / legion123).");
 }
 
 /** Test helper: empties every table while keeping the schema. */

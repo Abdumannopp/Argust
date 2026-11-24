@@ -1,7 +1,7 @@
 /**
  * Two-factor authentication (TOTP, RFC 6238).
  *
- * Legion tells customers to "enforce MFA" when it sees a credential alert.
+ * Argust tells customers to "enforce MFA" when it sees a credential alert.
  * Shipping a security product that cannot do it itself is not defensible, and
  * it is the first item on every vendor security questionnaire.
  */
@@ -76,7 +76,7 @@ export async function secretFor(user: Pick<User, "id" | "mfa_secret_enc" | "mfa_
   const secret = open(user.mfa_secret_enc, PURPOSE, user.id);
   if (secret === null || !BASE32.test(secret)) {
     // Identify the key, never the value: this is what an operator needs.
-    console.error(`Legion: the two-factor secret of user ${user.id} cannot be decrypted (key "${keyIdOf(user.mfa_secret_enc) ?? "unknown"}"). Check LEGION_ENCRYPTION_KEYS; MFA stays enabled and sign-in is refused.`);
+    console.error(`Argust: the two-factor secret of user ${user.id} cannot be decrypted (key "${keyIdOf(user.mfa_secret_enc) ?? "unknown"}"). Check LEGION_ENCRYPTION_KEYS; MFA stays enabled and sign-in is refused.`);
     return { ok: false, reason: "unreadable", keyId: keyIdOf(user.mfa_secret_enc) };
   }
   if (needsRotation(user.mfa_secret_enc)) {

@@ -90,7 +90,7 @@ describe("Excessive permissions", () => {
     const actUnderGrant = await authorize(w, a, SHELL_CALL("echo", ["under-analyst-delegation"]), { "x-legion-on-behalf-of": "anna" });
     ev("actUnderAnalystGrant", brief(actUnderGrant));
     return partial(
-      `An analyst (non-admin) role was able to delegate tool.shell:execute and tool.cloud:write to an agent, and the agent could act under that grant (status ${actUnderGrant.status}). This module's ROLE_CEILING treats "analyst" and "admin" identically (both get every permission tier) — only "viewer" is capped to tier 0. This may be intentional (Legion may consider "analyst" a fully trusted staff role for delegation purposes), but it means a compromised analyst account can hand full tool authority to an agent without any admin involvement.`,
+      `An analyst (non-admin) role was able to delegate tool.shell:execute and tool.cloud:write to an agent, and the agent could act under that grant (status ${actUnderGrant.status}). This module's ROLE_CEILING treats "analyst" and "admin" identically (both get every permission tier) — only "viewer" is capped to tier 0. This may be intentional (Argust may consider "analyst" a fully trusted staff role for delegation purposes), but it means a compromised analyst account can hand full tool authority to an agent without any admin involvement.`,
       "Medium",
       "If analysts should not be able to delegate destructive/tier-2 tool authority (shell execute, cloud write) without admin approval, lower ROLE_CEILING for \"analyst\" below tier 2, or require admin co-signature for tier-2 delegations. If this is intentional, document it explicitly so operators don't assume delegation is admin-gated the way agent creation is.",
     );

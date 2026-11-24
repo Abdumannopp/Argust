@@ -1,6 +1,6 @@
 # Language: English only
 
-Legion is built for the global market and ships in English only. The server
+Argust is built for the global market and ships in English only. The server
 answers in English whatever `Accept-Language` says, emails are English, and
 there is no language switcher.
 

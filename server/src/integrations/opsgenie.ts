@@ -3,7 +3,7 @@
  *
  * alias is "legion-<alert id>", so Opsgenie itself collapses repeats: a retry never pages twice. The API key of an
  * "API" integration (create alerts only) is sealed per connection and sent as "Authorization: GenieKey …". The
- * region is chosen from a fixed list (us → api.opsgenie.com, eu → api.eu.opsgenie.com). Legion creates alerts only.
+ * region is chosen from a fixed list (us → api.opsgenie.com, eu → api.eu.opsgenie.com). Argust creates alerts only.
  * Note: Atlassian has announced the end of Opsgenie as a separate product; Jira Service Management's alerting uses
  * the same API.
  */
@@ -38,8 +38,8 @@ export const opsgenieAdapter: OutboundAdapter = {
       headers: { authorization: `GenieKey ${conn.secrets.api_key}`, "content-type": "application/json" },
       body: JSON.stringify({
         message: msg.title.slice(0, 130), alias: `legion-${msg.alertId}`.slice(0, 512),
-        description: [msg.summary, msg.sourceIp ? `Source address: ${msg.sourceIp}` : "", `Open in Legion: ${msg.link}`].filter(Boolean).join("\n\n").slice(0, 15_000),
-        priority: PRIORITY[msg.severity], source: "Legion", tags: ["legion", `severity-${msg.severity}`],
+        description: [msg.summary, msg.sourceIp ? `Source address: ${msg.sourceIp}` : "", `Open in Argust: ${msg.link}`].filter(Boolean).join("\n\n").slice(0, 15_000),
+        priority: PRIORITY[msg.severity], source: "Argust", tags: ["legion", `severity-${msg.severity}`],
         entity: (msg.target ?? "").slice(0, 512) || undefined,
         details: { legion_alert: msg.alertId, link: msg.link },
       }),

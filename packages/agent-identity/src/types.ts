@@ -6,7 +6,7 @@ import type { FirewallDecision } from "./firewall/types.js";
  * Who is behind a request. Every request is exactly one of these; nothing is
  * ever "just an API client".
  *
- * - human            a person signed in through Legion's existing login
+ * - human            a person signed in through Argust's existing login
  * - ai_agent         an autonomous or semi-autonomous AI system with its own
  *                    registered identity and an accountable human owner
  * - service_account  a non-AI machine identity (scripts, integrations)
@@ -74,7 +74,7 @@ export interface HostUser {
 }
 
 /**
- * The module's only contact with Legion's existing authentication. It calls
+ * The module's only contact with Argust's existing authentication. It calls
  * these; it never reads cookies, verifies human JWTs or touches the users
  * table itself, so human login behaviour cannot change underneath it.
  */

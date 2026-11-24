@@ -266,7 +266,7 @@ class Run {
     tenantScoped = true,
   ): Promise<T[]> {
     if (this.signal.aborted) throw new SkillError("timeout", "The skill took too long.");
-    if (!call) throw new SkillError("data_unavailable", `This Legion installation does not provide ${what}.`, { reason: "not_configured" });
+    if (!call) throw new SkillError("data_unavailable", `This Argust installation does not provide ${what}.`, { reason: "not_configured" });
     let raw: unknown;
     try {
       raw = await call();

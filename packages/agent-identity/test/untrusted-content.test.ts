@@ -11,7 +11,7 @@
  * Now every piece of external content an agent reads is recorded, and for a
  * while afterwards (policy: promptInjection.untrustedHoldSeconds, default 15
  * minutes) the agent may still READ but may not change state, act outside
- * Legion, touch confidential data or message other agents until a person
+ * Argust, touch confidential data or message other agents until a person
  * reviews what it read. The classifier no longer decides whether content can
  * lead to an action; it only decides how loudly to raise the alarm.
  */

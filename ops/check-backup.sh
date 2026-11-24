@@ -18,7 +18,7 @@ cd "$(dirname "$0")/.." || exit 1
 # shellcheck source=ops/lib/common.sh
 source ops/lib/common.sh
 if [[ "${1:-}" == "--test-alert" ]]; then
-  send_alert "Legion backup alert TEST from $(hostname)" "If you can read this, backup failures will reach you."
+  send_alert "Argust backup alert TEST from $(hostname)" "If you can read this, backup failures will reach you."
   log "test alert sent to the configured channels (check that it arrived)"; exit 0
 fi
 PROBLEMS="$(node ops/lib/status.mjs "$STATUS_FILE" check)"; RC=$?
@@ -28,6 +28,6 @@ if (( RC == 0 )); then
   exit 0
 fi
 log "BACKUP UNHEALTHY:"; printf '  - %s\n' "$PROBLEMS" >&2
-send_alert "Legion backups UNHEALTHY on $(hostname)" "$PROBLEMS"
+send_alert "Argust backups UNHEALTHY on $(hostname)" "$PROBLEMS"
 ping_monitor /fail
 exit 1

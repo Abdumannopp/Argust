@@ -41,7 +41,7 @@ export interface ApprovalRow {
 
 /**
  * The digest an approval is bound to: the action as the agent asked for it
- * (not Legion's analysis of it, which a policy change could alter), plus the
+ * (not Argust's analysis of it, which a policy change could alter), plus the
  * authority it runs under — a person it acts for, or a relayed request.
  */
 export function approvalDigest(ctx: FirewallContext, req: ActionRequest): string {

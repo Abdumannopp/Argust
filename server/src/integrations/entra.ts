@@ -3,9 +3,9 @@
  * leaked credentials, impossible travel, sign-ins from anonymous or malware-linked addresses, password spray,
  * unfamiliar sign-in properties, token anomalies.
  *
- * An app registration with the application permission IdentityRiskEvent.Read.All (client credentials); Legion
+ * An app registration with the application permission IdentityRiskEvent.Read.All (client credentials); Argust
  * asks login.microsoftonline.com for a token and reads graph.microsoft.com only. The client secret is sealed
- * per connection. Risk detections need Entra ID P1 or P2. Cursor: the newest detectedDateTime. One Legion alert
+ * per connection. Risk detections need Entra ID P1 or P2. Cursor: the newest detectedDateTime. One Argust alert
  * per detection id. Read only: this connection can never change an account (that is "entra_response").
  */
 import { z } from "zod";
@@ -44,7 +44,7 @@ export function findingFromRiskDetection(d: Obj): Finding | null {
   const type = cleanText(d.riskEventType, 80);
   if (!id || !type) return null;
   const level = String(d.riskLevel ?? "").toLowerCase();
-  // "none" and "hidden" carry no risk Legion can state; a dismissed or remediated detection is history.
+  // "none" and "hidden" carry no risk Argust can state; a dismissed or remediated detection is history.
   if (!(level in LEVEL)) return null;
   const state = String(d.riskState ?? "").toLowerCase();
   if (state === "dismissed" || state === "remediated" || state === "confirmedsafe") return null;

@@ -15,9 +15,9 @@ const card = "lg-surface p-5";
 const MODES: ProtectionMode[] = ["manual", "hybrid", "automatic"];
 
 /**
- * How much Legion may do on its own — chosen here by an administrator, never by default. Switching it on asks
+ * How much Argust may do on its own — chosen here by an administrator, never by default. Switching it on asks
  * for the notice to be accepted and (via lib/api.ts) the password again; switching it off, and the emergency
- * stop, never ask anything. Also where the people who must decide see what is waiting, and what Legion did.
+ * stop, never ask anything. Also where the people who must decide see what is waiting, and what Argust did.
  */
 export default function ProtectionSection({ isAdmin }: { isAdmin: boolean }) {
   const { t, locale } = useLanguage();
@@ -172,7 +172,7 @@ export default function ProtectionSection({ isAdmin }: { isAdmin: boolean }) {
         )}
       </div>
 
-      {/* The record: what Legion did, in plain numbers, then the latest actions. */}
+      {/* The record: what Argust did, in plain numbers, then the latest actions. */}
       {report && (
         <div className="mt-6 border-t border-line pt-4" data-testid="protection-report">
           <h3 className="text-ink text-sm font-medium mb-2">{p.report.title}</h3>

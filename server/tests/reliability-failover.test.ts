@@ -82,7 +82,7 @@ async function api(env: Record<string, string> = {}): Promise<ApiProcess> {
     DEPLOYMENT_MODE: "self-hosted", FRONTEND_URL: "http://localhost:3000",
     JWT_SECRET: config.jwtSecret, LEGION_ENCRYPTION_KEYS: config.encryptionKeys,
     DATABASE_URL: dbThroughProxy(), DB_POOL_MAX: "5",
-    SMTP_HOST: "127.0.0.1", SMTP_PORT: String(smtp.port), SMTP_FROM: "Legion <legion@test.example>",
+    SMTP_HOST: "127.0.0.1", SMTP_PORT: String(smtp.port), SMTP_FROM: "Argust <legion@test.example>",
     ALERT_EMAIL_MIN_SEVERITY: "high",
     // Fast schedules so each scenario runs in seconds; the logic is the production logic.
     NOTIFY_POLL_SECONDS: "1", NOTIFY_RETRY_BASE_SECONDS: "1", REALTIME_RETRY_BASE_SECONDS: "1", WS_HEARTBEAT_SECONDS: "5",

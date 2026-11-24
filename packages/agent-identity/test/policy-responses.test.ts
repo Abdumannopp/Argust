@@ -128,7 +128,7 @@ describe("evidence: policy is evaluated and recorded before any sensitive tool r
     expect((await t.pool.query("SELECT count(*)::int AS n FROM tool_call_tickets WHERE decision_id = $1", [d.decisionId])).rows[0].n).toBe(0);
   });
 
-  it("credential theft: sending Legion's own token out KILLS the agent before it hears the answer", async () => {
+  it("credential theft: sending Argust's own token out KILLS the agent before it hears the answer", async () => {
     const { token, secret } = await agentWithToken(t, "alice", { permissions: ["tool.http:write"] });
     const ctx: FirewallContext = { principal: await principalOf(token) };
     const s = spy();

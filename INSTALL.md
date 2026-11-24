@@ -1,11 +1,11 @@
-# Running Legion
+# Running Argust
 
-Legion is software you install on your own server. Nothing in it reports back
+Argust is software you install on your own server. Nothing in it reports back
 to us: there is no telemetry, no analytics, and no licence check that phones
 home. Your security data stays in a database you control.
 
 This guide is for the person who will install and look after that server. It
-assumes ordinary Linux administration and no prior knowledge of Legion.
+assumes ordinary Linux administration and no prior knowledge of Argust.
 
 ---
 
@@ -22,13 +22,13 @@ assumes ordinary Linux administration and no prior knowledge of Legion.
 
 Two things drive the numbers above:
 
-- **Disk grows and is never trimmed for you.** Legion does not delete old
+- **Disk grows and is never trimmed for you.** Argust does not delete old
   alerts on a schedule. Section 9 covers what to do about that before it
   becomes urgent.
-- **RAM is dominated by PostgreSQL**, not by Legion. A busy Wazuh feed wants
+- **RAM is dominated by PostgreSQL**, not by Argust. A busy Wazuh feed wants
   more of it than a quiet one.
 
-Redis is optional. You need it only when you run more than one Legion instance
+Redis is optional. You need it only when you run more than one Argust instance
 behind a load balancer — see section 11.
 
 ---
@@ -51,7 +51,7 @@ Decide these four things now; changing them later means an extra restart.
 
 ## 3. Install
 
-Legion runs directly on Node.js — no Docker or container runtime required.
+Argust runs directly on Node.js — no Docker or container runtime required.
 
 ```bash
 git clone <your-legion-repository> legion
@@ -65,11 +65,11 @@ npm start
 `npm run setup` looks for PostgreSQL on its own. If it cannot find it, it asks
 for the host and the superuser password and does the rest itself. It writes
 `.env` with a freshly generated signing secret and a database password, and
-creates a dedicated, non-superuser database role for Legion (see "Database
+creates a dedicated, non-superuser database role for Argust (see "Database
 privileges" below).
 
 **Back up `.env` immediately, and keep it private.** Losing `JWT_SECRET` signs
-everyone out; losing the database password locks Legion out of its own data.
+everyone out; losing the database password locks Argust out of its own data.
 The file is created readable only by its owner — keep it that way.
 
 **Network exposure.** Bind the dashboard and API to `127.0.0.1`
@@ -89,8 +89,8 @@ are never published.
 
 ### Database privileges
 
-`npm run setup` creates a role for Legion that is **not** the Postgres
-superuser: it owns Legion's own database and nothing else — it cannot read
+`npm run setup` creates a role for Argust that is **not** the Postgres
+superuser: it owns Argust's own database and nothing else — it cannot read
 or write files on the server, create other roles, create other databases, or
 reach any database beyond its own. The Docker install (`install.sh`,
 `start-docker.ps1`) goes further: a one-shot `db-provision` step creates the
@@ -134,7 +134,7 @@ APP_DB_USER=legion_app APP_DB_PASSWORD=$(openssl rand -hex 24) \
 
 then point `DATABASE_URL` in `.env` at that role instead. It's idempotent and
 safe to re-run: it re-checks (and strips) any privilege that drifted since
-the last run, and on an existing installation transfers ownership of Legion's
+the last run, and on an existing installation transfers ownership of Argust's
 tables to the new role automatically.
 
 Add `DB_ROLE_SPLIT=on` to that command for the owner/runtime split described
@@ -148,7 +148,7 @@ before starting the new version.
 .\start-legion.ps1
 ```
 
-This is the evaluation path: it installs what is missing and starts Legion.
+This is the evaluation path: it installs what is missing and starts Argust.
 For a server that people depend on, use Linux.
 
 ### Keeping it running
@@ -200,7 +200,7 @@ rather than quietly naming the wrong party.
 Both values are compiled into the dashboard rather than read at startup, so
 run `npm run build` again after changing them.
 
-Then check that Legion is healthy:
+Then check that Argust is healthy:
 
 ```bash
 curl http://localhost:8000/health
@@ -217,7 +217,7 @@ rather than just confirming the process is alive.
 
 ## Encryption keys
 
-Legion stores two kinds of secret it must be able to read back — two-factor
+Argust stores two kinds of secret it must be able to read back — two-factor
 (TOTP) seeds and webhook signing secrets — encrypted with AES-256-GCM under a
 key used for nothing else:
 
@@ -271,7 +271,7 @@ start without it**, except with `NODE_ENV=development` or `test`.
 
 ## 5. Connecting your alert source
 
-Legion is built around Wazuh. [WAZUH.md](WAZUH.md) has the integration and a
+Argust is built around Wazuh. [WAZUH.md](WAZUH.md) has the integration and a
 section on verifying that events are actually arriving.
 
 Anything that can POST JSON to `/security-events/webhook` works too. Each
@@ -289,13 +289,13 @@ npm run webhook:credential -w server -- create --tenant <tenant-uuid> --label "w
 never crosses the network:
 
 ```text
-x-legion-key-id:     whk_…   (public id; Legion learns the organisation from this)
+x-legion-key-id:     whk_…   (public id; Argust learns the organisation from this)
 x-legion-timestamp:  <Unix time, seconds>
 x-legion-nonce:      <random, new for every request, 16–64 chars [A-Za-z0-9_-]>
 x-legion-signature:  v2=<hex HMAC-SHA256(secret, "v2.<timestamp>.<nonce>." + exact body bytes)>
 ```
 
-Legion verifies the signature over the raw body before parsing it, and refuses
+Argust verifies the signature over the raw body before parsing it, and refuses
 (401) a changed body, a signature from another message or credential, a
 timestamp further than `WEBHOOK_MAX_SKEW_SECONDS` (default 300) from its clock,
 a **nonce it has already seen (replay)**, a revoked or expired credential, a
@@ -304,7 +304,7 @@ organisation is always the one the credential belongs to; an `x-tenant-id` heade
 is ignored (and if present, must match). `integrations/custom-legion.py` does all
 of this; keep the sender's clock synced (NTP). It also retries a connection
 failure, timeout, 408, 429 or 5xx (4 attempts, 1 s / 2 s / 4 s apart, each
-re-signed with a fresh nonce); Legion answers 2xx only after the alert is
+re-signed with a fresh nonce); Argust answers 2xx only after the alert is
 committed, and de-duplicates the retries.
 
 **Rotate** (no outage): `POST /security-events/credentials/<id>/rotate` (or the
@@ -327,13 +327,13 @@ One limit remains: every tenant's key derives from one server-wide secret. See
 
 ## 6. HTTPS
 
-Legion serves plain HTTP by default, because many installations sit on an
+Argust serves plain HTTP by default, because many installations sit on an
 internal network where that is a reasonable choice.
 
 **If the server is reachable from the internet, HTTPS is required.** Without
 it, session cookies and passwords cross the network in the clear.
 
-1. Put a reverse proxy in front of Legion. `deploy/nginx.conf` is a working
+1. Put a reverse proxy in front of Argust. `deploy/nginx.conf` is a working
    config for one domain (dashboard at `/`, API at `/api/`); `certbot --nginx`
    adds the certificate. `npm run setup -- --domain legion.example.com` writes
    the matching `FRONTEND_URL`, `COOKIE_SECURE` and dashboard API address.
@@ -342,7 +342,7 @@ it, session cookies and passwords cross the network in the clear.
    in `.env`.
 3. Restart (`npm run build && npm start`).
 
-Two failure modes are worth knowing in advance, because Legion treats them
+Two failure modes are worth knowing in advance, because Argust treats them
 differently on purpose:
 
 - `COOKIE_SECURE=true` **without** working HTTPS locks everyone out. The
@@ -351,14 +351,14 @@ differently on purpose:
 - `FRONTEND_URL=https://…` **with** `COOKIE_SECURE=false` refuses to start at
   all, and says why. That combination hands out an unprotected session cookie
   on a site the user believes is encrypted, which is the one thing HTTPS is
-  supposed to prevent — so Legion will not run that way rather than run
+  supposed to prevent — so Argust will not run that way rather than run
   insecurely and stay quiet about it.
 
 ---
 
 ## 7. Email (optional)
 
-Without SMTP, Legion still works, but password-reset and invitation links are
+Without SMTP, Argust still works, but password-reset and invitation links are
 printed to the server log instead of being sent. Someone has to read the log
 and pass the link along.
 
@@ -367,7 +367,7 @@ SMTP_HOST=smtp.example.com
 SMTP_PORT=587
 SMTP_USER=legion@example.com
 SMTP_PASSWORD=…
-SMTP_FROM=Legion <no-reply@example.com>
+SMTP_FROM=Argust <no-reply@example.com>
 ALERT_EMAIL_MIN_SEVERITY=high     # critical | high | medium | low | off
 ```
 
@@ -412,7 +412,7 @@ GROQ_API_KEY=gsk-…
 
 Pick an OpenRouter model at <https://openrouter.ai/models>. Leaving
 `OPENROUTER_MODEL` empty is deliberate and safe: the request omits the field
-and OpenRouter applies your account's default, so no Legion upgrade can leave
+and OpenRouter applies your account's default, so no Argust upgrade can leave
 you pointed at a model that has since retired.
 
 If both keys are set, OpenRouter is used. Set `AI_PROVIDER=groq` to override.
@@ -434,7 +434,7 @@ carries `Authorization: Bearer <HEALTH_METRICS_TOKEN>`.)
 
 **What changes when you turn this on.** Alert titles, descriptions, hostnames,
 and IP addresses are sent to that provider for analysis. That is a third-party
-processor handling your security data. Legion sends the provider nothing else —
+processor handling your security data. Argust sends the provider nothing else —
 in particular, it does not pass on the address of your own console.
 
 Decide it deliberately. If you are subject to data-protection rules or have
@@ -471,7 +471,7 @@ signing secret still restores, but every session is invalidated.
 
 ### Retention
 
-Legion keeps alerts, assets, and the audit log **indefinitely**. Sessions
+Argust keeps alerts, assets, and the audit log **indefinitely**. Sessions
 expire on their own; nothing else does.
 
 If a retention limit applies to you — by law, by contract, or because the disk
@@ -529,12 +529,12 @@ provider uses a certificate Node cannot verify against a public root, supply
 the CA with `DB_SSL_CA` — a path or the PEM contents.
 
 There is a `DB_SSL_INSECURE=true` escape hatch that skips certificate
-verification. Against a remote database Legion refuses to start with it set,
+verification. Against a remote database Argust refuses to start with it set,
 and that is intentional: such a connection is encrypted but not authenticated,
-so anything between Legion and the database can impersonate the database and
+so anything between Argust and the database can impersonate the database and
 read everything. Use `DB_SSL_CA`.
 
-**More than one Legion instance.** Set `REDIS_URL` on all of them. Redis does
+**More than one Argust instance.** Set `REDIS_URL` on all of them. Redis does
 two jobs: it makes rate limits count across instances rather than per-instance,
 and it fans out live alert updates so a browser connected to instance A still
 sees an event that arrived at instance B. Without it, both quietly degrade.
@@ -546,7 +546,7 @@ sees an event that arrived at instance B. Without it, both quietly degrade.
 
 ## 12. Who is responsible for what
 
-Legion handles:
+Argust handles:
 
 - Passwords hashed with bcrypt; session tokens stored hashed, never in the clear
 - Refresh-token rotation with reuse detection — presenting an old token
@@ -564,14 +564,14 @@ You handle:
 - Disk and database capacity
 - Who has an account, and removing people when they leave
 
-The split is not a disclaimer. A patched Legion on an unpatched server with no
+The split is not a disclaimer. A patched Argust on an unpatched server with no
 backups is not secure, and no amount of work on our side changes that.
 
 ---
 
-## 13. Removing Legion
+## 13. Removing Argust
 
-Legion writes to three places and nowhere else:
+Argust writes to three places and nowhere else:
 
 1. The PostgreSQL database named in `DATABASE_URL`
 2. The directory you cloned it into
@@ -606,7 +606,7 @@ curl http://localhost:8000/health
 | Reset email never arrives | SMTP is not configured; the link is in the server log. |
 | No alerts appearing | [WAZUH.md](WAZUH.md), verification section. |
 
-Legion refusing to start is a designed behaviour, not a crash. A security tool
+Argust refusing to start is a designed behaviour, not a crash. A security tool
 that boots in a configuration it knows is unsafe is worse than one that stops
 and explains itself, so the error message names the setting and what to do.
 

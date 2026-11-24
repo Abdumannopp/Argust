@@ -1,6 +1,6 @@
 # Legal questions for counsel
 
-For the person who will review Legion before it is sold. It is written so you
+For the person who will review Argust before it is sold. It is written so you
 can hand it to a lawyer as it is: first **what the product actually does** (so
 nobody advises on a guess), then **the questions**, each with why it matters and
 what engineering needs back.
@@ -16,8 +16,8 @@ texts), `LICENSE` (a draft), `NOTICE` (open-source licences), `PRICING.md`,
 
 ## 1. Facts counsel needs (what the code does today)
 
-**What Legion is.** A security console. A customer's Wazuh sensors send
-security events to Legion; Legion groups them, explains them, can block an
+**What Argust is.** A security console. A customer's Wazuh sensors send
+security events to Argust; Argust groups them, explains them, can block an
 attacker's address, can hold a suspicious payment, and can supervise the
 customer's own AI agents. Sold as hosted SaaS (monthly/yearly subscription) and
 as a self-hosted licence.
@@ -35,7 +35,7 @@ data (email, password hash, role, sign-in and audit history).
 | Alert emails (recipient + alert text) | Database | Deleted 30 days after delivery. Undelivered ones are kept. |
 | Sign-in sessions | Database | Expire and are cleaned up. |
 | Payment checks | Database | Account number is **never stored**: only a per-customer keyed hash and the last four characters; beneficiary name, amount, requester and reference are stored. Kept indefinitely. |
-| Billing | Paddle | Paddle is the Merchant of Record and keeps card and tax data. Legion keeps only the subscription status and Paddle's identifiers. |
+| Billing | Paddle | Paddle is the Merchant of Record and keeps card and tax data. Argust keeps only the subscription status and Paddle's identifiers. |
 | Backups | Encrypted files off the server | Daily 14, weekly 8, **monthly 12** (configurable). A deleted record can therefore survive in a backup for up to about a year. |
 
 **Who else touches the data (sub-processors).** Hosting provider (location is
@@ -134,7 +134,7 @@ first enterprise or EU customer · **C** = when convenient.
 |---|---|---|---|
 | 29 | **Monitoring people.** The logs we process identify employees (user names, emails, what files they opened). Whose job is it to tell employees — the customer's? Do we need to put that on the customer in the terms or the DPA? | Employee monitoring has its own rules in many countries. | B |
 | 30 | **Cards and bank numbers in logs.** One skill finds card numbers and IBANs in logs and reports kind and place, never the value. Does processing them pull us into card-industry (PCI) obligations? | We do not store the numbers, but the logs we receive may contain them. | B |
-| 31 | **Breach duties.** If Legion is breached, what must we tell customers and regulators, and how fast? Do we need a published security contact and a vulnerability disclosure policy (safe harbour for researchers)? | We have the incident tooling but no policy text. | A |
+| 31 | **Breach duties.** If Argust is breached, what must we tell customers and regulators, and how fast? Do we need a published security contact and a vulnerability disclosure policy (safe harbour for researchers)? | We have the incident tooling but no policy text. | A |
 | 32 | **Marketing claims.** "Your data is isolated in its own workspace", "never sold", "audited", "defends against…". Which words could be read as a guarantee, and which compliance claims (SOC 2, ISO 27001, GDPR-compliant) must we avoid until we have them? | An advertised protection that is not delivered is a misrepresentation risk. | A |
 | 33 | The payment check says "allow" or "hold". Does a "hold" amount to financial advice, a service regulated in our markets, or interference with a payment? Which disclaimer? | We never see the bank. A person releases a hold. | B |
 

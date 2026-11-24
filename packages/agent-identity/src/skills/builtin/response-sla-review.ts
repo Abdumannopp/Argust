@@ -65,7 +65,7 @@ export const responseSlaReview: SkillDefinition<Input, Output> = {
   auditEvents: ["skill.invoke"],
   example: { windowDays: 30, limit: 20 },
   limitations: [
-    "Legion does not record when an alert was resolved, so it cannot say how long closed alerts took. It measures only what is still open: how long it has waited.",
+    "Argust does not record when an alert was resolved, so it cannot say how long closed alerts took. It measures only what is still open: how long it has waited.",
     "It reads at most the 500 newest high and critical alerts and the 500 newest of any severity in the window. On a very busy workspace an older open alert can be outside them.",
     "The targets are yours to choose; the defaults are common starting points, not a legal or contractual standard.",
     "'Open' means not marked resolved. An alert someone is working on (investigating) still counts as open.",

@@ -1,4 +1,4 @@
-# Legion — architecture decisions (ADR)
+# Argust — architecture decisions (ADR)
 
 **Date:** 2026-08-24
 **Context:** section 26 of the production audit (2026-08-24) listed 10 open decisions.
@@ -21,7 +21,7 @@ For each decision: what the code did at the time, the options, the recommendatio
 **In the code at the time:** `users.email` was **globally unique**, and every user
 had one `tenant_id`. `user.tenant_id` was used in **44 places** in `index.ts`.
 
-Practical consequence: one person could not belong to two Legion workspaces. An
+Practical consequence: one person could not belong to two Argust workspaces. An
 MSSP analyst watching three customers, or a consultant working for two
 companies, **could not exist** in that model. The invitation flow also returned
 `400 — this email is already in use`.

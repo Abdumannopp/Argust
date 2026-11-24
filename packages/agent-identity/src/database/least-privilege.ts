@@ -9,7 +9,7 @@ import { PROTECTED_TABLES } from "../firewall/policy.js";
  * Everything in tools/sql.ts is static analysis: it reads the SQL text and
  * refuses what it doesn't like, but the query still runs — if it runs at
  * all — over whatever Postgres connection the host handed the tool gateway.
- * Until now that was always the same connection Legion's own backend code
+ * Until now that was always the same connection Argust's own backend code
  * uses, which owns every table and can do anything a superuser can. A bug in
  * the analyzer, a caller that builds its own executor and skips it, or a
  * future maintainer wiring the `database` tool kind to the wrong pool would

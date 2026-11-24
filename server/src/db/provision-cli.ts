@@ -4,7 +4,7 @@
  * API gets only the app role's.
  *
  * `npm run setup` already creates a non-superuser role for you, so this is
- * not required to run Legion. Run it when you want the API's database
+ * not required to run Argust. Run it when you want the API's database
  * connection locked down further than that default role — no ownership of
  * the whole database, no ability to create more roles or databases, and
  * every privilege re-checked (and stripped if drifted) each time this runs:

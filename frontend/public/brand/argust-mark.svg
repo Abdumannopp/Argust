@@ -1,0 +1,17 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="512" height="512" viewBox="0 0 512 512" role="img" aria-labelledby="title desc">
+  <title id="title">Argust A symbol</title>
+  <desc id="desc">Standalone abstract A symbol in a blue-to-violet gradient, with a transparent background.</desc>
+  <defs>
+    <linearGradient id="argustGradient" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#8CCBFF"/><stop offset="0.42" stop-color="#3978F6"/><stop offset="0.76" stop-color="#6547ED"/><stop offset="1" stop-color="#B58BFF"/>
+    </linearGradient>
+    <linearGradient id="argustHighlight" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0" stop-color="#FFFFFF" stop-opacity=".62"/><stop offset=".48" stop-color="#FFFFFF" stop-opacity=".08"/><stop offset="1" stop-color="#FFFFFF" stop-opacity=".28"/>
+    </linearGradient>
+  </defs>
+  <g transform="translate(76 79)">
+    <path d="M28 326 C69 253 130 128 166 82 C184 59 211 57 231 82 C264 126 310 246 350 326" fill="none" stroke="url(#argustGradient)" stroke-width="79" stroke-linecap="round" stroke-linejoin="round"/>
+    <path d="M88 243 C145 207 205 187 268 201" fill="none" stroke="url(#argustGradient)" stroke-width="70" stroke-linecap="round" stroke-linejoin="round"/>
+    <path d="M48 314 C96 226 145 125 177 88" fill="none" stroke="url(#argustHighlight)" stroke-width="11" stroke-linecap="round" opacity=".30"/>
+  </g>
+</svg>

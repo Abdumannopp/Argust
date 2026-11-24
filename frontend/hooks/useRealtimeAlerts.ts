@@ -108,9 +108,9 @@ export function useRealtimeAlerts(
     if (fresh.length === 0) return;
     fresh.forEach((a) => notified.current.add(a.id));
     if (fresh.length <= MAX_INDIVIDUAL_NOTIFICATIONS) {
-      fresh.forEach((a) => notify("🚨 Legion Alert", `${a.severity.toUpperCase()}: ${a.title}`, a.id));
+      fresh.forEach((a) => notify("🚨 Argust Alert", `${a.severity.toUpperCase()}: ${a.title}`, a.id));
     } else {
-      notify("🚨 Legion Alert", t.ai.newAlertsNotice(fresh.length), "legion-alert-batch");
+      notify("🚨 Argust Alert", t.ai.newAlertsNotice(fresh.length), "legion-alert-batch");
     }
   }, [newAlerts, t]);
 

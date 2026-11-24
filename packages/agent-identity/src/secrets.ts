@@ -18,7 +18,7 @@ import type { MachineKind } from "./types.js";
  * Neither value is ever stored or logged in the clear.
  *
  * The prefixes also let secret scanners (GitHub, gitleaks) recognise a leaked
- * Legion key.
+ * Argust key.
  */
 
 const CREDENTIAL_PREFIX: Record<MachineKind, string> = { ai_agent: "lga", service_account: "lgs" };
@@ -72,7 +72,7 @@ export function parseAccessToken(value: string): Buffer | null {
   return m ? sha256(m[1]!) : null;
 }
 
-/** Does this bearer value look like any Legion machine secret, valid or not? */
+/** Does this bearer value look like any Argust machine secret, valid or not? */
 export function looksLikeMachineSecret(value: string): "credential" | "access_token" | null {
   if (/^(lga|lgs)_/.test(value)) return "credential";
   if (value.startsWith("lgt_")) return "access_token";

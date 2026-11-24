@@ -1,4 +1,4 @@
-# Legion — re-audit of the production-readiness findings (2026-11)
+# Argust — re-audit of the production-readiness findings (2026-11)
 
 Every finding of [PRODUCTION-READINESS-AUDIT-2026-09-29.md](PRODUCTION-READINESS-AUDIT-2026-09-29.md)
 and every open item of [PRODUCTION-VALIDATION-2026-10-01.md](PRODUCTION-VALIDATION-2026-10-01.md)

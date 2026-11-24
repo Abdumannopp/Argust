@@ -50,7 +50,7 @@ tests:
         alertname: LegionDatabaseLarge
         exp_alerts:
           - exp_labels: { severity: ticket }
-            exp_annotations: { summary: "Legion's database is larger than 20 GiB. Check free disk space and that retention is on." }
+            exp_annotations: { summary: "Argust's database is larger than 20 GiB. Check free disk space and that retention is on." }
 
   - name: a live action with no workspace opted in pages immediately
     interval: 15s
@@ -66,7 +66,7 @@ tests:
         exp_alerts:
           - exp_labels: { severity: page }
             exp_annotations:
-              summary: An action exists in live mode although no workspace allowed Legion to act on its own. Stop the pilot (PILOT.md §10 kill switch).
+              summary: An action exists in live mode although no workspace allowed Argust to act on its own. Stop the pilot (PILOT.md §10 kill switch).
               runbook: PILOT.md §10
 
   - name: live actions in a workspace that opted in are normal, not a page
@@ -88,7 +88,7 @@ tests:
         exp_alerts:
           - exp_labels: { severity: page, job: legion-api }
             exp_annotations:
-              summary: The Legion API is not answering /metrics.
+              summary: The Argust API is not answering /metrics.
               runbook: PILOT.md §9 "API down"
 
   - name: a worker that stopped ticking pages as stale

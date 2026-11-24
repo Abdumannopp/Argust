@@ -1,7 +1,7 @@
 /**
  * Syslog / CEF — a push integration for text logs.
  *
- * Legion does not listen on a syslog port (UDP/514 or TCP/6514 would be an
+ * Argust does not listen on a syslog port (UDP/514 or TCP/6514 would be an
  * unauthenticated network surface). Instead a collector the customer already
  * runs (rsyslog omhttp, Vector, Fluent Bit, Logstash, syslog-ng http()) POSTs the
  * lines — one event per line, text/plain — to POST /security-events/webhook/cef,
@@ -112,7 +112,7 @@ export const cefAdapter: PushAdapter = {
   manifest: {
     kind: "cef", displayName: "Syslog / CEF", vendor: "Any (ArcSight CEF, rsyslog, syslog-ng, Vector, Fluent Bit, Logstash)", status: "available", plane: "data",
     inbound: "push", outbound: [], egressHosts: [],
-    summary: "CEF events and error-level syslog lines forwarded over HTTPS by a collector you run; one event per line, up to 200 per request. Legion opens no syslog port.",
+    summary: "CEF events and error-level syslog lines forwarded over HTTPS by a collector you run; one event per line, up to 200 per request. Argust opens no syslog port.",
     auth: "Per-credential HMAC-SHA256 over timestamp, nonce and raw body (Settings → Sensor credentials); replay-protected. POST /security-events/webhook/cef with Content-Type text/plain.",
   },
   normalize(body: unknown): NormalizeResult {

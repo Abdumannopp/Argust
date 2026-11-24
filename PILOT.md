@@ -1,8 +1,8 @@
-# Legion controlled pilot — readiness package (Task 12)
+# Argust controlled pilot — readiness package (Task 12)
 
 **Status: prepared, NOT deployed.** Nothing here has been started on a real host, exposed to a network, or switched to real actions. Every deploy step below needs explicit approval from the person responsible for the pilot (§12 records who).
 
-**Scope of the pilot:** one isolated test workspace, read-only integration (a Wazuh feed into Legion), every response action in **shadow/simulation** (computed and recorded, never executed), human approval for anything above low risk, and every workflow and execution attempt monitored.
+**Scope of the pilot:** one isolated test workspace, read-only integration (a Wazuh feed into Argust), every response action in **shadow/simulation** (computed and recorded, never executed), human approval for anything above low risk, and every workflow and execution attempt monitored.
 
 Evidence for every claim is in `pilot-results/rehearsal.json` (a live rehearsal against the real built server — §4, §7, §8), `ops/pilot-preflight.mjs` (the checklist as code), the test suites named in §4, and `E2E-REPORT.md`.
 
@@ -15,7 +15,7 @@ Evidence for every claim is in `pilot-results/rehearsal.json` (a live rehearsal 
 | Action modes | `shadow`, `simulation` only | `live` is refused unless a workspace administrator opted in to hybrid/automatic protection ([PROTECTION.md](PROTECTION.md)); pilot workspaces stay in `manual`, so no action is executed. Only block-address and e-mail-admins have executors. |
 | Autonomy | no policy ⇒ `OBSERVE` | Agents' proposals are recorded only. `ASSIST` (ask a person) may be set by the pilot owner. **`AUTONOMOUS` is not part of this pilot** (§12.3). |
 | Critical actions (R4) | always two other people + a fresh second factor | Enforced in code and by a database `CHECK`; no policy can lower it. |
-| High-risk (R3) by an agent, Legion, or anything model-proposed | always a person's approval | Policy floor. |
+| High-risk (R3) by an agent, Argust, or anything model-proposed | always a person's approval | Policy floor. |
 | Demo data, public sign-up, billing | off | `DEPLOYMENT_MODE=self-hosted`, `SEED_DEMO_DATA=false`. |
 | AI provider | empty | Alert text stays on your infrastructure. If you enable one, keep the workspace in **strict** data mode and have the terms signed first. |
 
@@ -27,8 +27,8 @@ Evidence for every claim is in `pilot-results/rehearsal.json` (a live rehearsal 
 - [ ] [manual] Pilot owner named; approver(s) named (≥2 people with admin role, each with two-factor, so the critical-action quorum is possible); on-call contact for each alert severity.
 - [ ] [manual] Host: Linux, Docker Engine ≥ 25 with Compose v2, NTP running (webhook timestamps and TOTP break on clock drift), disk ≥ 20 GB, backups target off the host.
 - [ ] [manual] Domain and DNS for the pilot hostname; certificate path decided (certbot or the CDN).
-- [ ] [manual] Wazuh manager reachable; the integration is the signed webhook only (Legion makes no call into the customer's systems).
-- [ ] [manual] SMTP account for Legion (resets, invitations, alert mail). Delivery tested.
+- [ ] [manual] Wazuh manager reachable; the integration is the signed webhook only (Argust makes no call into the customer's systems).
+- [ ] [manual] SMTP account for Argust (resets, invitations, alert mail). Delivery tested.
 - [ ] [manual] Backup recipients: two `age` public keys generated; **private keys stored off the host, in two places**.
 - [ ] [manual] Alert destination for Alertmanager exists (chat webhook or pager) and a human has confirmed they receive a test message (§9.3).
 - [ ] [manual] Customer/data owner has accepted what leaves their network (nothing, with no AI provider) and the retention defaults (`DATA-RETENTION.md`).
@@ -171,7 +171,7 @@ Full disaster procedure: `RECOVERY.md` (updated for containers).
 
 ## 9. Monitoring
 
-### 9.1 Dashboard — "Legion pilot" (Grafana, `monitoring/grafana/dashboards/legion-pilot.json`)
+### 9.1 Dashboard — "Argust pilot" (Grafana, `monitoring/grafana/dashboards/legion-pilot.json`)
 Rows: **Pilot safety** (live actions must be 0; emergency stop; API up; worker running) · **Workers and recovery** (seconds since worker pass, oldest due job, dead jobs, lapsed leases, stuck actions, worker errors; jobs by status) · **Workflows, approvals and execution attempts** (approvals waiting and oldest wait, approved-but-unused, workflow runs and failures, **every action request by status**, policy decisions, shadow divergence, audit events) · **Dependencies** (notification queue, AI circuit, DB pool, uptime). Start it: `docker-compose.monitoring.yml` header lists the commands; open via `ssh -L 3001:127.0.0.1:3001 host`.
 
 ### 9.2 Alerts (`monitoring/alerts.yml`, routed by `monitoring/alertmanager.yml`)
@@ -245,7 +245,7 @@ Never edit an applied migration (checksum guard) and never "fix" a chain by dele
 ### 12.3 Pilot acceptance criteria (run ≥ 14 days; ALL must hold to extend or to *ask* for more autonomy)
 **Safety (zero tolerance — any breach pauses the pilot):**
 1. `legion_soc_actions_live` was 0 throughout; no action existed outside shadow/simulation.
-2. No real block, alert change or payment resolution was made by an agent or by Legion (compare `ip_blocks`/`audit_log` against human actions).
+2. No real block, alert change or payment resolution was made by an agent or by Argust (compare `ip_blocks`/`audit_log` against human actions).
 3. Every critical-action proposal waited for the required approvers; none ran without.
 4. `GET /soc/audit/verify` `ok:true` every day; no key mismatch alert.
 5. No cross-workspace data exposure (isolation probes weekly: 0 findings).

@@ -30,7 +30,7 @@ const DECISION_STYLE: Record<string, { Icon: typeof CheckCircle2; tone: string }
   KILL: { Icon: OctagonX, tone: "text-critical" },
 };
 
-/** One decision Legion made about this agent, with why and what to do when it wasn't a plain yes. */
+/** One decision Argust made about this agent, with why and what to do when it wasn't a plain yes. */
 function DecisionItem({ d }: { d: AgentDecision }) {
   const { t, locale } = useLanguage();
   const a = t.agents;

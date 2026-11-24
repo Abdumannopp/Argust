@@ -21,6 +21,6 @@ export const assets = defineMessages({
     online: "Online",
     offline: "Offline",
     empty: "No devices match this view.",
-    loadError: "Couldn't reach the Legion API. Is the backend running?",
+    loadError: "Couldn't reach the Argust API. Is the backend running?",
   },
 });

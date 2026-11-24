@@ -8,7 +8,7 @@ import type { HostAdapter, MachineKind, RiskLevel } from "./types.js";
 /**
  * The agent registry: one row per machine identity with everything an
  * operator needs to answer "what is this agent, what can it do, what has it
- * touched, and should I worry" — computed from the records Legion already
+ * touched, and should I worry" — computed from the records Argust already
  * keeps (identities, grants, skills, the decision log, behaviour, approvals),
  * never from anything an agent reports about itself.
  */
