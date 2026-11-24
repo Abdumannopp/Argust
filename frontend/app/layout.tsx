@@ -42,7 +42,7 @@ export async function generateMetadata(): Promise<Metadata> {
   return {
     title: m.title,
     description: m.description,
-    applicationName: "Argust Cybersecurity Intelligence", // i18n-ignore: product name
+    applicationName: "Argust — Intelligent Cyber Defense", // i18n-ignore: product name
   };
 }
 

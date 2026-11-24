@@ -18,9 +18,10 @@ Argust runs on your own server. Your security data stays in your network unless 
 > e-mails, documentation, the licence — says Argust. Technical names that existing installations, sensors and
 > scripts already depend on keep the old spelling on purpose, so an upgrade breaks nothing: environment variables
 > (`LEGION_*`), HTTP headers (`x-legion-*`), database and role names, the `@legion/agent-identity` package, alert
-> sources such as `legion-correlation`, file names (`start-legion.ps1`, `custom-legion.py`, `/brand/legion-*.svg`),
+> sources such as `legion-correlation`, file names (`start-legion.ps1`, `custom-legion.py`),
 > the demo account (`admin@legion.demo`), Prometheus alert names (`LegionApiDown`…, which alert routing may match) and the Wazuh integration's User-Agent (`Legion-Wazuh-Integration`, which
-> Cloudflare rules may match). The repository itself is renamed in GitHub's settings.
+> Cloudflare rules may match). The repository itself is renamed in GitHub's settings. Logo files: `frontend/public/brand/argust-*.svg`
+> (the Argust brand kit; the original is kept in `docs/design/argust-brand-kit`).
 
 ---
 

@@ -1,8 +1,8 @@
 import { useId } from "react";
 
 /**
- * The Argust emblem: the purple Spartan helmet inside a shield (public/brand/legion-mark.svg, from the premium
- * brand pack). In colour it is the brand file itself, so every screen shows exactly the approved artwork with a
+ * The Argust mark: the abstract "A" in a blue-to-violet gradient (public/brand/argust-mark.svg, from the Argust
+ * brand kit). In colour it is the brand file itself, so every screen shows exactly the approved artwork with a
  * transparent background; `variant="mono"` is a one-colour silhouette in currentColor for embossing and print.
  */
 export default function LegionMark({
@@ -11,7 +11,7 @@ export default function LegionMark({
   className,
   title = "Argust",
 }: {
-  /** Width in px; the height follows the emblem's proportions. */
+  /** Width and height in px (the mark is square). */
   size?: number;
   variant?: "color" | "mono";
   className?: string;
@@ -25,9 +25,9 @@ export default function LegionMark({
     return (
       // eslint-disable-next-line @next/next/no-img-element
       <img
-        src="/brand/legion-mark.svg"
+        src="/brand/argust-mark.svg"
         width={size}
-        height={Math.round((size * 360) / 320)}
+        height={size}
         alt={title}
         aria-hidden={title ? undefined : true}
         className={className}

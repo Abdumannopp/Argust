@@ -1,0 +1,13 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="512" height="512" viewBox="0 0 512 512" role="img" aria-labelledby="title desc">
+  <title id="title">Argust dark app icon</title>
+  <desc id="desc">Rounded midnight navy app tile with the Argust abstract A symbol in a blue-to-violet gradient.</desc>
+  <defs>
+    <linearGradient id="tile" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#20294A"/><stop offset="1" stop-color="#090E20"/></linearGradient>
+    <linearGradient id="argustGradient" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#8CCBFF"/><stop offset="0.42" stop-color="#3978F6"/><stop offset="0.76" stop-color="#6547ED"/><stop offset="1" stop-color="#B58BFF"/></linearGradient>
+  </defs>
+  <rect x="18" y="18" width="476" height="476" rx="112" fill="url(#tile)"/>
+  <g transform="translate(76 79)">
+    <path d="M28 326 C69 253 130 128 166 82 C184 59 211 57 231 82 C264 126 310 246 350 326" fill="none" stroke="url(#argustGradient)" stroke-width="79" stroke-linecap="round" stroke-linejoin="round"/>
+    <path d="M88 243 C145 207 205 187 268 201" fill="none" stroke="url(#argustGradient)" stroke-width="70" stroke-linecap="round" stroke-linejoin="round"/>
+  </g>
+</svg>

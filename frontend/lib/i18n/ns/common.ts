@@ -6,7 +6,7 @@ import { defineMessages, plural } from "../core";
  */
 export const common = defineMessages({
   en: {
-    appTagline: "Cybersecurity Intelligence",
+    appTagline: "Intelligent Cyber Defense",
     loading: "Loading…",
     save: "Save",
     saving: "Saving…",
