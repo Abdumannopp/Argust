@@ -110,6 +110,14 @@ export default function CopilotPage() {
   const [conversation, setConversation] = useState<Turn[]>([]);
   const messages = [greeting, ...conversation];
   const [input, setInput] = useState("");
+  // The dashboard's "Analyze new alerts" opens the Copilot with a first question filled in. Filled in only:
+  // nothing is sent until the person presses Send.
+  useEffect(() => {
+    try {
+      const ask = new URLSearchParams(window.location.search).get("ask");
+      if (ask && ask.length <= 300) setInput((cur) => cur || ask);
+    } catch { /* no browser location: leave the box empty */ }
+  }, []);
   const [sending, setSending] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [overview, setOverview] = useState<Overview | null>(null);

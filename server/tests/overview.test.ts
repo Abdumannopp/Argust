@@ -88,6 +88,38 @@ describe("protection status", () => {
   });
 });
 
+describe("dashboard activity, campaigns and blocks", () => {
+  const alertAt = (tenant: string, id: string, hoursAgo: number) => query(
+    `INSERT INTO alerts (id, tenant_id, title, severity, agent, status, summary, confidence, source, created_at)
+     VALUES ($1, $2, $1, 'high', 'Sentinel', 'open', 's', 70, 'wazuh', now() - make_interval(mins => $3))`, [id, tenant, Math.round(hoursAgo * 60)]);
+  it("counts alerts per hour for the last 24 hours, and the 24 before them, for this workspace only", async () => {
+    await alertAt(tA, "a1", 0.2); await alertAt(tA, "a2", 0.3); await alertAt(tA, "a3", 5.5); await alertAt(tA, "a4", 30); await alertAt(tA, "a5", 40); await alertAt(tA, "old", 60);
+    await alertAt(tB, "b1", 0.2);
+    const o = await get(viewerA);
+    expect(o.activity.hours).toHaveLength(24);
+    expect(o.activity.hours.reduce((n: number, h: { count: number }) => n + h.count, 0)).toBe(3);
+    expect(o.activity.total_24h).toBe(3);
+    expect(o.activity.previous_24h).toBe(2);
+    // Oldest first, one entry per hour, the last one is the current hour.
+    const times = o.activity.hours.map((h: { at: string }) => Date.parse(h.at));
+    expect(times).toEqual([...times].sort((a: number, b: number) => a - b));
+    expect(times[23] - times[0]).toBe(23 * 3600_000);
+    expect((await get(adminB)).activity).toMatchObject({ total_24h: 1, previous_24h: 0 });
+  });
+  it("counts campaigns that are still going and addresses blocked right now", async () => {
+    const campaign = (id: string, tenant: string, lastSeenMinutes: number, status = "active") => query(
+      `INSERT INTO attack_campaigns (tenant_id, id, rule, subject, status, alert_count, sources, targets, techniques, last_seen)
+       VALUES ($1, $2, 'velocity', $2, $4, 5, '{}', '{}', '{}', now() - make_interval(mins => $3))`, [tenant, id, lastSeenMinutes, status]);
+    await campaign("CMP-1", tA, 5); await campaign("CMP-2", tA, 600); await campaign("CMP-3", tA, 5, "closed"); await campaign("CMP-4", tB, 5);
+    const block = (ip: string, tenant: string, expiresMinutes: number, revoked = false) => query(
+      `INSERT INTO ip_blocks (tenant_id, id, ip, reason, expires_at, revoked_at) VALUES ($1, $2, $3, 'test', now() + make_interval(mins => $4), ${revoked ? "now()" : "NULL"})`, [tenant, randomUUID(), ip, expiresMinutes]);
+    await block("45.155.205.12", tA, 60); await block("45.155.205.13", tA, -5); await block("45.155.205.14", tA, 60, true); await block("45.155.205.15", tB, 60);
+    const o = await get(viewerA);
+    expect(o).toMatchObject({ campaigns_active: 1, blocks_active: 1 });
+    expect(await get(adminB)).toMatchObject({ campaigns_active: 1, blocks_active: 1 });
+  });
+});
+
 describe("the test alert and the permission catalogue", () => {
   it("test alerts are admin-only, labelled, and capped", async () => {
     expect((await request(app).post("/security-events/test").set(...bearer(viewerA))).status).toBe(403);

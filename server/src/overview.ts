@@ -12,6 +12,7 @@
 import { DEFAULT_POLICY, PERMISSION_TIERS, policySchema, type Permission } from "@legion/agent-identity";
 import { config } from "./config.js";
 import { queryAll, queryOne } from "./db/pool.js";
+import { QUIET_MS } from "./campaigns.js";
 
 export type ProtectionStatus = "not_connected" | "waiting_for_data" | "attention" | "protected";
 export type SourceHealth = "receiving" | "waiting" | "silent" | "error" | "paused";
@@ -39,6 +40,11 @@ export interface Overview {
     approvals_pending: number;
     recent: { decision_id: string; at: string; agent_id: string; agent_name: string | null; action: string; decision: string; rules: string[]; reason: string | null }[];
   };
+  /** Alerts per hour over the last 24 hours (oldest first, 24 entries), with the 24 hours before for comparison. */
+  activity: { hours: { at: string; count: number }[]; total_24h: number; previous_24h: number };
+  /** Correlated attacks that are still going (no quiet hour yet), and addresses blocked right now. */
+  campaigns_active: number;
+  blocks_active: number;
   onboarding: { steps: { id: OnboardingStep; done: boolean; optional: boolean }[]; complete: boolean };
 }
 
@@ -87,6 +93,18 @@ export async function overview(tenantId: string): Promise<Overview> {
     // A real event: one a sensor or integration delivered (not a test or a sample).
     queryOne<{ ok: boolean }>(
       "SELECT EXISTS (SELECT 1 FROM alerts WHERE tenant_id = $1 AND source NOT IN ('legion-test', 'mock', 'legion-monitor', 'legion-agent-security')) AS ok", [tenantId]),
+  ]);
+
+  // The activity chart and the two counts under the headline numbers: all from this workspace's rows.
+  const [hourly, prev, campaignsActive, blocksActive] = await Promise.all([
+    queryAll<{ at: Date; n: number }>(
+      `SELECT h AS at, count(a.id)::int AS n
+         FROM generate_series(date_trunc('hour', now()) - interval '23 hours', date_trunc('hour', now()), interval '1 hour') h
+         LEFT JOIN alerts a ON a.tenant_id = $1 AND a.created_at >= h AND a.created_at < h + interval '1 hour'
+        GROUP BY h ORDER BY h`, [tenantId]),
+    queryOne<{ n: number }>("SELECT count(*)::int AS n FROM alerts WHERE tenant_id = $1 AND created_at > now() - interval '48 hours' AND created_at <= now() - interval '24 hours'", [tenantId]),
+    queryOne<{ n: number }>("SELECT count(*)::int AS n FROM attack_campaigns WHERE tenant_id = $1 AND status = 'active' AND last_seen > now() - make_interval(secs => $2)", [tenantId, QUIET_MS / 1000]),
+    queryOne<{ n: number }>("SELECT count(*)::int AS n FROM ip_blocks WHERE tenant_id = $1 AND revoked_at IS NULL AND expires_at > now()", [tenantId]),
   ]);
 
   const sources: Overview["protected"]["sources"] = [
@@ -159,6 +177,13 @@ export async function overview(tenantId: string): Promise<Overview> {
         };
       }),
     },
+    activity: {
+      hours: hourly.map((h) => ({ at: iso(h.at)!, count: h.n })),
+      total_24h: alerts?.last_24h ?? 0,
+      previous_24h: prev?.n ?? 0,
+    },
+    campaigns_active: campaignsActive?.n ?? 0,
+    blocks_active: blocksActive?.n ?? 0,
     onboarding: { steps, complete: steps.filter((s) => !s.optional).every((s) => s.done) },
   };
 }

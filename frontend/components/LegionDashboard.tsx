@@ -24,8 +24,12 @@ import {
   Alert,
   AlertStats,
   CurrentUser,
+  AttackCampaign,
   Overview,
+  ThreatCoverage,
   getAlertFeed,
+  getCampaigns,
+  getCoverage,
   getOverview,
   getStats,
   getMe,
@@ -45,7 +49,7 @@ import { useLanguage } from "@/lib/i18n/LanguageContext";
 import { suggestedActionText, timeAgo } from "@/lib/i18n/format";
 import ErrorNotice from "@/components/ErrorNotice";
 import ProtectionOverview from "@/components/ProtectionOverview";
-import { KpiRow, SeverityRing } from "@/components/DashboardWidgets";
+import { ActiveCampaigns, ArgustAiCard, CoverageCard, KpiRow, SeverityRing, ThreatActivity } from "@/components/DashboardWidgets";
 import { isTestSource, sourceLabel } from "@/lib/sources";
 
 type Severity = Alert["severity"];
@@ -336,6 +340,9 @@ export default function LegionDashboard() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<unknown>(null);
   const [overview, setOverview] = useState<Overview | null>(null);
+  // Linked attacks and what Argust can see: extra detail under the headline numbers (the page works without them).
+  const [campaigns, setCampaigns] = useState<AttackCampaign[] | null>(null);
+  const [coverage, setCoverage] = useState<ThreatCoverage[] | null>(null);
   const [explainingId, setExplainingId] = useState<string | null>(null);
   const [freshIds, setFreshIds] = useState<Set<string>>(new Set());
   // Drives the subscription banner. Fetched separately from the alert list so
@@ -353,6 +360,7 @@ export default function LegionDashboard() {
       statsTimer.current = null;
       getStats().then(setStats).catch(() => {});
       getOverview().then(setOverview).catch(() => {});
+      getCampaigns().then(setCampaigns).catch(() => {});
     }, 500);
   }, []);
   useEffect(() => () => { if (statsTimer.current) clearTimeout(statsTimer.current); }, []);
@@ -440,6 +448,8 @@ export default function LegionDashboard() {
       });
     // Also non-fatal: the alert list below works without it.
     getOverview().then(setOverview).catch(() => {});
+    getCampaigns().then(setCampaigns).catch(() => {});
+    getCoverage().then((c) => setCoverage(c.threats)).catch(() => {});
     load();
   }, [load, router]);
 
@@ -489,7 +499,19 @@ export default function LegionDashboard() {
             />
           )}
           {overview && <KpiRow data={overview} />}
-          <div className="grid lg:grid-cols-[minmax(0,1fr)_320px] gap-5 items-start">
+          {overview && (
+            <>
+              <div className="grid lg:grid-cols-[minmax(0,1.5fr)_minmax(0,1fr)_minmax(0,1fr)] gap-4 mb-4">
+                <ThreatActivity data={overview} />
+                <SeverityRing data={overview} />
+                <ArgustAiCard />
+              </div>
+              <div className="grid md:grid-cols-2 gap-4 mb-5">
+                <ActiveCampaigns campaigns={campaigns} />
+                <CoverageCard threats={coverage} />
+              </div>
+            </>
+          )}
           <div className="min-w-0">
           {overview && <ProtectionOverview data={overview} />}
           <h2 className="text-ink text-sm font-semibold mb-3 flex items-center gap-2">
@@ -563,10 +585,6 @@ export default function LegionDashboard() {
               )}
             </div>
           )}
-          </div>
-          <aside className="space-y-4 lg:sticky lg:top-6">
-            {overview && <SeverityRing data={overview} />}
-          </aside>
           </div>
         </div>
       </div>
