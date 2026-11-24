@@ -2,6 +2,7 @@ import { defineMessages, plural } from "../core";
 
 export const assets = defineMessages({
   en: {
+    kpi: { total: "Devices", online: "Online", atRisk: "High or critical risk", critical: "Critical risk" },
     title: "Assets",
     summary: (devices: number, online: number) =>
       `${plural("en", devices, { one: `${devices} device`, other: `${devices} devices` })} · ${online} online`,
