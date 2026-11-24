@@ -377,3 +377,11 @@ y18n                              5.0.8                   ISC
 yargs                             17.7.2                  MIT
 yargs-parser                      21.1.1                  ISC
 zod                               4.4.3                   MIT
+
+--------------------------------------------------------------------
+Inter (embedded in frontend/public/brand/argust-logo*.svg)
+--------------------------------------------------------------------
+Inter SemiBold, latin subset (from @fontsource/inter 5.3.0), is embedded in the Argust logo files so the
+wordmark renders the same on every device. Copyright (c) 2016 The Inter Project Authors
+(https://github.com/rsms/inter). Licensed under the SIL Open Font License, Version 1.1
+(https://openfontlicense.org).
