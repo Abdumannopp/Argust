@@ -1,11 +1,11 @@
--- Protection modes (manual / hybrid / automatic): the user-permitted, bounded way for Argust to act on its own.
+-- Protection modes (manual / hybrid / automatic): the user-permitted, bounded way for Legion to act on its own.
 --
 -- Default for every workspace: MANUAL, nothing runs live. A workspace administrator opts in (dashboard,
--- after confirming their password and accepting a written notice), and chooses which actions Argust may
--- take without asking (hybrid) or lets it take every action Argust can execute that is not critical (automatic).
+-- after confirming their password and accepting a written notice), and chooses which actions Legion may
+-- take without asking (hybrid) or lets it take every action Legion can execute that is not critical (automatic).
 --
 -- The database holds the lines that code must not be able to cross by mistake:
---   * only the actions Argust has a real executor for can be pre-authorised (a list here: adding one
+--   * only the actions Legion has a real executor for can be pre-authorised (a list here: adding one
 --     needs a new migration, like turning live on did);
 --   * an action that an AI model produced never runs live without a person's approval;
 --   * a critical (R4) action never runs without an approval, as before.
@@ -21,7 +21,7 @@ ALTER TABLE tenants ADD COLUMN IF NOT EXISTS protection_ack_version text;
 ALTER TABLE tenants ADD CONSTRAINT tenants_protection_ack_check
   CHECK (protection_mode = 'manual' OR protection_ack_at IS NOT NULL);
 
--- Notifications about what Argust did (or needs a person to decide).
+-- Notifications about what Legion did (or needs a person to decide).
 ALTER TABLE notification_outbox DROP CONSTRAINT IF EXISTS notification_outbox_kind_check;
 ALTER TABLE notification_outbox ADD CONSTRAINT notification_outbox_kind_check
   CHECK (kind IN ('alert_email', 'realtime_alert', 'protection_email'));

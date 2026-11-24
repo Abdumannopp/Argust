@@ -64,7 +64,7 @@ describe("re-running setup keeps the operator's settings", () => {
 describe("--domain", () => {
   it("accepts a plain hostname, either spelling", () => {
     expect(parseDomain(["--domain", "legion.example.com"])).toBe("legion.example.com");
-    expect(parseDomain(["--domain=Argust.Example.COM"])).toBe("legion.example.com");
+    expect(parseDomain(["--domain=Legion.Example.COM"])).toBe("legion.example.com");
     expect(parseDomain([], { LEGION_DOMAIN: "soc.acme.uz" })).toBe("soc.acme.uz");
   });
 

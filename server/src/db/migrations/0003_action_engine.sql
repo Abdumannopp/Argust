@@ -1,6 +1,6 @@
 -- Task 10, module 3: Action Engine v0.
 --
--- Every action anyone (person, agent, Argust) wants done becomes one row here,
+-- Every action anyone (person, agent, Legion) wants done becomes one row here,
 -- passes the policy engine, waits for approval when required, and is then
 -- SIMULATED: v0 computes what would happen and changes nothing. The database
 -- itself refuses live execution and refuses to let a high-risk action move
