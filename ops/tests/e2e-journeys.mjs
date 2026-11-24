@@ -225,6 +225,9 @@ async function main() {
   await page.getByRole("button", { name: "Investigate", exact: true }).click();
   await sees(page, "status changes to investigating", "Investigating");
   const alertId = page.url().split("/incident/")[1];
+  await page.locator("[data-testid=incident-insights]").waitFor({ timeout: 10_000 }).catch(() => {});
+  await sees(page, "incident shows the attack path, MITRE and related alerts", "Attack path");
+  await sees(page, "incident says plainly that the route in between is not seen", "does not see the route in between");
   await shot(page, "incident");
 
   // ---------------------------------------------------------------------------

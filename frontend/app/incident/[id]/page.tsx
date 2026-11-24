@@ -4,6 +4,7 @@ import ThreatIntelCard from "@/components/ThreatIntelCard";
 import ResponseCard from "@/components/ResponseCard";
 import AlertDeliveries from "@/components/AlertDeliveries";
 import AiBadge from "@/components/AiBadge";
+import IncidentInsights from "@/components/IncidentInsights";
 import { useState, useEffect } from "react";
 import { useRouter, useParams } from "next/navigation";
 import {
@@ -320,6 +321,8 @@ export default function IncidentDetailsPage() {
               )}
             </div>
           </div>
+
+          <IncidentInsights alert={alert} />
 
           <ThreatIntelCard alertId={alert.id} hasSourceIp={Boolean(alert.source_ip)} />
           <ResponseCard alertId={alert.id} target={alert.target ?? null} />
