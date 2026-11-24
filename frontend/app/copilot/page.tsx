@@ -70,6 +70,14 @@ function ContextRail({ overview, onAsk }: { overview: Overview | null; onAsk: (t
         <h2 id="ctx-title" className="text-ink text-sm font-semibold">{t.copilot.contextTitle}</h2>
         <p className="lg-eyebrow mt-1">{t.copilot.contextSubtitle}</p>
       </div>
+      {top[0] && (
+        <div className="lg-surface-soft p-3" data-testid="copilot-active-incident">
+          <p className="lg-eyebrow">{t.copilot.activeIncident}</p>
+          <p className="mt-1.5 text-xs font-semibold" style={{ color: severityColor[top[0].severity] }}>{t.common.severity[top[0].severity]}</p>
+          <p className="text-ink text-sm font-medium mt-0.5 break-words line-clamp-3">{top[0].title}</p>
+          <Link href={`/incident/${top[0].id}`} className="mt-2 text-[11px] text-brand-bright hover:underline inline-flex items-center gap-1">{t.copilot.openIncident}<ChevronRight size={11} /></Link>
+        </div>
+      )}
       <div>
         <p className="lg-eyebrow mb-2">{t.copilot.relatedAlerts}</p>
         {top.length === 0 ? (
@@ -110,6 +118,14 @@ export default function CopilotPage() {
   const [conversation, setConversation] = useState<Turn[]>([]);
   const messages = [greeting, ...conversation];
   const [input, setInput] = useState("");
+  // The dashboard's "Analyze new alerts" opens the Copilot with a first question filled in. Filled in only:
+  // nothing is sent until the person presses Send.
+  useEffect(() => {
+    try {
+      const ask = new URLSearchParams(window.location.search).get("ask");
+      if (ask && ask.length <= 300) setInput((cur) => cur || ask);
+    } catch { /* no browser location: leave the box empty */ }
+  }, []);
   const [sending, setSending] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [overview, setOverview] = useState<Overview | null>(null);

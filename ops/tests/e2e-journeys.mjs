@@ -225,6 +225,9 @@ async function main() {
   await page.getByRole("button", { name: "Investigate", exact: true }).click();
   await sees(page, "status changes to investigating", "Investigating");
   const alertId = page.url().split("/incident/")[1];
+  await page.locator("[data-testid=incident-insights]").waitFor({ timeout: 10_000 }).catch(() => {});
+  await sees(page, "incident shows the attack path, MITRE and related alerts", "Attack path");
+  await sees(page, "incident says plainly that the route in between is not seen", "does not see the route in between");
   await shot(page, "incident");
 
   // ---------------------------------------------------------------------------
@@ -452,6 +455,39 @@ async function main() {
   await sees(page, "why", "It may have been removed, or it belongs to a different workspace.");
   await sees(page, "what to do", "Check that you're in the right workspace");
   await shot(page, "error-explained");
+
+  console.log("▶ 13b. dashboard widgets: the activity chart, headline numbers, campaigns and coverage show this workspace's real rows");
+  // The workspace the person is in: the one holding the Wazuh alert from step 4 (a different one from "Acme Lab").
+  const [wazuhAlert] = await sql(DB, "SELECT tenant_id FROM alerts WHERE source = 'wazuh' ORDER BY created_at LIMIT 1");
+  if (wazuhAlert) {
+    const tid = wazuhAlert.tenant_id;
+    // 14 alerts spread over the last day (the busiest hour has 4), 3 in the 24 hours before, one correlated attack and one blocked address.
+    const hoursAgo = [0.3, 0.6, 1.5, 3.2, 3.4, 3.6, 3.8, 8.1, 8.9, 14.2, 16.7, 19.4, 22.1, 23.0, 26, 30, 40];
+    for (const [i, h] of hoursAgo.entries()) {
+      await sql(DB, `INSERT INTO alerts (id, tenant_id, title, severity, agent, status, summary, confidence, source, created_at)
+                     VALUES ($1, $2, $3, $4, 'Sentinel', 'open', 'seeded for the widgets check', 70, 'wazuh', now() - make_interval(mins => $5))`,
+        [`SEC-WID-${i}`, tid, `Seeded alert ${i}`, ["low", "medium", "high"][i % 3], Math.round(h * 60)]);
+    }
+    await sql(DB, `INSERT INTO attack_campaigns (tenant_id, id, rule, subject, status, alert_count, sources, targets, techniques, last_seen, alert_id)
+                   VALUES ($1, 'CMP-WID1', 'credential_attack', '45.155.205.12', 'active', 12, '{45.155.205.12}', '{web-01}', '{T1110}', now() - interval '4 minutes', 'SEC-WID-0')`, [tid]);
+    await sql(DB, `INSERT INTO ip_blocks (tenant_id, id, ip, reason, expires_at) VALUES ($1, gen_random_uuid(), '45.155.205.12', 'seeded', now() + interval '1 hour')`, [tid]);
+    await page.goto(`${WEB}/`);
+    const chartOk = await until(async () => (await page.locator("[data-testid=threat-activity] svg[role=img]").getAttribute("aria-label"))?.includes("alerts in the last 24 hours"), 15_000);
+    check("the activity chart is drawn from the hourly counts", !!chartOk);
+    const kpi = (await page.locator("[data-testid=kpi-row]").innerText()).replace(/\s+/g, " ");
+    const [{ n: last24 }] = await sql(DB, "SELECT count(*)::int AS n FROM alerts WHERE tenant_id = $1 AND created_at > now() - interval '24 hours'", [tid]);
+    check("alerts in the last 24 hours (the count in the database), with the change from the day before", kpi.includes(`Alerts, last 24 h ${last24} `) && /vs the 24 h before/.test(kpi), `${last24} expected; ${kpi}`);
+    check("one active campaign and one blocked address are counted", /Active campaigns 1 /.test(kpi) && /Addresses blocked 1 /.test(kpi), kpi);
+    await sees(page, "the active campaign is listed, in words", "Password attack");
+    check("the coverage card names the attack types Argust cannot see", (await page.locator("[data-testid=coverage-card]").innerText()).includes("Argust can see"));
+    await page.locator("[data-testid=ai-cta]").click();
+    await page.waitForURL(/\/copilot\?ask=/, { timeout: 10_000 }).catch(() => {});
+    const asked = await until(async () => (await page.locator("textarea").first().inputValue()).length > 10, 8_000);
+    check("Analyze new alerts opens the Copilot with the question filled in, and sends nothing", !!asked && (await page.locator("textarea").first().inputValue()).toLowerCase().includes("which of my open alerts"));
+    await page.goto(`${WEB}/`);
+    await page.locator("[data-testid=threat-activity]").waitFor({ timeout: 10_000 }).catch(() => {});
+    await shot(page, "dashboard-widgets");
+  } else bad("a Wazuh alert exists to find the workspace by");
 
   console.log("▶ 14. on a phone (390 px wide): every main page fits, and the bottom menu is there");
   await page.setViewportSize({ width: 390, height: 844 });

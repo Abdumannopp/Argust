@@ -869,6 +869,10 @@ export interface Overview {
     approvals_pending: number;
     recent: { decision_id: string; at: string; agent_id: string; agent_name: string | null; action: string; decision: FirewallDecisionName; rules: string[]; reason: string | null }[];
   };
+  /** Alerts per hour over the last 24 hours (oldest first), with the 24 hours before for comparison. */
+  activity: { hours: { at: string; count: number }[]; total_24h: number; previous_24h: number };
+  campaigns_active: number;
+  blocks_active: number;
   onboarding: { steps: { id: OnboardingStepId; done: boolean; optional: boolean }[]; complete: boolean };
 }
 

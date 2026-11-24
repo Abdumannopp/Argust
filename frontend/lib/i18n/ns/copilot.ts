@@ -22,6 +22,8 @@ export const copilot = defineMessages({
     contextTitle: "Investigation context",
     contextSubtitle: "Open alerts in this workspace",
     relatedAlerts: "Open alerts",
+    activeIncident: "Most urgent open alert",
+    openIncident: "Open incident",
     noRelated: "No open alerts right now.",
     askAbout: (title: string) => `Explain this alert and what I should check first: "${title}"`,
     approvalTitle: "A person decides",
