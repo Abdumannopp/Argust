@@ -487,6 +487,11 @@ async function main() {
     await page.goto(`${WEB}/`);
     await page.locator("[data-testid=threat-activity]").waitFor({ timeout: 10_000 }).catch(() => {});
     await shot(page, "dashboard-widgets");
+    await page.goto(`${WEB}/assets`);
+    await page.locator("[data-testid=asset-kpis]").waitFor({ timeout: 10_000 }).catch(() => {});
+    const kp = await page.locator("[data-testid=asset-kpis]").innerText().catch(() => "");
+    check("the Assets page counts devices, online and at-risk ones", /Devices/i.test(kp) && /Online/i.test(kp) && /Critical risk/i.test(kp), kp);
+    await shot(page, "assets-kpis");
   } else bad("a Wazuh alert exists to find the workspace by");
 
   console.log("▶ 14. on a phone (390 px wide): every main page fits, and the bottom menu is there");

@@ -87,6 +87,25 @@ export default function AssetsPage() {
             <p className="text-ink-muted text-xs mt-2">{t.assets.intro}</p>
           </div>
 
+          {!loading && machines.length > 0 && (
+            <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 mb-4" data-testid="asset-kpis">
+              {[
+                { label: t.assets.kpi.total, value: String(machines.length), hint: null, color: palette.brandBright },
+                { label: t.assets.kpi.online, value: String(onlineCount), hint: `${Math.round((onlineCount / machines.length) * 100)}%`, color: palette.success },
+                { label: t.assets.kpi.atRisk, value: String(riskCounts.critical + riskCounts.high), hint: null, color: palette.high },
+                { label: t.assets.kpi.critical, value: String(riskCounts.critical), hint: null, color: palette.critical },
+              ].map((k) => (
+                <div key={k.label} className="lg-surface px-4 py-3.5 min-w-0">
+                  <p className="lg-eyebrow">{k.label}</p>
+                  <p className="mt-1 flex items-baseline gap-2">
+                    <span className="text-2xl font-semibold tracking-tight" style={{ color: k.color }}>{k.value}</span>
+                    {k.hint && <span className="text-ink-faint text-xs">{k.hint}</span>}
+                  </p>
+                </div>
+              ))}
+            </div>
+          )}
+
           <div className="flex flex-wrap items-center gap-2 mb-4">
             <div className="relative flex-1 min-w-[180px]">
               <Search
