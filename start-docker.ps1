@@ -86,7 +86,7 @@ ALERT_EMAIL_MIN_SEVERITY=high
 # Leave both empty and analysis stays on your computer. Set one and alert
 # details are sent to that provider.
 OPENROUTER_API_KEY=
-OPENROUTER_MODEL=
+OPENROUTER_MODEL=anthropic/claude-haiku-5.5
 GROQ_API_KEY=
 GROQ_MODEL=llama-3.3-70b-versatile
 AI_PROVIDER=

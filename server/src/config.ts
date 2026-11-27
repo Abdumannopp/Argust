@@ -50,6 +50,15 @@ const deploymentMode = (process.env.DEPLOYMENT_MODE || "self-hosted") as
   | "self-hosted"
   | "saas";
 
+/** The OpenRouter model Argust asks for when OPENROUTER_MODEL is not set. */
+export const DEFAULT_OPENROUTER_MODEL = "anthropic/claude-haiku-5.5";
+/** "" means: send no model, use the OpenRouter account's default. */
+export function openrouterModelFrom(value: string | undefined): string {
+  const v = (value ?? "").trim();
+  if (!v) return DEFAULT_OPENROUTER_MODEL;
+  return v === "account-default" ? "" : v;
+}
+
 export const config = {
   isProduction,
   version: readVersion(),
@@ -182,12 +191,11 @@ export const config = {
   aiProvider: process.env.AI_PROVIDER || "",
   openrouterApiKey: process.env.OPENROUTER_API_KEY || "",
   /**
-   * Deliberately has no default. OpenRouter's catalogue changes, and shipping a
-   * hardcoded model id means every install breaks on the day that id retires.
-   * Left empty, the request omits the field and OpenRouter uses the account's
-   * own default model — which the customer sets where they can see the prices.
+   * Default: Claude Haiku 5.5 through OpenRouter (fast and inexpensive for alert explanations).
+   * Set OPENROUTER_MODEL to another OpenRouter model id to change it, or to "account-default"
+   * to send no model and let OpenRouter use the account's own default.
    */
-  openrouterModel: process.env.OPENROUTER_MODEL || "",
+  openrouterModel: openrouterModelFrom(process.env.OPENROUTER_MODEL),
   groqApiKey: process.env.GROQ_API_KEY || "",
   groqModel: process.env.GROQ_MODEL || "llama-3.3-70b-versatile",
 

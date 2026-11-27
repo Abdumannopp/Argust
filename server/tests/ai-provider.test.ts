@@ -117,3 +117,21 @@ describe("outbound request shape", () => {
     expect(resolveProvider(settings({ groqApiKey: "gsk-x" }))!.extraHeaders).toEqual({});
   });
 });
+
+describe("OpenRouter + Claude Haiku 5.5 by default", () => {
+  it("uses Claude Haiku 5.5 when OPENROUTER_MODEL is not set, and account-default sends no model", async () => {
+    const { openrouterModelFrom, DEFAULT_OPENROUTER_MODEL } = await import("../src/config.js");
+    expect(DEFAULT_OPENROUTER_MODEL).toBe("anthropic/claude-haiku-5.5");
+    expect(openrouterModelFrom(undefined)).toBe("anthropic/claude-haiku-5.5");
+    expect(openrouterModelFrom("  ")).toBe("anthropic/claude-haiku-5.5");
+    expect(openrouterModelFrom("account-default")).toBe("");
+    expect(openrouterModelFrom("vendor/other")).toBe("vendor/other");
+  });
+  it("recognises Claude models, which get no temperature and a larger, still capped, token limit", async () => {
+    const { isClaudeModel, CLAUDE_MAX_TOKENS } = await import("../src/ai.js");
+    expect(isClaudeModel("anthropic/claude-haiku-5.5")).toBe(true);
+    expect(isClaudeModel("meta-llama/llama-3.3-70b")).toBe(false);
+    expect(isClaudeModel("")).toBe(false);
+    expect(CLAUDE_MAX_TOKENS).toBeLessThanOrEqual(4_000);
+  });
+});

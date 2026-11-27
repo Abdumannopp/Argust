@@ -1,4 +1,4 @@
-# AI providers: OpenRouter and Groq
+# AI providers: OpenRouter (Claude Haiku 5.5) and Groq
 
 Argust's Oracle explanations and Copilot assistant can use an AI model. This is
 **optional**: with no key, both use local, deterministic analysis and **nothing
@@ -9,8 +9,8 @@ leaves the server**.
 Set whichever key you have — the one present is used:
 
 ```env
-OPENROUTER_API_KEY=sk-or-…     # choose a model at openrouter.ai/models
-OPENROUTER_MODEL=              # empty = the default model of your OpenRouter account
+OPENROUTER_API_KEY=sk-or-…     # the recommended provider
+OPENROUTER_MODEL=anthropic/claude-haiku-5.5   # the default; any id from openrouter.ai/models
 
 GROQ_API_KEY=gsk-…             # alternative
 AI_PROVIDER=                   # if both keys are set: write groq to use Groq
@@ -32,12 +32,14 @@ If it does not work, the server log says why (for example "no credit" or
 
 ## Two deliberate decisions
 
-**1. No default model for OpenRouter.**
-OpenRouter's model list changes. A model name written into the code today could
-be removed in six months, and from that day **AI would stop working on every
-customer's installation**. With the field empty, no model is sent and OpenRouter
-uses the default model of the customer's own account; the customer chooses a
-model where they can see its price.
+**1. OpenRouter + Claude Haiku 5.5 by default.**
+With only an OpenRouter key, Argust asks for `anthropic/claude-haiku-5.5`: fast and
+inexpensive for explaining alerts. Change it with `OPENROUTER_MODEL`, or set
+`OPENROUTER_MODEL=account-default` to send no model (OpenRouter then uses your account's
+default). A named model can be retired by OpenRouter one day; AI answers then stop (the
+local analysis takes over and the log says "unknown model") until the id is changed.
+For Claude models Argust sends no temperature (current Claude models refuse a non-default
+one) and allows up to 4,000 output tokens, because their thinking counts toward that limit.
 
 **2. A wrong setting switches AI off — it never falls back to another provider.**
 If `AI_PROVIDER=openrouter` is set without an OpenRouter key but a Groq key is
