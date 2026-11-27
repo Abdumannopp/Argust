@@ -104,7 +104,7 @@ To use a model, set one provider in `.env`:
 
 ```env
 OPENROUTER_API_KEY=sk-or-…     # one key, many vendors (models: https://openrouter.ai/models)
-OPENROUTER_MODEL=              # empty = your OpenRouter account's default model
+OPENROUTER_MODEL=anthropic/claude-haiku-5.5   # the default; any OpenRouter model id works
 
 GROQ_API_KEY=gsk-…             # alternative
 ```

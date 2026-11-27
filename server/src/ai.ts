@@ -175,6 +175,13 @@ export interface ChatOptions {
   evidence?: string;
 }
 
+/** Most tokens a Claude model may produce per answer, thinking included. */
+export const CLAUDE_MAX_TOKENS = 4_000;
+/** Claude models reached through OpenRouter ("anthropic/claude-…"). */
+export function isClaudeModel(model: string): boolean {
+  return /^anthropic\/claude-/.test(model);
+}
+
 /** Most bytes of provider response that are read. */
 const MAX_RESPONSE_BYTES = 256 * 1024;
 
@@ -278,8 +285,12 @@ export async function chatSafe(messages: ChatMessage[], options: ChatOptions = {
         // A fixed list of fields: nothing here can grant the model a tool.
         body: JSON.stringify({
           ...(provider.model ? { model: provider.model } : {}),
-          temperature: options.temperature ?? 0.2,
-          max_tokens: Math.min(1_000, options.maxTokens ?? 500),
+          // Current Claude models reject a non-default temperature, and their (adaptive) thinking
+          // counts against max_tokens, so they get no temperature and more room. Still capped.
+          ...(isClaudeModel(provider.model) ? {} : { temperature: options.temperature ?? 0.2 }),
+          max_tokens: isClaudeModel(provider.model)
+            ? Math.min(CLAUDE_MAX_TOKENS, (options.maxTokens ?? 500) * 4)
+            : Math.min(1_000, options.maxTokens ?? 500),
           messages: outgoing,
         }),
       });

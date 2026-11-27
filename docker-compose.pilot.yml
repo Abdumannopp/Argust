@@ -163,6 +163,7 @@ services:
       SOC_RETENTION_DAYS: ${SOC_RETENTION_DAYS:-365}
       AI_PROVIDER: ${AI_PROVIDER:-}
       OPENROUTER_API_KEY: ${OPENROUTER_API_KEY:-}
+      OPENROUTER_MODEL: ${OPENROUTER_MODEL:-anthropic/claude-haiku-5.5}
       GROQ_API_KEY: ${GROQ_API_KEY:-}
       # The first-run setup token is written here (a small volume, not the image).
       SETUP_TOKEN_FILE: /var/lib/legion/.legion-setup-token

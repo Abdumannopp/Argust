@@ -404,16 +404,17 @@ Two providers are supported. Set exactly one key:
 ```bash
 # Either — one key, many vendors' models, including free ones.
 OPENROUTER_API_KEY=sk-or-…
-OPENROUTER_MODEL=                 # optional; empty uses your account default
+OPENROUTER_MODEL=anthropic/claude-haiku-5.5   # the default; "account-default" uses your account's
 
 # Or
 GROQ_API_KEY=gsk-…
 ```
 
-Pick an OpenRouter model at <https://openrouter.ai/models>. Leaving
-`OPENROUTER_MODEL` empty is deliberate and safe: the request omits the field
-and OpenRouter applies your account's default, so no Argust upgrade can leave
-you pointed at a model that has since retired.
+OpenRouter with Claude Haiku 5.5 is the recommended setup: with only `OPENROUTER_API_KEY` set,
+Argust asks for `anthropic/claude-haiku-5.5`. To use another model, set its id from
+<https://openrouter.ai/models>; `OPENROUTER_MODEL=account-default` sends no model and lets
+OpenRouter use your account's default. If OpenRouter retires a model id, AI answers stop
+(Argust falls back to its local analysis and the log says "unknown model") until the id is changed.
 
 If both keys are set, OpenRouter is used. Set `AI_PROVIDER=groq` to override.
 Naming a provider whose key is missing turns AI **off** rather than falling

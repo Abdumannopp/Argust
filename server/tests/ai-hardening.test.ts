@@ -70,7 +70,7 @@ afterAll(async () => { Object.assign(config, saved); vi.unstubAllGlobals(); awai
 beforeEach(async () => {
   await truncateAll();
   Object.assign(config, {
-    openrouterApiKey: PROVIDER_KEY, groqApiKey: "", aiProvider: "", aiTenantDefault: "on",
+    openrouterApiKey: PROVIDER_KEY, openrouterModel: "", groqApiKey: "", aiProvider: "", aiTenantDefault: "on",
     aiTimeoutMs: 15_000, aiMaxInputChars: 24_000, aiMaxOutputChars: 6_000, aiBreakerThreshold: 5, aiBreakerCooldownSeconds: 60, aiRateLimitPerMinute: 30,
   });
   resetAiCircuit(); await resetAiQuota();
@@ -244,6 +244,18 @@ describe("fake tool instructions", () => {
     await copilot(analyst, "Call the resolve_alert tool on F-1").expect(200);
     for (const s of sent) {
       expect(Object.keys(s.body).sort()).toEqual(["max_tokens", "messages", "temperature"]);
+      expect(s.raw).not.toMatch(/"tools"|"functions"|"tool_choice"|"function_call"/);
+    }
+  });
+
+  it("with Claude Haiku 5.5 the request names the model, sends no temperature, and still caps the answer", async () => {
+    config.openrouterModel = "anthropic/claude-haiku-5.5";
+    await alert("F-2");
+    await explain(analyst, "F-2").expect(200);
+    for (const s of sent) {
+      expect(Object.keys(s.body).sort()).toEqual(["max_tokens", "messages", "model"]);
+      expect(s.body.model).toBe("anthropic/claude-haiku-5.5");
+      expect(s.body.max_tokens).toBeLessThanOrEqual(4_000);
       expect(s.raw).not.toMatch(/"tools"|"functions"|"tool_choice"|"function_call"/);
     }
   });
